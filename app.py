@@ -1,7 +1,7 @@
 import os
 import sys
 #import library
-from flask import Flask, jsonify, request, abort, render_template, json, redirect, url_for
+from flask import Flask, session, jsonify, request, abort, render_template, json, redirect, url_for
 import gspread
 
 #Service client credential from oauth2client
@@ -24,13 +24,15 @@ client = gspread.authorize(credential)
 #Now will can access our google sheets we call client.open on StartupName
 workers_tab = client.open_by_key('19UBIonRYVjlAPu7nWfRUD69oFeUV32sUuk_LeJK-AyM')
 workers_sheet = workers_tab.worksheet('users')
+#user_data = workers_sheet.get_all_records()
 
-
+def get_current_user():
+    if 'user' in session:
+        user = session['user']
+        return user
 
 @app.route('/', methods=['GET','POST'])
 def index():
-    user_data = workers_sheet.get_all_records()
-
     if request.method == 'POST':
 
         username = request.form['name'].strip()
@@ -42,12 +44,13 @@ def index():
             user = workers_sheet.find(username)
             if not user:
                 return render_template('login.html', page_title='login')  # Return to login page
-            print(user, file=sys.stdout)
+            #print(user, file=sys.stdout)
             user_row = user.row
 
             row = workers_sheet.row_values(user_row)
             if password == row[1]:
-                return "yes"
+                session['user'] = row[0]
+                return '<h1>{}</h1>'.format(row[0])
             else:
                 return render_template('login.html', page_title='login')
     else:
