@@ -16,6 +16,8 @@ scope = [
 'https://www.googleapis.com/auth/drive'
 ]
 
+warning={}
+
 #create some credential using that scope and content of startup_funding.json
 credential = ServiceAccountCredentials.from_json_keyfile_name('startup_funding.json',scope)
 
@@ -40,21 +42,25 @@ def index():
         password = request.form['password'].strip()
 
         if (not username or not password) or (username == 'username' and password == 'password'): # If username or password is empty
-            return render_template('login.html', page_title='login') # Return to login page
+            warning['login']='Pole nesmí být prázdné'
+            return render_template('login.html', page_title='login', login_text=warning['login']) # Return to login page
         else:
             user = workers_sheet.find(username)
             if not user:
-                return render_template('login.html', page_title='login')  # Return to login page
+                warning['login'] = 'Jméno je špatné'
+                return render_template('login.html', page_title='login',login_text = warning["login"])  # Return to login page
             #print(user, file=sys.stdout)
             user_row = user.row
-
             row = workers_sheet.row_values(user_row)
             if password == row[1]:
                 session['user_name'] = row[0]
                 session['role'] = row[2]
-                return render_template('result.html', page_title='result', user=session.get('user_name'), role = int(session.get('role')))
+                return render_template('result.html', page_title='result',
+                                       user=session.get('user_name'),
+                                       role = int(session.get('role')))
             else:
-                return render_template('login.html', page_title='login')
+                warning['login'] = 'Heslo je špatné'
+                return render_template('login.html', page_title='login',login_text = warning["login"])
     else:
         return render_template('login.html', page_title='login')
 

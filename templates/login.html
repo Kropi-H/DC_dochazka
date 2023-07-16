@@ -4,16 +4,22 @@
 
 <div class="container" style="display: flex; justify-content: center; align-items: center; height: 80vh">
 <form method="POST">
-  <span>{{ warning_text }}</span>
+<div>
+  <div class="text-danger" style="text-align:center;">
+    <span style="font-weight:700;">{{ login_text }}</span>
+  </div>
+
   <div class="form-group">
     <label for="exampleInputEmail1">Uživatelské jméno</label>
-    <input type="text" name="name" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Uživatelské jméno" required>
+    <input type="text" name="name" class="form-control is-invalid" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Uživatelské jméno" required>
   </div>
+
   <div class="form-group">
     <label for="exampleInputPassword1">Heslo</label>
     <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Heslo" required>
   </div>
   <button type="submit" class="btn btn-primary">Prihlásit</button>
+  </div>
 </form>
 </div>
 
