@@ -30,8 +30,8 @@ workers_sheet = workers_tab.worksheet('users')
 #user_data = workers_sheet.get_all_records()
 
 def get_current_user():
-    if 'user' in session:
-        user = session['user']
+    if 'user_name' in session:
+        user = session['user_name']
         return user
 
 @app.route('/', methods=['GET','POST'])
@@ -68,9 +68,18 @@ def index():
 def login():
     pass
 
-@app.route('/register_new_user')
+@app.route('/register_new_user', methods=['GET','POST'])
 def register_new_user():
-    pass
+    user = get_current_user()
+    if not user:
+        return redirect('/')
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['second_name']
+        password = request.form['password']
+        working_role = request.form['role']
+        email = request.form['email']
+        phone = request.form['phone']
 
 @app.route('/new_attendence')
 def new_attendence():

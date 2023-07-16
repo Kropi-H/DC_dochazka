@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container">
+<div class="row">
+    <form method="POST">
+        <div class="py-5 text-center">
+            <h1 class="mb-3">Registrace</h1>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="input_first_name">Jmeno</label>
+                <input type="text" name="first_name" class="form-control" id="input_first_name" placeholder="Jméno" value = "">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="input_last_name">Příjmení</label>
+                <input type="text" name="second_name" class="form-control" id="input_last_name" placeholder="Příjmení" value=""}>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="input_password">Heslo</label>
+                <input type="password" name="password" class="form-control" id="input_password">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="input_role">Pracovní role</label>
+                <input type="number" name="role" class="form-control" id="input_role" placeholder="worker(1), manager(2)" min="1" max="2">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="input_email">Email</label>
+                <input type="email" name="email" class="form-control" id="input_email" placeholder="email@senzam.cz">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="input_phone">Telefon</label>
+                <input type="phone" name="phone" class="form-control" id="input_phone" placeholder="123456789">
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Nová registrace</button>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}
