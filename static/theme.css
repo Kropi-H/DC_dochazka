@@ -1,0 +1,170 @@
+html, body {
+  height: 100%;
+}
+
+.container, .row {
+  height: 100%;
+  min-height: 80%;
+}
+
+.greet{
+font-size: 5em;
+font-weight:bold;
+text-align:center;
+}
+
+.top-buffer { margin-top:20px; }
+
+.profile-user-details-value  {
+margin: 10px 0 0 0;
+}
+
+
+.article_wrapper {
+text-align: center;
+background-color:none;
+}
+
+.navbar .navbar-nav {
+  display: block;
+  float: none;
+  vertical-align: top;
+}
+
+.navbar .navbar-collapse {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+    .navbar .navbar-nav {
+        display: inline-block;
+        float: none;
+        vertical-align: top;
+    }
+
+    .navbar .navbar-collapse {
+        text-align: center;
+    }
+}
+
+.cridentials {
+text-decoration:underline red;
+}
+
+.page-header {
+    background: #00bcd4;
+    margin: 0;
+}
+
+.profile-head {
+    height: 400px;
+    width: 100%;
+    float: left;
+    position: relative;
+}
+
+.profile-head img {
+    margin: 0 auto;
+    border-radius: 5px;
+    max-width: 100%;
+    width: 100%;
+}
+
+.profile-head h5 {
+    width: 100%;
+    padding: 5px 5px 0px 5px;
+    text-align: justify;
+    font-weight: bold;
+    color: #555;
+    font-size: 25px;
+    text-transform: capitalize;
+    margin-bottom: 0;
+}
+
+.profile-head p {
+
+
+text-align: justify;
+    padding: 0px 5px 5px 5px;
+    color: #555;
+    font-size: 17px;
+    text-transform: capitalize;
+    margin: 0;
+}
+
+
+
+.profile-head ul {
+    list-style: none;
+    padding: 0;
+}
+
+.profile-head ul li {
+    display: block;
+    color: #555;
+    padding: 5px;
+    font-weight: 400;
+    font-size: 15px;
+}
+
+.profile-head ul li:hover span {
+    color: rgb(0, 4, 51);
+}
+
+.profile-head ul li span {
+    color: #555;
+    padding-right: 10px;
+}
+
+.profile-head ul li a {
+    color: #555;
+}
+
+.profile-head h4 {
+    color: #555;
+    margin-bottom: 5px;
+}
+
+
+/*media query*/
+
+@media all and (max-width:768px) {
+    a.menu {
+        display: block !important;
+        margin: 9px 2px;
+        float: right;
+        color: rgba(255, 102, 0, 0.98);
+        border: 0px solid;
+        background: none;
+        font-size: 30px;
+        width: 27px;
+        position: relative;
+        cursor: pointer;
+    }
+    a.menu:hover,
+    a.menu:focus {
+        color: rgb(0, 4, 51);
+    }
+    .drop_menu1 {
+        display: block;
+        visibility: visible;
+        width: 250px;
+        height: 1000px;
+        padding: 5px 30px;
+        position: absolute;
+        right: 0 !important;
+        background-color: #ffffff !important;
+        transition: all ease 0.5s;
+        border-top: 0px solid;
+        cursor: pointer;
+    }
+}
+
+@media all and (max-width:430px) {
+    .profile-head ul li {
+        font-size: 12px !important;
+    }
+    .bio-table>tbody>tr>td {
+        font-size: 13px;
+    }
+}

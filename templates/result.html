@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+    <article >
+        <div style="display:flex; justify-content:center">
+            {{ for item in result }}
+            <h5> {% item['name'] %}</h5>
+            {{ endfor }}
+        </div>
+    </article>
+</div>
+
+{% endblock %}
