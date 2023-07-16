@@ -43,13 +43,23 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Docházka<span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Přehled docházky</a></li>
+        {% if user or user and role >= 2 %}
+        <li class="active"><a href="#">Docházka {{ user.capitalize() }}<span class="sr-only">(current)</span></a></li>
+        {% endif %}
+        {% if user and role >= 2 %}
+        <li><a href="#">Přehled docházky všech</a></li>
+        {% endif %}
       </ul>
       <ul class="nav navbar-nav navbar-right">
+        {% if not user %}
         <li><a href="#">Přihlásit</a></li>
-        <li><a href="#">Registrovat</a></li>
-        <li><a href="#">Odhlásit</a></li>
+        {% endif %}
+        {% if user and role == 3%}
+        <li><a href="#">Nová registrace</a></li>
+        {% endif %}
+        {% if user %}
+        <li><a href="{{ url_for('logout') }}">Odhlásit</a></li>
+        {% endif %}
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

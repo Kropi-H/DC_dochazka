@@ -9,6 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
 
 scope = [
 'https://www.googleapis.com/auth/spreadsheets',
@@ -49,8 +50,9 @@ def index():
 
             row = workers_sheet.row_values(user_row)
             if password == row[1]:
-                session['user'] = row[0]
-                return '<h1>{}</h1>'.format(row[0])
+                session['user_name'] = row[0]
+                session['role'] = row[2]
+                return render_template('result.html', page_title='result', user=session.get('user_name'), role = int(session.get('role')))
             else:
                 return render_template('login.html', page_title='login')
     else:
@@ -74,7 +76,9 @@ def attendence_overview():
 
 @app.route('/logout')
 def logout():
-    pass
+    session['name'] = None
+    return redirect("/")
+
 
 if __name__=='__main__':
     app.run(debug=True)
