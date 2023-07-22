@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+    <article >
+        <div style="display:flex; justify-content:center">
+
+            <h1>Nový uživatel {{ new_user_data[0] }} přidán pod číslem {{ new_user_data[7] }}</h1>
+
+        </div>
+    </article>
+</div>
+<script>
+     window.setTimeout(function(){
+
+       // Move to a new location or you can do something else
+       window.location.href = "/register_new_user";
+
+       }, 3000);
+
+ </script>
+
+{% endblock %}
