@@ -73,6 +73,8 @@ def register_new_user():
     user = get_current_user()
     if not user:
         return redirect('/')
+    if request.method == 'GET':
+        return render_template('new_registration.html', page_title='Nová registrace')
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['second_name']
@@ -80,6 +82,14 @@ def register_new_user():
         working_role = request.form['role']
         email = request.form['email']
         phone = request.form['phone']
+        row=first_name, password, working_role, first_name, last_name, email, phone
+        #
+        length_of_list = len(workers_sheet.get_all_values())
+        workers_sheet.insert_row(row,length_of_list+1)
+        return '{}'.format(workers_sheet.get_all_values())
+
+
+
 
 @app.route('/new_attendence')
 def new_attendence():
