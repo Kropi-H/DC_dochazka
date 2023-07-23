@@ -3,12 +3,22 @@ import sys
 #import library
 from flask import Flask, session, jsonify, request, abort, render_template, json, redirect, url_for
 import gspread
+from flask_bootstrap import Bootstrap
+from flask_wtf import FlaskForm
+from wtforms import DateField
+from wtforms import TimeField
+#from wtforms import DataRequired
+from wtforms import validators, SubmitField
+from wtforms.validators import DataRequired
+
+
 
 #Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
 
 
 app = Flask(__name__)
+Bootstrap(app)
 app.config['SECRET_KEY'] = os.urandom(24)
 
 scope = [
@@ -34,6 +44,12 @@ def get_current_user():
         user = session['user_name']
         return user
 
+class InfoForm(FlaskForm):
+    startdate = DateField('Datum', format='%Y-%m-%d')
+    starttime = TimeField('Začátek')
+    endtime = TimeField('Konec')
+    submit = SubmitField('Odeslat')
+
 @app.route('/', methods=['GET','POST'])
 def index():
     if request.method == 'POST':
@@ -55,9 +71,7 @@ def index():
             if password == row[1]:
                 session['user_name'] = row[0]
                 session['role'] = row[2]
-                return render_template('result.html', page_title='result',
-                                       user=session.get('user_name'),
-                                       role = int(session.get('role')))
+                return redirect(url_for('attendence_individual'))
             else:
                 warning['login'] = 'Heslo je špatné'
                 return render_template('login.html', page_title='login',login_text = warning["login"])
@@ -95,9 +109,21 @@ def register_new_user():
 
 
 
-@app.route('/new_attendence')
-def new_attendence():
-    pass
+@app.route('/attendence_individual', methods=['GET', 'POST'])
+def attendence_individual():
+    user = get_current_user()
+    user=session.get('user_name')
+    role = int(session.get('role'))
+
+    form = InfoForm()
+    if form.validate_on_submit():
+        startdate = form.startdate.data
+        starttime = form.starttime.data
+        endtime = form.endtime.data
+
+        return '<h1>Date: {} Start Time: {} End Time: {}</h1>'.format(startdate, starttime, endtime)
+
+    return render_template('attendence_individual.html', page_title='Zadání docházky', user = user, role=role, form=form)
 
 @app.route('/attendence_overview')
 def attendence_overview():

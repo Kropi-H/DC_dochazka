@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
+    <article >
+        <div style="display:flex; justify-content:center">
+            <h1>Docházka {{ user.capitalize() }}</h1>
+        </div>
+        <form action="{{ url_for('attendence_individual') }}" method='POST'>
+    {{ form.csrt_token }}
+    {{ form.startdate.label }} {{form.startdate(class='datepicker')}} {{form.hidden_tag()}}
+    {{ form.starttime.label }} {{form.starttime(class='timepicker')}} {{form.hidden_tag()}}
+    {{ form.endtime.label }} {{form.endtime(class='timepicker')}} {{form.hidden_tag()}}
+    <p>
+    {{form.submit()}}
+    </p>
+</form>
+    </article>
+</div>
+
+{% endblock %}
