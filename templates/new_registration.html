@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
-
 {% block body %}
 <div class="container">
-<div class="row">
-    <form method="POST">
-        <div class="py-5 text-center">
+ <div class="py-5 text-center">
+    <form method="POST" class="form-signin" style="max-width: 600px; margin:auto;padding:15px"  >
+
             <h1 class="mb-3">Nová registrace</h1>
-        </div>
+
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="input_first_name">Jmeno</label>
@@ -41,6 +40,6 @@
             <button type="submit" class="btn btn-success">Registrovat</button>
         </div>
     </form>
-</div>
+ </div>
 </div>
 {% endblock %}

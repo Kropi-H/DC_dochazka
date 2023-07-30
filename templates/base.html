@@ -9,7 +9,7 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
 
 
       <!-- <link rel="stylesheet" type="text/css" href="css/bootstrap-datetimepicker.css"> -->
@@ -19,7 +19,7 @@
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename = 'bootstrap.min.css' )}}" rel="stylesheet">
+    <!-- <link href="{{ url_for('static', filename = 'bootstrap.min.css' )}}" rel="stylesheet"> -->
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename = 'theme.css' )}}" rel="stylesheet">
 
@@ -46,7 +46,8 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         {% if user or user and role >= 2 %}
-        <li class="active"><a href="#">Docházka {{ user.capitalize() }}<span class="sr-only">(current)</span></a></li>
+        <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user.capitalize() }}<span class="sr-only">(current)</span></a></li>
+        <li class=""><a href="{{ url_for('attendence_overview') }}">Přehled {{ user.capitalize() }}<span class="sr-only"></span></a></li>
         {% endif %}
         {% if user and role >= 2 %}
         <li><a href="#">Přehled docházky všech</a></li>

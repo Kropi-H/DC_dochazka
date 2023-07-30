@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block body %}
+
+<div class="container">
+    <div class="py-5">
+        <div class="text-center" style="display:flex; justify-content:center">
+            <h1>Přehled {{ user.capitalize() }}</h1>
+        </div>
+
+
+        <!-- Split button -->
+<div class="btn-group">
+  <button type="button" class="btn btn-primary">Červenec</button>
+  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="caret"></span>
+    <span class="sr-only">Toggle Dropdown</span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="#">Leden</a></li>
+    <li><a href="#">Únor</a></li>
+    <li><a href="#">Březen</a></li>
+    <li><a href="#">Duben</a></li>
+      <li><a href="#">Květen</a></li>
+      <li><a href="#">Červen</a></li>
+      <li><a href="#">Červenec</a></li>
+      <li><a href="#">Srpen</a></li>
+      <li><a href="#">Září</a></li>
+      <li><a href="#">Listopad</a></li>
+      <li><a href="#">Prosinec</a></li>
+  </ul>
+</div>
+        <div class="panel panel-default">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Hodiny</th>
+                    <th>Olepka</th>
+                    <th><Pila></Pila></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in user_month_values %}
+                {% for y in i %}
+                <tr>
+                    <td>{{ y[0] }}</td>
+                    <td>{{ y[3] }}</td>
+                    <td>{% if y[4] == 'olepka' %} {{ y[5] }} {% endif %}</td>
+                    <td>{% if y[4] == 'pila' %} {{ y[5] }} {% endif %}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+                <tr class="table-dark">
+                    <td>Celkem</td>
+                    <td>{{ user_value[7] }}</td>
+                    <td>{{ user_value[8] }}</td>
+                    <td>{{ user_value[9] }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

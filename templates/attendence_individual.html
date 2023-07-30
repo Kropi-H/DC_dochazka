@@ -1,22 +1,68 @@
 {% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block body %}
 
-<div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
-    <article >
-        <div style="display:flex; justify-content:center">
-            <h1>Docházka {{ user.capitalize() }}</h1>
-        </div>
-        <form action="{{ url_for('attendence_individual') }}" method='POST'>
-    {{ form.csrt_token }}
-    {{ form.startdate.label }} {{form.startdate(class='datepicker')}} {{form.hidden_tag()}}
-    {{ form.starttime.label }} {{form.starttime(class='timepicker')}} {{form.hidden_tag()}}
-    {{ form.endtime.label }} {{form.endtime(class='timepicker')}} {{form.hidden_tag()}}
-    <p>
-    {{form.submit()}}
-    </p>
-</form>
-    </article>
+<div class="container">
+    <div class="py-5 text-center">
+
+        <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
+              action="{{ url_for('attendence_individual') }}" method='POST'>
+
+            <div class="" style="display:flex; justify-content:center">
+                <h1>Docházka {{ user.capitalize() }}</h1>
+            </div>
+            <div class="row">
+
+                    {{ form.csrt_token }}
+                    <div class="col-md-4 mb-15">
+
+                        {% if form.startdate.errors %}
+                        {% for error in form.startdate.errors %}
+                        <label class="control-label" for="startdate">{{ error }}</label>
+                        {% endfor %}
+                        {% else %}
+                        {{ form.startdate.label(class='form-control-label', for='startdate') }}
+                        {% endif %}
+                        {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
+
+                    </div>
+                    <div class="col-md-4 mb-15">
+                        {{ form.starttime.label(class='form-control-label', for='starttime') }}
+                        {{ form.starttime(class='form-control') }} {{ form.hidden_tag() }}
+                        <small>
+                        </small>
+                    </div>
+
+                    <div class="col-md-4 mb-15">
+                        {{ form.endtime.label(class='form-control-label', for='endtime') }}
+                        {{ form.endtime(class='form-control') }} {{ form.hidden_tag() }}
+                        <small>
+                        </small>
+                    </div>
+
+
+
+                    <div class="col-md-6 mb-15">
+                        {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
+                        {{form.selectfield(class='form-control')}} {{form.hidden_tag()}}
+                    </div>
+                    <div class="col-md-6 mb-15">
+                        {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
+                        {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
+                    </div>
+
+
+                <div class="form-group mb-15">
+                    <div class="col-md-12 mb-15">
+                        {{form.textfield(class='form-control')}} {{form.hidden_tag()}}
+                    </div>
+                </div>
+            </div>
+            {{form.submit(class="btn btn-primary btn-lg btn-block")}}
+
+        </form>
+    </div>
 </div>
 
 {% endblock %}

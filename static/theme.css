@@ -47,13 +47,20 @@ background-color:none;
     }
 }
 
+.table-dark{
+    background-color: #286090;
+    color:#fff
+}
+
 .cridentials {
 text-decoration:underline red;
 }
+.mb-15 {
+margin-bottom:15px
+}
 
-.page-header {
-    background: #00bcd4;
-    margin: 0;
+.control-label {
+color:red;
 }
 
 .profile-head {
