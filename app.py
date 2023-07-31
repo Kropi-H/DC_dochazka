@@ -7,8 +7,8 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import fields, DateField, TimeField, TextAreaField, SelectField,IntegerField
-from wtforms.validators import DataRequired,InputRequired
+from wtforms import fields, DateField, TimeField, TextAreaField, SelectField,IntegerField, validators
+from wtforms.validators import DataRequired,InputRequired, Optional, NumberRange, StopValidation
 from wtforms_components import DateRange
 import calendar
 
@@ -51,8 +51,9 @@ class InfoForm(FlaskForm):
                           validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
-    selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('jine','JINÉ')],validators=[DataRequired()])
-    numberfield = IntegerField(label='Počty',render_kw={'placeholder': 'Počet desek / metrů ...'}) #, validators=[InputRequired(message=None)]
+    selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('jine','JINÉ')],
+                              validators=[DataRequired()])
+    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
 
@@ -128,7 +129,7 @@ def attendence_individual():
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
         selectfield = form.selectfield.data
-        numberfield = int(form.numberfield.data)
+        numberfield = form.numberfield.data
         textfield = form.textfield.data
 
         hodiny_start, minuty_start = map(int, starttime.split(':'))
@@ -164,25 +165,39 @@ def attendence_individual():
 
     return render_template('attendence_individual.html', page_title='Zadání docházky', user = user, role=role, form=form)
 
-@app.route('/attendence_overview', methods=['GET', 'POST'])
-def attendence_overview():
+@app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
+def attendence_overview(select_month):
     user=session.get('user_name')
     role = 1
 
     if request.method == 'GET':
-        months = {'červenec':'01.07.2023'}
+        months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
+                  7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
+        months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
+        currentYear = datetime.now().year
+        #currentMonth = datetime.now().month
+        currentMonth = select_month
+        currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
+
         attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
         attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
-        current_date = attendece_sheet.find(months['červenec']) # Find current day cell
+
+        current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
         date_row = current_date.row # Current day row
-        #print(date_row, file=sys.stdout)
+        #print(currentMonthRange, file=sys.stdout)
         row_value = attendece_sheet.row_values(current_date.row)
+        current_table_range = f'A{date_row}:G{(date_row+currentMonthRange)-1}'
+        months_values = attendece_sheet.batch_get((current_table_range,))
+        #return '{}'.format(currentMonth)
 
-        months_values = attendece_sheet.batch_get(('A183:G213',))
-        #return '{}'.format(months_values)
 
-
-        return render_template('attendece_overview.html', page_title = 'Přehled', user = user, role = role, user_value = row_value, user_month_values = months_values)
+        return render_template('attendece_overview.html',
+                               page_title = 'Přehled',
+                               user = user,
+                               role = role,
+                               user_value = row_value,
+                               user_month_values = months_values,
+                               months_name=months_name[select_month-1])
 
 @app.route('/logout')
 def logout():
