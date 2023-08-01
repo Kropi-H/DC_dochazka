@@ -12,7 +12,7 @@
 
         <!-- Split button -->
 <div class="btn-group">
-  <button type="button" class="btn btn-primary">{{ months_name }}</button>
+  <button type="button" class="btn btn-primary">{{ month_name }}</button>
   <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <span class="caret"></span>
     <span class="sr-only">Toggle Dropdown</span>
@@ -38,8 +38,12 @@
                 <tr>
                     <th>Datum</th>
                     <th>Hodiny</th>
-                    <th>Olepka</th>
-                    <th>Pila</th>
+                    {% if 'olepka' in found_strings %}<th>Olepka</th>{% endif %}
+                    {% if 'pila' in found_strings %}<th>Pila</th>{% endif %}
+                    {% if 'sklad' in found_strings %}<th>Sklad</th>{% endif %}
+                    {% if 'zavoz' in found_strings %}<th>Závoz</th>{% endif %}
+                    {% if 'kancl' in found_strings %}<th>Kancelář</th>{% endif %}
+                    {% if 'jine' in found_strings %}<th>Jiné</th>{% endif %}
                 </tr>
                 </thead>
                 <tbody>
@@ -48,16 +52,25 @@
                 <tr>
                     <td>{{ y[0] }}</td>
                     <td>{{ y[3] }}</td>
-                    <td>{% if y[4] == 'olepka' %} {{ y[5] }} {% endif %}</td>
-                    <td>{% if y[4] == 'pila' %} {{ y[5] }} {% endif %}</td>
+                    {% if 'olepka' in found_strings %}<td>{% if y[4] == 'olepka' %} {{ y[5] }} {% endif %}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>{% if y[4] == 'pila' %} {{ y[5] }} {% endif %}</td>{% endif %}
+                    {% if 'sklad' in found_strings %}<td>{% if y[4] == 'sklad' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    {% if 'zavoz' in found_strings %}<td>{% if y[4] == 'zavoz' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    {% if 'kancl' in found_strings %}<td>{% if y[4] == 'kancl' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    {% if 'jine' in found_strings %}<td>{% if y[4] == 'jine' %} {{ y[6] }} {% endif %}</td>{% endif %}
+
                 </tr>
                 {% endfor %}
                 {% endfor %}
                 <tr class="table-dark">
                     <td>Celkem</td>
                     <td>{{ user_value[7] }}</td>
-                    <td>{{ user_value[8] }}</td>
-                    <td>{{ user_value[9] }}</td>
+                    {% if 'olepka' in found_strings %}<td>{{ user_value[8] }}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>{{ user_value[9] }}</td>{% endif %}
+                    {% if 'sklad' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'zavoz' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'kancl' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'jine' in found_strings %}<td>{{ "-" }}</td>{% endif %}
                 </tr>
                 </tbody>
             </table>

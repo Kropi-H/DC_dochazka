@@ -25,14 +25,12 @@ scope = [
 'https://www.googleapis.com/auth/spreadsheets',
 'https://www.googleapis.com/auth/drive'
 ]
-
-warning={}
-
 #create some credential using that scope and content of startup_funding.json
 credential = ServiceAccountCredentials.from_json_keyfile_name('startup_funding.json',scope)
 
 #create gspread authorize using that credential
 client = gspread.authorize(credential)
+
 
 #Now will can access our google sheets we call client.open on StartupName
 workers_tab = client.open_by_key('19UBIonRYVjlAPu7nWfRUD69oFeUV32sUuk_LeJK-AyM')
@@ -51,7 +49,7 @@ class InfoForm(FlaskForm):
                           validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
-    selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('jine','JINÉ')],
+    selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
                               validators=[DataRequired()])
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
@@ -63,23 +61,26 @@ class InfoForm(FlaskForm):
 def index():
     if request.method == 'POST':
 
+        warning={}
+
         username = request.form['name'].strip()
         password = request.form['password'].strip()
 
         if (not username or not password) or (username == 'username' and password == 'password'): # If username or password is empty
-            warning['login']='Pole nesmí být prázdné'
+            warning['login'] = 'Pole nesmí být prázdné'
             return render_template('login.html', page_title='login', login_text=warning['login']) # Return to login page
         else:
             user = workers_sheet.find(username)
             if not user:
                 warning['login'] = 'Jméno je špatné'
                 return render_template('login.html', page_title='login',login_text = warning["login"])  # Return to login page
-            #print(user, file=sys.stdout)
+
             user_row = user.row
-            row = workers_sheet.row_values(user_row)
-            if password == row[1]:
-                session['user_name'] = row[0]
-                session['role'] = row[2]
+            row_data = workers_sheet.row_values(user_row)
+            #print(row_data, file=sys.stdout)
+            if password == row_data[1]:
+                session['user_name'] = row_data[4]
+                session['role'] = row_data[2]
                 return redirect(url_for('attendence_individual'))
             else:
                 warning['login'] = 'Heslo je špatné'
@@ -161,14 +162,14 @@ def attendence_individual():
         attendece_sheet.update(cell_range, [[str(starttime),str(endtime),str(time_result),selectfield,numberfield,textfield]], value_input_option='USER_ENTERED' )
 
 
-        return redirect('attendence_overview')
+        return redirect(url_for('attendence_overview',select_month=datetime.now().month))
 
     return render_template('attendence_individual.html', page_title='Zadání docházky', user = user, role=role, form=form)
 
 @app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
 def attendence_overview(select_month):
     user=session.get('user_name')
-    role = 1
+    role = int(session.get('role'))
 
     if request.method == 'GET':
         months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
@@ -184,12 +185,30 @@ def attendence_overview(select_month):
 
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
         date_row = current_date.row # Current day row
-        #print(currentMonthRange, file=sys.stdout)
         row_value = attendece_sheet.row_values(current_date.row)
         current_table_range = f'A{date_row}:G{(date_row+currentMonthRange)-1}'
         months_values = attendece_sheet.batch_get((current_table_range,))
         #return '{}'.format(currentMonth)
+        #print(months_values, file=sys.stdout)
 
+        def find_strings_in_nested_list(nested_list, target_strings):
+            result = set()  # Použijeme množinu pro unikátní výsledky
+
+            def recursive_search(nested_list):
+                for item in nested_list:
+                    if isinstance(item, list):
+                        recursive_search(item)
+                    else:
+                        for target_string in target_strings:
+                            if target_string in item:
+                                result.add(item)  # Přidáme do množiny místo seznamu
+
+            recursive_search(nested_list)
+            return result  # Množina automaticky odstraní duplicity
+
+        target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine']
+
+        found_strings = find_strings_in_nested_list(months_values, target_strings)
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
@@ -197,7 +216,8 @@ def attendence_overview(select_month):
                                role = role,
                                user_value = row_value,
                                user_month_values = months_values,
-                               months_name=months_name[select_month-1])
+                               month_name=months_name[select_month-1],
+                               found_strings = found_strings)
 
 @app.route('/logout')
 def logout():

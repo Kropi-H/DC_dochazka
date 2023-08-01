@@ -48,7 +48,7 @@
       <ul class="nav navbar-nav">
         {% if user or user and role >= 2 %}
         <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user.capitalize() }}<span class="sr-only">(current)</span></a></li>
-        <li class=""><a href="{{ url_for('attendence_overview', select_month=7)  }}">Přehled {{ user.capitalize() }}<span class="sr-only"></span></a></li>
+        <li class=""><a href="{{ url_for('attendence_overview', select_month=8)  }}">Přehled {{ user.capitalize() }}<span class="sr-only"></span></a></li>
         {% endif %}
         {% if user and role >= 2 %}
         <li><a href="#">Přehled docházky všech</a></li>
