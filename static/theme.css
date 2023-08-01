@@ -47,6 +47,10 @@ background-color:none;
     }
 }
 
+.text-center th{
+text-align:center;
+}
+
 .table-dark{
     background-color: #286090;
     color:#fff

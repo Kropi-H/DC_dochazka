@@ -35,8 +35,10 @@
         <div class="panel panel-default">
             <table class="table table-bordered">
                 <thead>
-                <tr>
+                <tr class="text-center">
                     <th>Datum</th>
+                    <th>Příchod</th>
+                    <th>Odchod</th>
                     <th>Hodiny</th>
                     {% if 'olepka' in found_strings %}<th>Olepka</th>{% endif %}
                     {% if 'pila' in found_strings %}<th>Pila</th>{% endif %}
@@ -50,7 +52,9 @@
                 {% for i in user_month_values %}
                 {% for y in i %}
                 <tr>
-                    <td>{{ y[0] }}</td>
+                    <td>{{ y[0][:5] }}</td>
+                    <td>{{ y[1] }}</td>
+                    <td>{{ y[2] }}</td>
                     <td>{{ y[3] }}</td>
                     {% if 'olepka' in found_strings %}<td>{% if y[4] == 'olepka' %} {{ y[5] }} {% endif %}</td>{% endif %}
                     {% if 'pila' in found_strings %}<td>{% if y[4] == 'pila' %} {{ y[5] }} {% endif %}</td>{% endif %}
@@ -62,11 +66,11 @@
                 </tr>
                 {% endfor %}
                 {% endfor %}
-                <tr class="table-dark">
+                <tr class="table-dark text-center" >
                     <td>Celkem</td>
-                    <td>{{ user_value[7] }}</td>
-                    {% if 'olepka' in found_strings %}<td>{{ user_value[8] }}</td>{% endif %}
-                    {% if 'pila' in found_strings %}<td>{{ user_value[9] }}</td>{% endif %}
+                    <td colspan="3">{{ user_value[7] }} hod/měs.</td>
+                    {% if 'olepka' in found_strings %}<td>Olepeno {{ user_value[8] }}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>Nařezáno {{ user_value[9] }}</td>{% endif %}
                     {% if 'sklad' in found_strings %}<td>{{ "-" }}</td>{% endif %}
                     {% if 'zavoz' in found_strings %}<td>{{ "-" }}</td>{% endif %}
                     {% if 'kancl' in found_strings %}<td>{{ "-" }}</td>{% endif %}
