@@ -138,7 +138,8 @@ def attendence_individual():
         come_time = time(hodiny_start, minuty_start)
         end_time = time(hodiny_end, minuty_end)
         break_time=timedelta(days=0,hours=0,minutes=30)
-        work_hour_limit = timedelta(days=0, hours=4, minutes=0)
+        work_time = timedelta(days=0, hours=8, minutes=0)
+        work_hour_limit = timedelta(days=0, hours=4, minutes=30)
         timedelta1 = timedelta(hours = come_time.hour, minutes = come_time.minute)
         timedelta2 = timedelta(hours=end_time.hour, minutes=end_time.minute)
         delta_time = timedelta2-timedelta1
@@ -147,6 +148,8 @@ def attendence_individual():
             time_result = delta_time-break_time
         else:
             time_result = delta_time
+
+        over_work_time = time_result-work_time
 
         # Získání hodin a minut z rozdílu
         hodiny_rozdil = time_result.seconds // 3600
@@ -158,8 +161,8 @@ def attendence_individual():
         current_date = attendece_sheet.find(startdate) # Find current day cell
         date_row = current_date.row # Current day row
 
-        cell_range = f'B{date_row}:G{date_row}' # Cell range as string
-        attendece_sheet.update(cell_range, [[str(starttime),str(endtime),str(time_result),selectfield,numberfield,textfield]], value_input_option='USER_ENTERED' )
+        cell_range = f'B{date_row}:H{date_row}' # Cell range as string
+        attendece_sheet.update(cell_range, [[str(starttime),str(endtime),str(time_result),str(over_work_time),selectfield,numberfield,textfield]], value_input_option='USER_ENTERED' )
 
 
         return redirect(url_for('attendence_overview',select_month=datetime.now().month))
@@ -186,7 +189,7 @@ def attendence_overview(select_month):
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
         date_row = current_date.row # Current day row
         row_value = attendece_sheet.row_values(current_date.row)
-        current_table_range = f'A{date_row}:G{(date_row+currentMonthRange)-1}'
+        current_table_range = f'A{date_row}:H{(date_row+currentMonthRange)-1}'
         months_values = attendece_sheet.batch_get((current_table_range,))
         #return '{}'.format(currentMonth)
         #print(months_values, file=sys.stdout)
