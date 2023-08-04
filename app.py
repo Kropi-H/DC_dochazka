@@ -45,7 +45,7 @@ def get_current_user():
 class InfoForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=date.today(),
+                          default=datetime.today,
                           validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
