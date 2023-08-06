@@ -42,7 +42,7 @@ def get_current_user():
         user = session['user_name']
         return user
 
-class InfoForm(FlaskForm):
+class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
                           default=datetime.today,
@@ -122,7 +122,7 @@ def attendence_individual():
     user=session.get('user_name')
     role = int(session.get('role'))
 
-    form = InfoForm()
+    form = AttendenceForm()
     # Attencence form data request
     if request.method == 'POST' and form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -221,6 +221,96 @@ def attendence_overview(select_month):
                                user_month_values = months_values,
                                month_name=months_name[select_month-1],
                                found_strings = found_strings)
+
+
+
+class AttendenceAllForm(FlaskForm):
+    startdate = DateField(label='Od',
+                          format='%Y-%m-%d',
+                          default=datetime.today(),
+                          validators=[DateRange()])
+    enddate = DateField(label='Do',
+                        format='%Y-%m-%d',
+                        default=datetime.today(),
+                        validators=[DateRange()])
+
+    submit = SubmitField(label='Zobrazit')
+
+@app.route('/attendence_all', methods=['GET', 'POST'])
+def attendence_all():
+    user=session.get('user_name')
+    role = int(session.get('role'))
+    form = AttendenceAllForm()
+
+    attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
+    workers_list = []
+    for name in attendence_tab:
+        workers_list.append(name.title)
+
+    def find_strings_in_nested_list(nested_list, target_strings):
+            result = set()  # Použijeme množinu pro unikátní výsledky
+
+            def recursive_search(nested_list):
+                for item in nested_list:
+                    if isinstance(item, list):
+                        recursive_search(item)
+                    else:
+                        for target_string in target_strings:
+                            if target_string in item:
+                                result.add(item)  # Přidáme do množiny místo seznamu
+
+            recursive_search(nested_list)
+            return result  # Množina automaticky odstraní duplicity
+
+    target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine']
+
+
+    workers_result = []
+
+    for user in range(len(workers_list)):
+        attendece_sheet = attendence_tab.worksheet(workers_list[user]) # Chose current user sheet
+        current_date = attendece_sheet.find((date.today()-timedelta(days=1)).strftime('%d.%m.%Y')) # Yesterday
+        row_value = attendece_sheet.row_values(current_date.row)
+        row_value.insert(0,workers_list[user])
+        workers_result.append(row_value)
+
+        found_strings = find_strings_in_nested_list(workers_result, target_strings)
+
+    if request.method == 'POST' and form.validate_on_submit():
+        result = request.form.getlist('worker')
+        startdate = form.startdate.data.strftime('%d.%m.%Y')
+        enddate =  form.enddate.data.strftime('%d.%m.%Y')
+
+        result = [int(i) for i in result]
+        workers_result_selection = []
+        for user in range(len(result)):
+            attendece_sheet = attendence_tab.worksheet(workers_list[result[user]]) # Chose current user sheet
+            current_date = attendece_sheet.find(enddate) # Find current day cell
+            row_value = attendece_sheet.row_values(current_date.row)
+            row_value.insert(0,workers_list[result[user]])
+            workers_result_selection.append(row_value)
+
+            found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
+
+        return render_template('attendence_all.html',
+                                user = user,
+                                role = role,
+                                pate_title='Přehled všech',
+                                form=form,
+                                head_text=f'Přehled {startdate}-{enddate}',
+                                workers_list=enumerate(workers_list,0),
+                                found_strings = found_strings_selection,
+                                workers_result=workers_result_selection)
+
+    return render_template('attendence_all.html',
+                           user = user,
+                           role = role,
+                           pate_title='Přehled všech',
+                           form=form,
+                           head_text='Přehled včera všichni',
+                           workers_list=enumerate(workers_list,0),
+                           found_strings = found_strings,
+                           workers_result=workers_result)
 
 @app.route('/logout')
 def logout():

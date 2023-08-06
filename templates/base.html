@@ -47,11 +47,11 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         {% if user or user and role >= 2 %}
-        <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user.capitalize() }}<span class="sr-only">(current)</span></a></li>
-        <li class=""><a href="{{ url_for('attendence_overview', select_month=8)  }}">Přehled {{ user.capitalize() }}<span class="sr-only"></span></a></li>
+        <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a></li>
+        <li class=""><a href="{{ url_for('attendence_overview', select_month=8)  }}">Přehled {{ user }}<span class="sr-only"></span></a></li>
         {% endif %}
         {% if user and role >= 2 %}
-        <li><a href="#">Přehled docházky všech</a></li>
+        <li><a href="{{ url_for('attendence_all') }}">Přehled docházky všech</a></li>
         {% endif %}
         {% if user and role==3 %}
         <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>

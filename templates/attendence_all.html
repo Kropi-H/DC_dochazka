@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block body %}
+
+<div class="container">
+    <div class="py-5 text-center">
+
+        <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
+              action="{{ url_for('attendence_all') }}" method='POST'>
+
+            <div class="" style="display:flex; justify-content:center">
+                <h1>{{ head_text }}</h1>
+            </div>
+
+            <div class="row">
+
+                {{ form.csrt_token }}
+
+                <div class="col-md-6 mb-15">
+                    {% if form.startdate.errors %}
+                    {% for error in form.startdate.errors %}
+                    <label class="control-label" for="startdate">{{ error }}</label>
+                    {% endfor %}
+                    {% else %}
+                    {{ form.startdate.label(class='form-control-label', for='startdate') }}
+                    {% endif %}
+                    {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
+                </div>
+
+                <div class="col-md-6 mb-15">
+                    {% if form.enddate.errors %}
+                    {% for error in form.enddate.errors %}
+                    <label class="control-label" for="enddate">{{ error }}</label>
+                    {% endfor %}
+                    {% else %}
+                    {{ form.enddate.label(class='form-control-label', for='enddate') }}
+                    {% endif %}
+                    {{form.enddate(class='form-control', id='enddate')}} {{form.hidden_tag()}}
+                </div>
+                <div class="col-md-12">
+                {% for num, name in workers_list %}
+                    {{ name }} <input type="checkbox" value={{ num }} name="worker">
+                {% endfor %}
+                </div>
+
+            </div>
+            {{form.submit(class="btn btn-primary btn-lg")}}
+        </form>
+
+
+    </div>
+    <div class="panel panel-default" style="overflow-x:auto;">
+        <table class="table table-bordered">
+            <thead>
+            <tr class="text-center">
+                <th>Jméno</th>
+                <th>Datum</th>
+                <th>Příchod</th>
+                <th>Odchod</th>
+                <th>Hodiny</th>
+                <th>Přesčas</th>
+                <th>Olepka</th>
+                <th>Pila</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in workers_result %}
+            <tr>
+                <td>{{ user[0] }}</td>
+                <td>{{ user[1] }}</td>
+                <td>{{ user[2] }}</td>
+                <td>{{ user[3] }}</td>
+                <td>{{ user[4] }}</td>
+                <td>{{ user[5] }}</td>
+                {% if user[6] == 'olepka' %}
+                <td>{{ user[7] }}</td>
+                {% else %}
+                <td>-</td>
+                {% endif %}
+                {% if user[6] == 'pila' %}
+                <td>{{ user[7] }}</td>
+                {% else %}
+                <td>-</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            <tr class="table-dark text-center">
+                <td colspan="5">XY hod/měs.</td>
+                <td>XY hodin přesčasu</td>
+                <td> desek nařezáno</td>
+                <td>300m olepeno</td>
+            </tr>
+
+            <tr class="table-dark text-center">
+                <td colspan="4">Celkový stav za období:</td>
+                <td>XY hod/měs.</td>
+                <td>XY hodin přesčasu</td>
+                <td>90 desek nařezáno</td>
+                <td>856m olepeno</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
