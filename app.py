@@ -45,7 +45,7 @@ def get_current_user():
 class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=datetime.today,
+                          default=datetime.today(),
                           validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
@@ -264,33 +264,23 @@ def attendence_all():
 
     target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine']
 
-
-    workers_result = []
-
-    for user in range(len(workers_list)):
-        attendece_sheet = attendence_tab.worksheet(workers_list[user]) # Chose current user sheet
-        current_date = attendece_sheet.find((date.today()-timedelta(days=1)).strftime('%d.%m.%Y')) # Yesterday
-        row_value = attendece_sheet.row_values(current_date.row)
-        row_value.insert(0,workers_list[user])
-        workers_result.append(row_value)
-
-        found_strings = find_strings_in_nested_list(workers_result, target_strings)
-
     if request.method == 'POST' and form.validate_on_submit():
         result = request.form.getlist('worker')
         startdate = form.startdate.data.strftime('%d.%m.%Y')
         enddate =  form.enddate.data.strftime('%d.%m.%Y')
 
         result = [int(i) for i in result]
-        workers_result_selection = []
-        for user in range(len(result)):
-            attendece_sheet = attendence_tab.worksheet(workers_list[result[user]]) # Chose current user sheet
-            current_date = attendece_sheet.find(enddate) # Find current day cell
-            row_value = attendece_sheet.row_values(current_date.row)
-            row_value.insert(0,workers_list[result[user]])
-            workers_result_selection.append(row_value)
 
-            found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
+        workers_result_selection = []
+        for worker in range(len(result)):
+            attendece_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
+            for item in attendece_sheet:
+                if item[0] == enddate:
+                    item.insert(0,workers_list[result[worker]])
+                    workers_result_selection.append(item)
+
+        found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
+        print(workers_result_selection)
 
         return render_template('attendence_all.html',
                                 user = user,
@@ -302,15 +292,28 @@ def attendence_all():
                                 found_strings = found_strings_selection,
                                 workers_result=workers_result_selection)
 
+
+    workers_result = []
+    lookup_date = (date.today()-timedelta(days=1)).strftime('%d.%m.%Y')
+
+    for worker in range(len(workers_list)):
+        attendece_sheet = attendence_tab.worksheet(workers_list[worker]).get_all_values()
+        for item in attendece_sheet:
+            if item[0] == lookup_date:
+                item.insert(0,workers_list[worker])
+                workers_result.append(item)
+
+    found_strings = find_strings_in_nested_list(workers_result, target_strings)
+    print(workers_result)
     return render_template('attendence_all.html',
-                           user = user,
-                           role = role,
-                           pate_title='Přehled všech',
-                           form=form,
-                           head_text='Přehled včera všichni',
-                           workers_list=enumerate(workers_list,0),
-                           found_strings = found_strings,
-                           workers_result=workers_result)
+                       user = user,
+                       role = role,
+                       pate_title='Přehled všech',
+                       form=form,
+                       head_text='Přehled včera všichni',
+                       workers_list=enumerate(workers_list,0),
+                       found_strings = found_strings,
+                       workers_result=workers_result)
 
 @app.route('/logout')
 def logout():
