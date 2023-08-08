@@ -45,9 +45,9 @@
 
                     <div class="col-md-6 mb-15">
                         {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
-                        {{form.selectfield(class='form-control')}} {{form.hidden_tag()}}
+                        {{form.selectfield(class='form-control',onchange='showDiv(this)')}} {{form.hidden_tag()}}
                     </div>
-                    <div class="col-md-6 mb-15">
+                    <div class="col-md-6 mb-15" id="field_num" style="display:none">
                         {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
                         {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
                     </div>

@@ -74,5 +74,16 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script type="text/javascript" src="{{ url_for('static', filename = 'bootstrap.min.js' )}}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename = 'script.js' )}}"></script>
+
+<script type="text/javascript">
+function showDiv(select){
+   if(select.value=='pila' || select.value == 'olepka'){
+    document.getElementById('field_num').style.display = "inherit";
+   } else{
+    document.getElementById('field_num').style.display = "none";
+   }
+}
+
+</script>
   </body>
 </html>

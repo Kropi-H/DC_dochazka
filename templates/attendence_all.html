@@ -40,7 +40,7 @@
                 </div>
                 <div class="col-md-12">
                 {% for num, name in workers_list %}
-                    {{ name }} <input type="checkbox" value={{ num }} name="worker">
+                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ num }} name="worker"></span>
                 {% endfor %}
                 </div>
 

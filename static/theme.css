@@ -47,6 +47,14 @@ background-color:none;
     }
 }
 
+.worker_checkbox{
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 1px 4px 2px 4px;
+    margin-bottom: 10px;
+    display: inline-grid;
+}
+
 .text-center th{
 text-align:center;
 }

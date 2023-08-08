@@ -43,9 +43,10 @@ def get_current_user():
         return user
 
 class AttendenceForm(FlaskForm):
+    now = datetime.today()
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=datetime.today(),
+                          default=now,
                           validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
@@ -137,9 +138,11 @@ def attendence_individual():
         hodiny_end, minuty_end = map(int,endtime.split(':'))
         come_time = time(hodiny_start, minuty_start)
         end_time = time(hodiny_end, minuty_end)
+
         break_time=timedelta(days=0,hours=0,minutes=30)
         work_time = timedelta(days=0, hours=8, minutes=0)
         work_hour_limit = timedelta(days=0, hours=4, minutes=30)
+
         timedelta1 = timedelta(hours = come_time.hour, minutes = come_time.minute)
         timedelta2 = timedelta(hours=end_time.hour, minutes=end_time.minute)
         delta_time = timedelta2-timedelta1
@@ -149,7 +152,10 @@ def attendence_individual():
         else:
             time_result = delta_time
 
-        over_work_time = time_result-work_time
+        if time_result > work_time:
+            over_work_time = time_result-work_time
+        else:
+            over_work_time = ''
 
         # Získání hodin a minut z rozdílu
         hodiny_rozdil = time_result.seconds // 3600
@@ -280,7 +286,7 @@ def attendence_all():
                     workers_result_selection.append(item)
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
-        print(workers_result_selection)
+
 
         return render_template('attendence_all.html',
                                 user = user,
