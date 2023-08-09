@@ -43,11 +43,10 @@ def get_current_user():
         return user
 
 class AttendenceForm(FlaskForm):
-    now = datetime.today()
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=now,
-                          validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!')]   )
+                          default=datetime.today,
+                          validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!'), DataRequired()])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
@@ -139,7 +138,7 @@ def attendence_individual():
         come_time = time(hodiny_start, minuty_start)
         end_time = time(hodiny_end, minuty_end)
 
-        break_time=timedelta(days=0,hours=0,minutes=30)
+        break_time = timedelta(days=0,hours=0,minutes=30)
         work_time = timedelta(days=0, hours=8, minutes=0)
         work_hour_limit = timedelta(days=0, hours=4, minutes=30)
 
@@ -185,7 +184,7 @@ def attendence_overview(select_month):
                   7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
         months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
         currentYear = datetime.now().year
-        #currentMonth = datetime.now().month
+
         currentMonth = select_month
         currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
 
@@ -233,14 +232,28 @@ def attendence_overview(select_month):
 class AttendenceAllForm(FlaskForm):
     startdate = DateField(label='Od',
                           format='%Y-%m-%d',
-                          default=datetime.today(),
-                          validators=[DateRange()])
+                          default=datetime.today,
+                          validators=[DateRange(),DataRequired()])
     enddate = DateField(label='Do',
                         format='%Y-%m-%d',
-                        default=datetime.today(),
-                        validators=[DateRange()])
+                        default=datetime.today,
+                        validators=[DateRange(),DataRequired()])
 
     submit = SubmitField(label='Zobrazit')
+
+    def validate(self, **kwargs):
+        # Standard validators
+        rv = FlaskForm.validate(self)
+        # Ensure all standard validators are met
+        if rv:
+            # Ensure end date >= start date
+            if self.startdate.data > self.enddate.data:
+                self.enddate.errors.append('Toto datum musí mít nižší hodnotu!')
+                return False
+
+            return True
+
+        return False
 
 @app.route('/attendence_all', methods=['GET', 'POST'])
 def attendence_all():
@@ -272,18 +285,24 @@ def attendence_all():
 
     if request.method == 'POST' and form.validate_on_submit():
         result = request.form.getlist('worker')
-        startdate = form.startdate.data.strftime('%d.%m.%Y')
-        enddate =  form.enddate.data.strftime('%d.%m.%Y')
+        startdate = form.startdate.data
+        enddate =  form.enddate.data
 
+        time_difference = enddate-startdate
+        count_days = time_difference.days
         result = [int(i) for i in result]
 
+        found_start_date = False
         workers_result_selection = []
         for worker in range(len(result)):
             attendece_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
             for item in attendece_sheet:
-                if item[0] == enddate:
+                if item[0] == startdate.strftime('%d.%m.%Y'):
+                    found_start_date = True
+                if found_start_date and count_days > 0:
                     item.insert(0,workers_list[result[worker]])
                     workers_result_selection.append(item)
+                    count_days -= 1
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
 
@@ -310,7 +329,7 @@ def attendence_all():
                 workers_result.append(item)
 
     found_strings = find_strings_in_nested_list(workers_result, target_strings)
-    print(workers_result)
+
     return render_template('attendence_all.html',
                        user = user,
                        role = role,
