@@ -46,7 +46,7 @@ class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
                           default=datetime.today,
-                          validators=[DateRange(min=(date.today() - timedelta(days=7)), max=date.today(), message='Maximálně 7 dní nazpět!'), DataRequired()])
+                          validators=[DateRange(min=(date.today() - timedelta(days=3)), max=date.today(), message='Maximálně 3 dny nazpět!'), DataRequired()])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
@@ -54,7 +54,6 @@ class AttendenceForm(FlaskForm):
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
-
 
 
 @app.route('/', methods=['GET','POST'])
@@ -122,7 +121,7 @@ def attendence_individual():
     user=session.get('user_name')
     role = int(session.get('role'))
 
-    form = AttendenceForm()
+    form = AttendenceForm(request.form)
     # Attencence form data request
     if request.method == 'POST' and form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
