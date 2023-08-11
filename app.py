@@ -45,8 +45,12 @@ def get_current_user():
 class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=datetime.today,
-                          validators=[DateRange(min=(date.today() - timedelta(days=3)), max=date.today(), message='Maximálně 3 dny nazpět!'), DataRequired()])
+                          default=datetime.today(),
+                          validators=[DateRange(
+                              min=(date.today() - timedelta(days=3)),
+                              max=date.today(),
+                              message='Maximálně 3 dny nazpět!'),
+                            DataRequired()])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
@@ -249,15 +253,15 @@ class AttendenceAllForm(FlaskForm):
             if self.startdate.data > self.enddate.data:
                 self.enddate.errors.append('Toto datum musí mít nižší hodnotu!')
                 return False
-
             return True
-
         return False
 
 @app.route('/attendence_all', methods=['GET', 'POST'])
 def attendence_all():
+
     user=session.get('user_name')
     role = int(session.get('role'))
+
     form = AttendenceAllForm()
 
     attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
@@ -302,6 +306,7 @@ def attendence_all():
                     item.insert(0,workers_list[result[worker]])
                     workers_result_selection.append(item)
                     count_days -= 1
+
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
 
