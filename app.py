@@ -295,18 +295,23 @@ def attendence_all():
         count_days = time_difference.days
         result = [int(i) for i in result]
 
-        found_start_date = False
-        workers_result_selection = []
-        for worker in range(len(result)):
-            attendece_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
-            for item in attendece_sheet:
-                if item[0] == startdate.strftime('%d.%m.%Y'):
-                    found_start_date = True
-                if found_start_date and count_days > 0:
-                    item.insert(0,workers_list[result[worker]])
-                    workers_result_selection.append(item)
-                    count_days -= 1
+        date_range = [startdate + timedelta(days=i) for i in range((enddate - startdate).days+1)]
+        date_string_range=[]
+        for i in date_range:
+            date_string_range.append(i.strftime('%d.%m.%Y'))
 
+        workers_result_selection = []
+        attendece_sheet = []
+
+        for worker in range(len(result)):
+            employee_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
+            employee_range = []
+
+            for day in employee_sheet:
+                for d in date_string_range:
+                    if d in day:
+                        day.insert(0,workers_list[result[worker]])
+                        workers_result_selection.append(day)
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
 
