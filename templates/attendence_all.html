@@ -10,7 +10,7 @@
               action="{{ url_for('attendence_all') }}" method='POST'>
 
             <div class="" style="display:flex; justify-content:center">
-                <h1>{{ head_text }}</h1>
+                <h1>{{ head_text }}{{date_range}}</h1>
             </div>
 
             <div class="row">
@@ -66,7 +66,7 @@
             </thead>
             <tbody>
             {% for user in workers_result %}
-            <tr>
+            <tr class="worker_row">
                 <td>{{ user[0] }}</td>
                 <td>{{ user[1] }}</td>
                 <td>{{ user[2] }}</td>
@@ -86,18 +86,11 @@
             </tr>
             {% endfor %}
             <tr class="table-dark text-center">
-                <td colspan="5">XY hod/měs.</td>
-                <td>XY hodin přesčasu</td>
-                <td> desek nařezáno</td>
-                <td>300m olepeno</td>
-            </tr>
-
-            <tr class="table-dark text-center">
-                <td colspan="4">Celkový stav za období:</td>
-                <td>XY hod/měs.</td>
-                <td>XY hodin přesčasu</td>
-                <td>90 desek nařezáno</td>
-                <td>856m olepeno</td>
+                <td colspan="4">Celkový stav za období: {{date_range}}</td>
+                <td>{{sum_work_hour}} hodin</td>
+                <td>{{sum_ower_work_hour}} hodin přesčasu</td>
+                <td>{{olepka}}m olepeno</td>
+                <td>{{pila}} desek nařezáno</td>
             </tr>
             </tbody>
         </table>

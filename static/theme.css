@@ -55,12 +55,18 @@ background-color:none;
     display: inline-grid;
 }
 
+table .worker_row:nth-child(even) {
+  background-color: #eae9e9;
+}
+
 .text-center th{
 text-align:center;
+color:white;
+background-color: #337ab7;
 }
 
 .table-dark{
-    background-color: #286090;
+    background-color: #337ab7;
     color:#fff
 }
 

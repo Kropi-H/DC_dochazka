@@ -1,14 +1,14 @@
 import os
-import sys
 #import library
-from flask import Flask, session, jsonify, request, abort, render_template, json, redirect, url_for
+import tables
+from flask import Flask, session, request, render_template, redirect, url_for
 from datetime import datetime, date, timedelta, time
 import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import fields, DateField, TimeField, TextAreaField, SelectField,IntegerField, validators
-from wtforms.validators import DataRequired,InputRequired, Optional, NumberRange, StopValidation
+from wtforms import DateField, TimeField, TextAreaField, SelectField,IntegerField, validators
+from wtforms.validators import DataRequired
 from wtforms_components import DateRange
 import calendar
 
@@ -33,7 +33,7 @@ client = gspread.authorize(credential)
 
 
 #Now will can access our google sheets we call client.open on StartupName
-workers_tab = client.open_by_key('19UBIonRYVjlAPu7nWfRUD69oFeUV32sUuk_LeJK-AyM')
+workers_tab = client.open_by_key(tables.cridentials_table["users"])
 workers_sheet = workers_tab.worksheet('users')
 #user_data = workers_sheet.get_all_records()
 
@@ -45,7 +45,7 @@ def get_current_user():
 class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=datetime.today(),
+                          default=date.today(),
                           validators=[DateRange(
                               min=(date.today() - timedelta(days=3)),
                               max=date.today(),
@@ -164,7 +164,7 @@ def attendence_individual():
         minuty_rozdil = (time_result.seconds // 60) % 60
         odd_time= time(hodiny_rozdil,minuty_rozdil)
 
-        attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
+        attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
         attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
         current_date = attendece_sheet.find(startdate) # Find current day cell
         date_row = current_date.row # Current day row
@@ -191,7 +191,7 @@ def attendence_overview(select_month):
         currentMonth = select_month
         currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
 
-        attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
+        attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
         attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
 
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
@@ -235,11 +235,11 @@ def attendence_overview(select_month):
 class AttendenceAllForm(FlaskForm):
     startdate = DateField(label='Od',
                           format='%Y-%m-%d',
-                          default=datetime.today,
+                          default=datetime.today(),
                           validators=[DateRange(),DataRequired()])
     enddate = DateField(label='Do',
                         format='%Y-%m-%d',
-                        default=datetime.today,
+                        default=datetime.today(),
                         validators=[DateRange(),DataRequired()])
 
     submit = SubmitField(label='Zobrazit')
@@ -301,17 +301,45 @@ def attendence_all():
             date_string_range.append(i.strftime('%d.%m.%Y'))
 
         workers_result_selection = []
-        attendece_sheet = []
 
         for worker in range(len(result)):
             employee_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
-            employee_range = []
 
             for day in employee_sheet:
                 for d in date_string_range:
                     if d in day:
                         day.insert(0,workers_list[result[worker]])
                         workers_result_selection.append(day)
+        workers_result_selection.sort(key=lambda x: x[1])
+
+        def shorten_time(time_str):
+            parts = time_str.split(":")
+            if len(parts) > 2:
+                parts.pop()
+            d = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
+            return(d)
+
+        pila = 0
+        olepka = 0
+        work_time = timedelta()
+        ower_time = timedelta()
+        for data in workers_result_selection:
+            if data[4]:
+                work_time += shorten_time(data[4])
+
+            if data[5]:
+                ower_time += shorten_time(data[5])
+
+            if data[6] == 'pila':
+                pila += int(data[7])
+            elif data[6] == 'olepka':
+                olepka += int(data[7])
+
+        def timedelta_to_string(convert_time):
+            hours = convert_time.days * 24 + convert_time.seconds // 3600
+            minutes = (convert_time.seconds % 3600) // 60
+            return(f"{hours:02d}:{minutes:02d}")
+
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
 
@@ -319,12 +347,17 @@ def attendence_all():
         return render_template('attendence_all.html',
                                 user = user,
                                 role = role,
-                                pate_title='Přehled všech',
+                                page_title='Přehled všech',
                                 form=form,
-                                head_text=f'Přehled {startdate}-{enddate}',
+                                date_range=f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}',
+                                head_text=f'Přehled ',
                                 workers_list=enumerate(workers_list,0),
                                 found_strings = found_strings_selection,
-                                workers_result=workers_result_selection)
+                                workers_result=workers_result_selection,
+                                pila = pila,
+                                olepka = olepka,
+                                sum_work_hour = timedelta_to_string(work_time),
+                                sum_ower_work_hour = timedelta_to_string(ower_time))
 
 
     workers_result = []
@@ -342,7 +375,7 @@ def attendence_all():
     return render_template('attendence_all.html',
                        user = user,
                        role = role,
-                       pate_title='Přehled všech',
+                       page_title='Přehled všech',
                        form=form,
                        head_text='Přehled včera všichni',
                        workers_list=enumerate(workers_list,0),
