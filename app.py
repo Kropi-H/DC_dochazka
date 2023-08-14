@@ -45,12 +45,12 @@ def get_current_user():
 class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           format='%Y-%m-%d',
-                          default=date.today(),
-                          validators=[DateRange(
-                              min=(date.today() - timedelta(days=3)),
+                          default=datetime.today,
+                          validators=[DataRequired(),DateRange(
+                              min=(date.today() - timedelta(days=2 )),
                               max=date.today(),
                               message='Maximálně 3 dny nazpět!'),
-                            DataRequired()])
+                              ])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
@@ -125,7 +125,7 @@ def attendence_individual():
     user=session.get('user_name')
     role = int(session.get('role'))
 
-    form = AttendenceForm(request.form)
+    form = AttendenceForm()
     # Attencence form data request
     if request.method == 'POST' and form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -235,11 +235,11 @@ def attendence_overview(select_month):
 class AttendenceAllForm(FlaskForm):
     startdate = DateField(label='Od',
                           format='%Y-%m-%d',
-                          default=datetime.today(),
+                          default=datetime.today,
                           validators=[DateRange(),DataRequired()])
     enddate = DateField(label='Do',
                         format='%Y-%m-%d',
-                        default=datetime.today(),
+                        default=datetime.today,
                         validators=[DateRange(),DataRequired()])
 
     submit = SubmitField(label='Zobrazit')
