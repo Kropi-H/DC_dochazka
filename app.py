@@ -43,13 +43,15 @@ def get_current_user():
         return user
 
 class AttendenceForm(FlaskForm):
+    two_days_ago = date.today() - timedelta(days=2)
+    today = date.today()
     startdate = DateField(label='Datum',
-                          format='%Y-%m-%d',
-                          default=datetime.today,
+                          #format='%d.%m.%Y',
+                          default=today,
                           validators=[DataRequired(),DateRange(
-                              min=(date.today() - timedelta(days=2 )),
-                              max=date.today(),
-                              message='Maximálně 3 dny nazpět!'),
+                              min=two_days_ago,
+                              max=today,
+                              message='Maximálně 2 dny nazpět!'),
                               ])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
@@ -127,7 +129,7 @@ def attendence_individual():
 
     form = AttendenceForm()
     # Attencence form data request
-    if request.method == 'POST' and form.validate_on_submit():
+    if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
         #month_range = form.startdate.data.monthrange()
         starttime = form.starttime.data.strftime('%H:%M')
