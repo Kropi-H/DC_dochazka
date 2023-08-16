@@ -61,6 +61,13 @@ class AttendenceForm(FlaskForm):
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
 
+    @classmethod
+    def new(cls):
+        # Instantiate the form
+        form = cls()
+        form.startdate.validate(DateRange())
+        return form
+
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -100,6 +107,7 @@ def login():
 @app.route('/register_new_user', methods=['GET','POST'])
 def register_new_user():
     user = get_current_user()
+
     if not user:
         return redirect('/')
     if user and request.method == 'GET':
@@ -127,7 +135,7 @@ def attendence_individual():
     user=session.get('user_name')
     role = int(session.get('role'))
 
-    form = AttendenceForm()
+    form = AttendenceForm().new()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
