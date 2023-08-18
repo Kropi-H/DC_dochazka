@@ -65,7 +65,7 @@ class AttendenceForm(FlaskForm):
     def new(cls):
         # Instantiate the form
         form = cls()
-        form.startdate.default = date.today()
+        form.startdate.today=date.today()
         return form
 
 
