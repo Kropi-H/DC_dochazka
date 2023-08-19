@@ -55,6 +55,7 @@
         {% endif %}
         {% if user and role==3 %}
         <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>
+        <li><a href="{{ url_for('change_password') }}">Změna hesla</a></li>
         {% endif %}
       </ul>
       <ul class="nav navbar-nav navbar-right">

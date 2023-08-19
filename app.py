@@ -10,12 +10,11 @@ from wtforms.fields import SubmitField
 from wtforms import DateField, TimeField, TextAreaField, SelectField,IntegerField, validators
 from wtforms.validators import DataRequired
 from wtforms_components import DateRange
+from passlib.hash import sha256_crypt
 import calendar
-
 
 #Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
-
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -43,8 +42,8 @@ def get_current_user():
         return user
 
 class AttendenceForm(FlaskForm):
-    two_days_ago = date.today() - timedelta(days=2)
     today = date.today()
+    two_days_ago = today - timedelta(days=2)
     startdate = DateField(label='Datum',
                           #format='%d.%m.%Y',
                           default=today,
@@ -65,7 +64,7 @@ class AttendenceForm(FlaskForm):
     def new(cls):
         # Instantiate the form
         form = cls()
-        form.startdate.today=date.today()
+        form.today = date.today()
         return form
 
 
@@ -100,9 +99,23 @@ def index():
     else:
         return render_template('login.html', page_title='login')
 
-@app.route('/login')
-def login():
-    pass
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    user = get_current_user()
+    if not user:
+       return redirect('/')
+
+    worker_values = workers_sheet.get_all_values()
+    workers_list = []
+    for worker in worker_values[1:]:
+        workers_list.append(worker[4])
+
+    return render_template('change_password.html',
+                           title='Změna hesla',
+                           user=session.get('user_name'),
+                           role=int(session.get('role')),
+                           workers_list=worker_values,
+                           login_text='Změna hesla')
 
 @app.route('/register_new_user', methods=['GET','POST'])
 def register_new_user():
@@ -274,7 +287,7 @@ def attendence_all():
 
     form = AttendenceAllForm()
 
-    attendence_tab = client.open_by_key('1FiDYtNRIa4mMB6mZdDhxzNxcPTklPQhj8Of3PcqDbyc') # Access to google sheets
+    attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
     workers_list = []
     for name in attendence_tab:
         workers_list.append(name.title)
