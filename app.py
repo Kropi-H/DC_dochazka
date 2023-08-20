@@ -7,10 +7,10 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DateField, TimeField, TextAreaField, SelectField,IntegerField, validators
+from wtforms import DateField, TimeField, TextAreaField, SelectField,IntegerField, validators, PasswordField
 from wtforms.validators import DataRequired
 from wtforms_components import DateRange
-from passlib.hash import sha256_crypt
+import hashlib
 import calendar
 
 #Service client credential from oauth2client
@@ -47,11 +47,11 @@ class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           #format='%d.%m.%Y',
                           default=today,
-                          validators=[DataRequired(),DateRange(
+                          validators=[DateRange(
                               min=two_days_ago,
                               max=today,
-                              message='Maximálně 2 dny nazpět!'),
-                              ])
+                              message='Dnes a maximálně 2 dny nazpět!'),
+                            DataRequired()])
     starttime = TimeField('Začátek',validators=[DataRequired()])
     endtime = TimeField('Konec',validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
@@ -89,7 +89,7 @@ def index():
             user_row = user.row
             row_data = workers_sheet.row_values(user_row)
             #print(row_data, file=sys.stdout)
-            if password == row_data[1]:
+            if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = row_data[2]
                 return redirect(url_for('attendence_individual'))
@@ -99,6 +99,13 @@ def index():
     else:
         return render_template('login.html', page_title='login')
 
+class form_check_pass(FlaskForm):
+        oldPassword = PasswordField('Staré heslo', validators=[DataRequired()])
+        newPassword = PasswordField('Nové heslo', validators=[DataRequired()])
+        checkPassword = PasswordField('Nové heslo znovu ', validators=[DataRequired()])
+        submit = SubmitField(label='Uložit')
+
+
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     user = get_current_user()
@@ -106,16 +113,37 @@ def change_password():
        return redirect('/')
 
     worker_values = workers_sheet.get_all_values()
-    workers_list = []
-    for worker in worker_values[1:]:
-        workers_list.append(worker[4])
+
+    form = form_check_pass()
+    if request.method == 'POST' and form.validate_on_submit:
+        worker_id = request.form['worker']
+        oldPassword = request.form['oldPassword'].strip()
+        newPassword = request.form['newPassword'].strip()
+        checkPassword = request.form['checkPassword'].strip()
+        print(type(worker_id))
+        for value in worker_values:
+            if (value[1] == hashlib.md5(newPassword.encode()).hexdigest()) and (int(worker_id) == int(value[7])) and (newPassword == checkPassword):
+                worker_name = value[4]
+                cell = workers_sheet.find(value[7])
+                workers_sheet.update_cell(cell.row, 2, hashlib.md5(newPassword.encode()).hexdigest())
+
+                return render_template('change_password.html',
+                                    title='Změna akceptována',
+                                    user=session.get('user_name'),
+                                    role=int(session.get('role')),
+                                    workers_list=worker_values,
+                                    head_text=f'heslo pro {worker_name} uloženo',
+                                    form = form)
+
+        return 'Something went wrong!'
 
     return render_template('change_password.html',
                            title='Změna hesla',
                            user=session.get('user_name'),
                            role=int(session.get('role')),
                            workers_list=worker_values,
-                           login_text='Změna hesla')
+                           head_text='Změna hesla',
+                           form = form)
 
 @app.route('/register_new_user', methods=['GET','POST'])
 def register_new_user():
