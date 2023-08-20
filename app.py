@@ -1,5 +1,4 @@
 import os
-#import library
 import tables
 from flask import Flask, session, request, render_template, redirect, url_for
 from datetime import datetime, date, timedelta, time
@@ -7,13 +6,13 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DateField, TimeField, TextAreaField, SelectField,IntegerField, validators, PasswordField
+from wtforms import DateField, TimeField, TextAreaField, SelectField, IntegerField, validators, PasswordField
 from wtforms.validators import DataRequired
 from wtforms_components import DateRange
 import hashlib
 import calendar
 
-#Service client credential from oauth2client
+# Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
@@ -21,25 +20,26 @@ Bootstrap(app)
 app.config['SECRET_KEY'] = os.urandom(24)
 
 scope = [
-'https://www.googleapis.com/auth/spreadsheets',
-'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive'
 ]
-#create some credential using that scope and content of startup_funding.json
-credential = ServiceAccountCredentials.from_json_keyfile_name('startup_funding.json',scope)
+# Create some credential using that scope and content of startup_funding.json
+credential = ServiceAccountCredentials.from_json_keyfile_name('startup_funding.json', scope)
 
-#create gspread authorize using that credential
+# Create gspread authorize using that credential
 client = gspread.authorize(credential)
 
 
-#Now will can access our google sheets we call client.open on StartupName
+# Now will can access our google sheets we call client.open on StartupName
 workers_tab = client.open_by_key(tables.cridentials_table["users"])
 workers_sheet = workers_tab.worksheet('users')
-#user_data = workers_sheet.get_all_records()
 
 def get_current_user():
+    user_session = {}
     if 'user_name' in session:
-        user = session['user_name']
-        return user
+        user_session['user'] = session['user_name']
+        user_session['role'] = session['role']
+        return user_session
 
 class AttendenceForm(FlaskForm):
     today = date.today()
@@ -52,11 +52,11 @@ class AttendenceForm(FlaskForm):
                               max=today,
                               message='Dnes a maximálně 2 dny nazpět!'),
                             DataRequired()])
-    starttime = TimeField('Začátek',validators=[DataRequired()])
-    endtime = TimeField('Konec',validators=[DataRequired()])
-    selectfield = SelectField(u'Vyber činnost', choices=[("","Vyber činnost .."),('pila', 'PILA'), ('olepka', 'OLEPKA'),('sklad','SKLAD'),('zavoz','ZÁVOZ'),('jine','JINÉ')],
+    starttime = TimeField('Začátek', validators=[DataRequired()])
+    endtime = TimeField('Konec', validators=[DataRequired()])
+    selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[DataRequired()])
-    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},validators=[validators.Optional(strip_whitespace=True)])
+    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'}, validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
 
@@ -91,7 +91,7 @@ def index():
             #print(row_data, file=sys.stdout)
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
-                session['role'] = row_data[2]
+                session['role'] = int(row_data[2])
                 return redirect(url_for('attendence_individual'))
             else:
                 warning['login'] = 'Heslo je špatné'
@@ -109,7 +109,8 @@ class form_check_pass(FlaskForm):
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     user = get_current_user()
-    if not user:
+
+    if not user or user['role'] != 3:
        return redirect('/')
 
     worker_values = workers_sheet.get_all_values()
@@ -129,18 +130,18 @@ def change_password():
 
                 return render_template('change_password.html',
                                     title='Změna akceptována',
-                                    user=session.get('user_name'),
-                                    role=int(session.get('role')),
+                                    user=user['user'],
+                                    role=int(user['role']),
                                     workers_list=worker_values,
-                                    head_text=f'heslo pro {worker_name} uloženo',
-                                    form = form)
+                                    head_text=f'Heslo pro {worker_name} uloženo!',
+                                    form=form)
 
         return 'Something went wrong!'
 
     return render_template('change_password.html',
                            title='Změna hesla',
-                           user=session.get('user_name'),
-                           role=int(session.get('role')),
+                           user=user['user'],
+                           role=int(user['role']),
                            workers_list=worker_values,
                            head_text='Změna hesla',
                            form = form)
@@ -149,10 +150,15 @@ def change_password():
 def register_new_user():
     user = get_current_user()
 
-    if not user:
+    if not user or user['role'] != 3:
         return redirect('/')
+
     if user and request.method == 'GET':
-        return render_template('new_registration.html', page_title='Nová registrace',user=session.get('user_name'),role = int(session.get('role')))
+        return render_template('new_registration.html',
+                               page_title='Nová registrace',
+                               user=user['user'],
+                               role=int(user['role']))
+
     if request.method == 'POST':
 
         first_name = request.form['first_name'].strip()
@@ -167,20 +173,21 @@ def register_new_user():
         workers_sheet.insert_row(new_user_row,length_of_list+1) # put data to the table on the bottom line
         return render_template('new_user_confirmation.html', page_title='Nový Uživatel',
                                new_user_data=new_user_row,
-                               user=session.get('user_name'),
-                               role = int(session.get('role')))
+                               user=user['user'],
+                               role=int(user['role']))
 
 @app.route('/attendence_individual', methods=['GET', 'POST'])
 def attendence_individual():
 
-    user=session.get('user_name')
-    role = int(session.get('role'))
+    user = get_current_user()
+
+    if not user:
+       return redirect('/')
 
     form = AttendenceForm().new()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
-        #month_range = form.startdate.data.monthrange()
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
         selectfield = form.selectfield.data
@@ -213,7 +220,6 @@ def attendence_individual():
         # Získání hodin a minut z rozdílu
         hodiny_rozdil = time_result.seconds // 3600
         minuty_rozdil = (time_result.seconds // 60) % 60
-        odd_time= time(hodiny_rozdil,minuty_rozdil)
 
         attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
         attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
@@ -226,12 +232,18 @@ def attendence_individual():
 
         return redirect(url_for('attendence_overview',select_month=datetime.now().month))
 
-    return render_template('attendence_individual.html', page_title='Zadání docházky', user = user, role=role, form=form)
+    return render_template('attendence_individual.html',
+                           page_title='Zadání docházky',
+                           user=user['user'],
+                           role=int(user['role']),
+                           form=form)
 
 @app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
 def attendence_overview(select_month):
-    user=session.get('user_name')
-    role = int(session.get('role'))
+    user = get_current_user()
+
+    if not user:
+       return redirect('/')
 
     if request.method == 'GET':
         months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
@@ -243,7 +255,7 @@ def attendence_overview(select_month):
         currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
 
         attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-        attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
+        attendece_sheet = attendence_tab.worksheet(user['user']) # Chose current user sheet
 
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
         date_row = current_date.row # Current day row
@@ -274,8 +286,8 @@ def attendence_overview(select_month):
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
-                               user = user,
-                               role = role,
+                               user=user['user'],
+                               role=int(user['role']),
                                user_value = row_value,
                                user_month_values = months_values,
                                month_name=months_name[select_month-1],
@@ -310,8 +322,10 @@ class AttendenceAllForm(FlaskForm):
 @app.route('/attendence_all', methods=['GET', 'POST'])
 def attendence_all():
 
-    user=session.get('user_name')
-    role = int(session.get('role'))
+    user = get_current_user()
+
+    if not user or user['role'] < 2:
+       return redirect('/')
 
     form = AttendenceAllForm()
 
@@ -396,8 +410,8 @@ def attendence_all():
 
 
         return render_template('attendence_all.html',
-                                user = user,
-                                role = role,
+                                user=user['user'],
+                                role=int(user['role']),
                                 page_title='Přehled všech',
                                 form=form,
                                 date_range=f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}',
@@ -424,8 +438,8 @@ def attendence_all():
     found_strings = find_strings_in_nested_list(workers_result, target_strings)
 
     return render_template('attendence_all.html',
-                       user = user,
-                       role = role,
+                       user=user['user'],
+                       role=int(user['role']),
                        page_title='Přehled všech',
                        form=form,
                        head_text='Přehled včera všichni',
@@ -435,7 +449,8 @@ def attendence_all():
 
 @app.route('/logout')
 def logout():
-    session['name'] = None
+    session['user_name'] = None
+    session['role'] = None
     return redirect("/")
 
 
