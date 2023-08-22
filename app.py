@@ -42,15 +42,16 @@ def get_current_user():
         return user_session
 
 class AttendenceForm(FlaskForm):
-    today = date.today()
-    two_days_ago = today - timedelta(days=2)
+    today_day= date.today()
+    less_days = today_day - timedelta(days=2)
+
     startdate = DateField(label='Datum',
                           #format='%d.%m.%Y',
-                          default=today,
+                          default= today_day,
                           validators=[DateRange(
-                              min=two_days_ago,
-                              max=today,
-                              message='Dnes a maximálně 2 dny nazpět!'),
+                              min= less_days,
+                              max= today_day,
+                              message='Maximálně 2 dny nazpět!'),
                             DataRequired()])
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
@@ -59,12 +60,11 @@ class AttendenceForm(FlaskForm):
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'}, validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
-
     @classmethod
     def new(cls):
         # Instantiate the form
         form = cls()
-        form.today = date.today()
+        form.today_day = date.today()
         return form
 
 
@@ -184,7 +184,7 @@ def attendence_individual():
     if not user:
        return redirect('/')
 
-    form = AttendenceForm().new()
+    form = AttendenceForm.new()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -222,7 +222,7 @@ def attendence_individual():
         minuty_rozdil = (time_result.seconds // 60) % 60
 
         attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-        attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
+        attendece_sheet = attendence_tab.worksheet(user['user']) # Chose current user sheet
         current_date = attendece_sheet.find(startdate) # Find current day cell
         date_row = current_date.row # Current day row
 
