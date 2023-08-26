@@ -6,11 +6,12 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DateField, TimeField, TextAreaField, SelectField, IntegerField, validators, PasswordField
-from wtforms.validators import DataRequired
+from wtforms import DateField, TimeField, TextAreaField, SelectField, IntegerField, PasswordField, validators
+from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
+import pytz
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -42,17 +43,15 @@ def get_current_user():
         return user_session
 
 class AttendenceForm(FlaskForm):
-    today_day= date.today()
-    less_days = today_day - timedelta(days=2)
-
+    def validate_end_date(form, field):
+        if field.data < (date.today(pytz.UTC) - timedelta(days=2)):
+            raise ValidationError("Max 2 dny zpět")
     startdate = DateField(label='Datum',
-                          #format='%d.%m.%Y',
-                          default= today_day,
-                          validators=[DateRange(
-                              min= less_days,
-                              max= today_day,
-                              message='Maximálně 2 dny nazpět!'),
-                            DataRequired()])
+                          validators=[
+                              validate_end_date,
+                              DataRequired()
+                          ],
+                          default= datetime.now(pytz.UTC))
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
@@ -184,7 +183,7 @@ def attendence_individual():
     if not user:
        return redirect('/')
 
-    form = AttendenceForm.new()
+    form = AttendenceForm()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
