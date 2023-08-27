@@ -44,14 +44,14 @@ def get_current_user():
 
 class AttendenceForm(FlaskForm):
     def validate_end_date(form, field):
-        if field.data < (date.today(pytz.UTC) - timedelta(days=2)):
+        if field.data < (date.today() - timedelta(days=2)):
             raise ValidationError("Max 2 dny zpět")
     startdate = DateField(label='Datum',
                           validators=[
                               validate_end_date,
                               DataRequired()
                           ],
-                          default= datetime.now(pytz.UTC))
+                          default= datetime.now())
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
@@ -63,7 +63,7 @@ class AttendenceForm(FlaskForm):
     def new(cls):
         # Instantiate the form
         form = cls()
-        form.today_day = date.today()
+        form.startdate.default = datetime.now()
         return form
 
 
@@ -183,7 +183,7 @@ def attendence_individual():
     if not user:
        return redirect('/')
 
-    form = AttendenceForm()
+    form = AttendenceForm.new()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -235,7 +235,7 @@ def attendence_individual():
                            page_title='Zadání docházky',
                            user=user['user'],
                            role=int(user['role']),
-                           form=form)
+                           form=AttendenceForm.new())
 
 @app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
 def attendence_overview(select_month):
