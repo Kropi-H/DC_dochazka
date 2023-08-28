@@ -43,15 +43,14 @@ def get_current_user():
         return user_session
 
 class AttendenceForm(FlaskForm):
-    def validate_end_date(form, field):
-        if field.data < (date.today() - timedelta(days=2)):
-            raise ValidationError("Max 2 dny zpět")
     startdate = DateField(label='Datum',
                           validators=[
-                              validate_end_date,
+                              DateRange(
+                                min=date.today()-timedelta(days=2),
+                                max = date.today(),
+                                message="Max 2 dny zpět"),
                               DataRequired()
-                          ],
-                          default= datetime.now())
+                          ])
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
@@ -59,13 +58,6 @@ class AttendenceForm(FlaskForm):
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'}, validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
-    @classmethod
-    def new(cls):
-        # Instantiate the form
-        form = cls()
-        form.startdate.default = datetime.now()
-        return form
-
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -183,7 +175,7 @@ def attendence_individual():
     if not user:
        return redirect('/')
 
-    form = AttendenceForm.new()
+    form = AttendenceForm()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -235,7 +227,7 @@ def attendence_individual():
                            page_title='Zadání docházky',
                            user=user['user'],
                            role=int(user['role']),
-                           form=AttendenceForm.new())
+                           form=form)
 
 @app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
 def attendence_overview(select_month):
