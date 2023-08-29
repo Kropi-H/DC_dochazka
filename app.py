@@ -1,6 +1,6 @@
 import os
 import tables
-from flask import Flask, session, request, render_template, redirect, url_for
+from flask import Flask, session, request, render_template, redirect, url_for, Response
 from datetime import datetime, date, timedelta, time
 import gspread
 from flask_bootstrap import Bootstrap
@@ -11,6 +11,7 @@ from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
+import pdfkit
 import pytz
 
 # Service client credential from oauth2client
@@ -46,18 +47,20 @@ class AttendenceForm(FlaskForm):
     startdate = DateField(label='Datum',
                           validators=[
                               DateRange(
-                                min=date.today()-timedelta(days=2),
-                                max = date.today(),
-                                message="Max 2 dny zpět"),
+                                min= date.today() - timedelta(days=2),
+                                max= date.today(),
+                                message='Max dva dny zpět'),
                               DataRequired()
                           ])
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[DataRequired()])
-    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'}, validators=[validators.Optional(strip_whitespace=True)])
+    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+                               validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
+
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -177,7 +180,7 @@ def attendence_individual():
 
     form = AttendenceForm()
     # Attencence form data request
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
@@ -283,7 +286,15 @@ def attendence_overview(select_month):
                                user_month_values = months_values,
                                month_name=months_name[select_month-1],
                                found_strings = found_strings)
+@app.route('/generate_pdf', methods=['POST', 'GET'])
+def generate_pdf():
 
+    pdf_html = render_template('google.com')  # Použijeme samostatnou HTML šablonu
+    pdf = pdfkit.from_string(pdf_html, False, configuration=pdfkit_config)
+
+    response = Response(pdf, content_type='application/pdf')
+    response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
+    return response
 
 
 class AttendenceAllForm(FlaskForm):
