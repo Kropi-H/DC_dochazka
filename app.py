@@ -44,12 +44,15 @@ def get_current_user():
         return user_session
 
 class AttendenceForm(FlaskForm):
+    def validate_end_date(self, field):
+        if field.data < (date.today() - timedelta(days=2)):
+            raise ValidationError("Max 2 dny zpět")
+
     startdate = DateField(label='Datum',
                           validators=[
                               DateRange(
-                                min= date.today() - timedelta(days=2),
-                                max= date.today(),
-                                message='Max dva dny zpět'),
+                              min = date.today() - timedelta(days=2),
+                              max = date.today(),message='Max 2 dny zpět'),
                               DataRequired()
                           ])
     starttime = TimeField('Začátek', validators=[DataRequired()])
@@ -180,7 +183,7 @@ def attendence_individual():
 
     form = AttendenceForm()
     # Attencence form data request
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
