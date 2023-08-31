@@ -6,13 +6,12 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DateField, TimeField, TextAreaField, SelectField, IntegerField, PasswordField, validators
+from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators
 from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
 import pdfkit
-import pytz
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -43,17 +42,16 @@ def get_current_user():
         user_session['role'] = session['role']
         return user_session
 
-class AttendenceForm(FlaskForm):
+class AttendanceForm(FlaskForm):
     def validate_end_date(self, field):
-        if field.data < (date.today() - timedelta(days=2)):
+
+        if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
             raise ValidationError("Max 2 dny zpět")
 
     startdate = DateField(label='Datum',
                           validators=[
-                              DateRange(
-                              min = date.today() - timedelta(days=2),
-                              max = date.today(),message='Max 2 dny zpět'),
-                              DataRequired()
+                              DataRequired(),
+                              validate_end_date
                           ])
     starttime = TimeField('Začátek', validators=[DataRequired()])
     endtime = TimeField('Konec', validators=[DataRequired()])
@@ -181,7 +179,7 @@ def attendence_individual():
     if not user:
        return redirect('/')
 
-    form = AttendenceForm()
+    form = AttendanceForm()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
