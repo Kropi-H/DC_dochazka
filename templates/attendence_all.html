@@ -3,14 +3,14 @@
 
 {% block body %}
 
-<div class="container">
+<div class="container" id="content">
     <div class="py-5 text-center">
 
         <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
               action="{{ url_for('attendence_all') }}" method='POST'>
 
             <div class="" style="display:flex; justify-content:center">
-                <h1>{{ head_text }}{{date_range}}</h1>
+                <h1>{{ head_text }}</h1>
             </div>
 
             <div class="row">
@@ -86,7 +86,7 @@
             </tr>
             {% endfor %}
             <tr class="table-dark text-center">
-                <td colspan="4">Celkový stav za období: {{date_range}}</td>
+                <td colspan="4">{{ head_text }}</td>
                 <td>{{sum_work_hour}} hodin</td>
                 <td>{{sum_ower_work_hour}} hodin přesčasu</td>
                 <td>{{olepka}}m olepeno</td>
@@ -96,9 +96,7 @@
         </table>
 
     </div>
-    <a href="{{ url_for('generate_pdf') }}" target="_blank">
-        <button class="btn btn-primary" type="submit" >Generovat a tisknout PDF</button>
-    </a>
+
 </div>
 
 {% endblock %}

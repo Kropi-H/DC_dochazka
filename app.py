@@ -1,6 +1,6 @@
 import os
 import tables
-from flask import Flask, session, request, render_template, redirect, url_for, Response
+from flask import Flask, session, request, render_template, redirect, url_for, make_response
 from datetime import datetime, date, timedelta, time
 import gspread
 from flask_bootstrap import Bootstrap
@@ -11,7 +11,6 @@ from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
-import pdfkit
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -48,13 +47,41 @@ class AttendanceForm(FlaskForm):
         if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
             raise ValidationError("Max 2 dny zpět")
 
+    def start_time():
+        specific_time = datetime.now().replace(hour=15, minute=0, second=0)
+        morning_start_time = datetime.now().replace(hour=6, minute=0, second=0)
+        afternoon_start_time = datetime.now().replace(hour=13, minute=30, second=0)
+        friday_afternoon_start_time = datetime.now().replace(hour=9, minute=30, second=0)
+        if datetime.now() < specific_time:
+            return morning_start_time
+        elif datetime.now().weekday() == 4:
+            return friday_afternoon_start_time
+        else:
+            return afternoon_start_time
+    def end_time():
+        specific_time = datetime.now().replace(hour=16, minute=00, second=0)
+        morning_end_time = datetime.now().replace(hour=14, minute=30, second=0)
+        afternoon_end_time = datetime.now().replace(hour=22, minute=0, second=0)
+        friday_morning_end_time = datetime.now().replace(hour=18, minute=0, second=0)
+        if datetime.now() < specific_time:
+            return morning_end_time
+        elif datetime.now().weekday() == 4:
+            return friday_morning_end_time
+        else:
+            return afternoon_end_time
+
     startdate = DateField(label='Datum',
+                          default=date.today(),
                           validators=[
                               DataRequired(),
                               validate_end_date
                           ])
-    starttime = TimeField('Začátek', validators=[DataRequired()])
-    endtime = TimeField('Konec', validators=[DataRequired()])
+    starttime = TimeField('Začátek',
+                          default=start_time,
+                          validators=[DataRequired()])
+    endtime = TimeField('Konec',
+                        default=end_time,
+                        validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[DataRequired()])
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
@@ -87,10 +114,13 @@ def index():
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
-                return redirect(url_for('attendence_individual'))
+                if session['role'] == 4:
+                    return redirect(url_for('attendence_all'))
+                else:
+                    return redirect(url_for('attendence_individual'))
             else:
                 warning['login'] = 'Heslo je špatné'
-                return render_template('login.html', page_title='login',login_text = warning["login"])
+                return render_template('login.html', page_title='login', login_text=warning["login"])
     else:
         return render_template('login.html', page_title='login')
 
@@ -158,7 +188,7 @@ def register_new_user():
 
         first_name = request.form['first_name'].strip()
         last_name = request.form['second_name'].strip()
-        password = request.form['password'].strip()
+        password = hashlib.md5(request.form['password'].strip().encode()).hexdigest()
         working_role = int(request.form['role'].strip())
         email = request.form['email'].strip()
         phone = int(request.form['phone'].strip())
@@ -166,6 +196,15 @@ def register_new_user():
         length_of_list = len(workers_sheet.get_all_values()) # count of all rows in sheet
         new_user_row = first_name, password, working_role, first_name, last_name, email, phone, length_of_list
         workers_sheet.insert_row(new_user_row,length_of_list+1) # put data to the table on the bottom line
+
+        # Vytvoření nového listu (kopírováním listu 'mustr') v tabulce google pod jménem uživatele
+        attendence_tab = client.open_by_key(tables.workers_table['workers'])
+        len_attendece_tab = len(attendence_tab.worksheets())
+        muster_sheet = attendence_tab.worksheet('mustr')
+        attendence_tab.duplicate_sheet(source_sheet_id=muster_sheet.id,
+                                       insert_sheet_index= len_attendece_tab-1,
+                                       new_sheet_name=last_name)
+
         return render_template('new_user_confirmation.html', page_title='Nový Uživatel',
                                new_user_data=new_user_row,
                                user=user['user'],
@@ -178,6 +217,14 @@ def attendence_individual():
 
     if not user:
        return redirect('/')
+
+    attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
+    workers_list = []
+    for name in attendence_tab:
+        if name.title == 'mustr':
+            pass
+        else:
+            workers_list.append(name.title)
 
     form = AttendanceForm()
     # Attencence form data request
@@ -283,20 +330,13 @@ def attendence_overview(select_month):
                                page_title = 'Přehled',
                                user=user['user'],
                                role=int(user['role']),
-                               user_value = row_value,
-                               user_month_values = months_values,
+                               user_value=row_value,
+                               user_month_values=months_values,
                                month_name=months_name[select_month-1],
-                               found_strings = found_strings)
-@app.route('/generate_pdf', methods=['POST', 'GET'])
+                               found_strings=found_strings)
+@app.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
-
-    pdf_html = render_template('google.com')  # Použijeme samostatnou HTML šablonu
-    pdf = pdfkit.from_string(pdf_html, False, configuration=pdfkit_config)
-
-    response = Response(pdf, content_type='application/pdf')
-    response.headers['Content-Disposition'] = 'inline; filename=output.pdf'
-    return response
-
+    pass
 
 class AttendenceAllForm(FlaskForm):
     startdate = DateField(label='Od',
@@ -335,7 +375,10 @@ def attendence_all():
     attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
     workers_list = []
     for name in attendence_tab:
-        workers_list.append(name.title)
+        if name.title == 'mustr':
+            pass
+        else:
+            workers_list.append(name.title)
 
     def find_strings_in_nested_list(nested_list, target_strings):
             result = set()  # Použijeme množinu pro unikátní výsledky
@@ -411,14 +454,13 @@ def attendence_all():
 
         found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
 
-
+        date_range_text = f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}'
         return render_template('attendence_all.html',
                                 user=user['user'],
                                 role=int(user['role']),
                                 page_title='Přehled všech',
                                 form=form,
-                                date_range=f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}',
-                                head_text=f'Přehled ',
+                                head_text=f'Přehled { date_range_text }',
                                 workers_list=enumerate(workers_list,0),
                                 found_strings = found_strings_selection,
                                 workers_result=workers_result_selection,
@@ -438,17 +480,52 @@ def attendence_all():
                 item.insert(0,workers_list[worker])
                 workers_result.append(item)
 
+    def shorten_time(time_str):
+            parts = time_str.split(":")
+            if len(parts) > 2:
+                parts.pop()
+            d = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
+            return(d)
+
+    pila = 0
+    olepka = 0
+    work_time = timedelta()
+    ower_time = timedelta()
+    for data in workers_result:
+        if data[4]:
+            work_time += shorten_time(data[4])
+
+        if data[5]:
+            ower_time += shorten_time(data[5])
+
+        if data[6] == 'pila':
+            pila += int(data[7])
+        elif data[6] == 'olepka':
+            olepka += int(data[7])
+
     found_strings = find_strings_in_nested_list(workers_result, target_strings)
+
+    def timedelta_to_string(convert_time):
+            hours = convert_time.days * 24 + convert_time.seconds // 3600
+            minutes = (convert_time.seconds % 3600) // 60
+            return(f"{hours:02d}:{minutes:02d}")
+
+    date_range_text = 'včera'
 
     return render_template('attendence_all.html',
                        user=user['user'],
                        role=int(user['role']),
                        page_title='Přehled všech',
+                       date_range=date_range_text,
                        form=form,
-                       head_text='Přehled včera všichni',
+                       head_text=f'Přehled {date_range_text} všichni',
                        workers_list=enumerate(workers_list,0),
                        found_strings = found_strings,
-                       workers_result=workers_result)
+                       pila = pila,
+                       olepka = olepka,
+                       workers_result=workers_result,
+                       sum_work_hour = timedelta_to_string(work_time),
+                       sum_ower_work_hour = timedelta_to_string(ower_time))
 
 @app.route('/logout')
 def logout():
