@@ -71,7 +71,7 @@ class AttendanceForm(FlaskForm):
             return afternoon_end_time
 
     startdate = DateField(label='Datum',
-                          default=date.today(),
+                          default=date.today,
                           validators=[
                               DataRequired(),
                               validate_end_date
