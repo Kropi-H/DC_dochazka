@@ -46,7 +46,9 @@
                     {% if 'sklad' in found_strings %}<th>Sklad</th>{% endif %}
                     {% if 'zavoz' in found_strings %}<th>Závoz</th>{% endif %}
                     <!-- {% if 'kancl' in found_strings %}<th>Kancelář</th>{% endif %} -->
-                    {% if 'jine' in found_strings %}<th>Jiné</th>{% endif %}
+                    {% if 'jine' in found_strings %}<th>Poznámky</th>{% endif %}
+                    {% if 'olepka' in found_strings %}<th>Poznámky</th>{% endif %}
+                    {% if 'pila' in found_strings %}<th>Poznámky</th>{% endif %}
                 </tr>
                 </thead>
                 <tbody>
@@ -62,8 +64,10 @@
                     {% if 'pila' in found_strings %}<td>{% if y[5] == 'pila' %} {{ y[6] }} {% endif %}</td>{% endif %}
                     {% if 'sklad' in found_strings %}<td>{% if y[5] == 'sklad' %} {{ y[7] }} {% endif %}</td>{% endif %}
                     {% if 'zavoz' in found_strings %}<td>{% if y[5] == 'zavoz' %} {{ y[7] }} {% endif %}</td>{% endif %}
-                    <!-- {% if 'kancl' in found_strings %}<td>{% if y[5] == 'kancl' %} {{ y[7] }} {% endif %}</td>{% endif %} -->
+                    <!-- {% if 'jine' in found_strings %}<td>{% if y[6] == 'jine' %} {{ y[7] }} {% endif %}</td>{% endif %} -->
                     {% if 'jine' in found_strings %}<td>{% if y[5] == 'jine' %} {{ y[7] }} {% endif %}</td>{% endif %}
+                    {% if 'olepka' in found_strings %}<td>{% if y[5] == 'olepka' %} {{ y[7] }} {% endif %}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>{% if y[5] == 'pila' %} {{ y[7] }} {% endif %}</td>{% endif %}
                 </tr>
                 {% endfor %}
                 {% endfor %}
@@ -77,6 +81,8 @@
                     {% if 'zavoz' in found_strings %}<td>{{ "-" }}</td>{% endif %}
                     <!-- {% if 'kancl' in found_strings %}<td>{{ "-" }}</td>{% endif %} -->
                     {% if 'jine' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'olepka' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>{{ "-" }}</td>{% endif %}
                 </tr>
                 </tbody>
             </table>

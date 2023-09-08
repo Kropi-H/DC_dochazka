@@ -275,6 +275,7 @@ def attendence_individual():
         return redirect(url_for('attendence_overview',select_month=datetime.now().month))
 
     return render_template('attendence_individual.html',
+                           select_month=datetime.now().month,
                            page_title='Zadání docházky',
                            user=user['user'],
                            role=int(user['role']),
