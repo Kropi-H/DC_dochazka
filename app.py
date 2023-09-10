@@ -31,8 +31,22 @@ client = gspread.authorize(credential)
 
 
 # Now will can access our google sheets we call client.open on StartupName
-workers_tab = client.open_by_key(tables.cridentials_table["users"])
+workers_tab = client.open_by_key(tables.cridentials_table['users'])
 workers_sheet = workers_tab.worksheet('users')
+
+def get_user_login_list():
+    try:
+        lines_list = []
+        f = open('static/login.csv', 'r', encoding='utf-8')
+        for line in f.readlines():
+            hodnoty = line.strip().split(';')
+            lines_list.append(hodnoty)
+        f.close()
+        return lines_list
+    except:
+        pass
+    finally:
+        f.close()
 
 def get_current_user():
     user_session = {}
@@ -40,6 +54,21 @@ def get_current_user():
         user_session['user'] = session['user_name']
         user_session['role'] = session['role']
         return user_session
+
+def user_records(user):
+    user_records_list = []
+    user_list = get_user_login_list()
+    for item in user_list:
+        if item[0] == user['user']:
+            user_records_list.append(item)
+    return dict({'user_itmes': user_records_list,
+                 'user_count': len(user_records_list)})
+
+@app.context_processor
+def inject_globals():
+    return dict({
+        'current_month': datetime.now().month
+    })
 
 class AttendanceForm(FlaskForm):
     def validate_end_date(self, field):
@@ -117,7 +146,16 @@ def index():
                 if session['role'] == 4:
                     return redirect(url_for('attendence_all'))
                 else:
-                    return redirect(url_for('attendence_individual'))
+                    try:
+                        f = open('static/login.csv', 'a', encoding='utf-8')
+                        f.write(f"{row_data[4]};{datetime.now().strftime('%d.%m.%Y/%H:%M')}\n")
+                        f.close()
+                        return redirect(url_for('attendence_individual'))
+                    except:
+                        return False
+                    finally:
+                        f.close()
+
             else:
                 warning['login'] = 'Heslo je špatné'
                 return render_template('login.html', page_title='login', login_text=warning["login"])
@@ -155,6 +193,7 @@ def change_password():
 
                 return render_template('change_password.html',
                                     title='Změna akceptována',
+                                    worker_list=user_records(user),
                                     user=user['user'],
                                     role=int(user['role']),
                                     workers_list=worker_values,
@@ -165,6 +204,7 @@ def change_password():
 
     return render_template('change_password.html',
                            title='Změna hesla',
+                           worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
                            workers_list=worker_values,
@@ -181,6 +221,7 @@ def register_new_user():
     if user and request.method == 'GET':
         return render_template('new_registration.html',
                                page_title='Nová registrace',
+                               worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']))
 
@@ -207,6 +248,7 @@ def register_new_user():
 
         return render_template('new_user_confirmation.html', page_title='Nový Uživatel',
                                new_user_data=new_user_row,
+                               worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']))
 
@@ -277,6 +319,7 @@ def attendence_individual():
     return render_template('attendence_individual.html',
                            select_month=datetime.now().month,
                            page_title='Zadání docházky',
+                           worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
                            form=form)
@@ -289,6 +332,7 @@ def attendence_overview(select_month):
        return redirect('/')
 
     if request.method == 'GET':
+
         months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
                   7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
         months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
@@ -329,6 +373,7 @@ def attendence_overview(select_month):
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
+                               worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']),
                                user_value=row_value,
@@ -443,9 +488,19 @@ def attendence_all():
                 ower_time += shorten_time(data[5])
 
             if data[6] == 'pila':
-                pila += int(data[7])
+                value = data[7]
+                if value == "":
+                    value = 0
+                else:
+                    value = int(data[7])
+                pila += value
             elif data[6] == 'olepka':
-                olepka += int(data[7])
+                value = data[7]
+                if value == "":
+                    value = 0
+                else:
+                    value = int(data[7])
+                olepka += value
 
         def timedelta_to_string(convert_time):
             hours = convert_time.days * 24 + convert_time.seconds // 3600
@@ -457,6 +512,7 @@ def attendence_all():
 
         date_range_text = f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}'
         return render_template('attendence_all.html',
+                                worker_list=user_records(user),
                                 user=user['user'],
                                 role=int(user['role']),
                                 page_title='Přehled všech',
@@ -517,6 +573,7 @@ def attendence_all():
                        user=user['user'],
                        role=int(user['role']),
                        page_title='Přehled všech',
+                       worker_list=user_records(user),
                        date_range=date_range_text,
                        form=form,
                        head_text=f'Přehled {date_range_text} všichni',

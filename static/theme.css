@@ -132,6 +132,14 @@ text-align: justify;
     font-size: 15px;
 }
 
+.nav li p {
+padding: 0px 15px 0px 0px;
+}
+
+.mynav  {
+text-align:left;
+}
+
 .profile-head ul li:hover span {
     color: rgb(0, 4, 51);
 }

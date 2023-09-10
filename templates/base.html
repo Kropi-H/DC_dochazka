@@ -51,7 +51,7 @@
                 {% if user and role < 4 %}
                 <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a>
                 </li>
-                <li class=""><a href="{{ url_for('attendence_overview', select_month=8)  }}">Přehled {{ user }}<span
+                <li class=""><a href="{{ url_for('attendence_overview', select_month=current_month)  }}">Přehled {{ user }}<span
                         class="sr-only"></span></a></li>
                 {% endif %}
                 {% if user and role >= 2 %}
@@ -75,7 +75,17 @@
 </nav>
 
 {% block body %}{% endblock %}
+{% if user %}
+<div>
+    <p class="mynav">Naposledy přihlášen:</p>
+    <ul class="nav navbar-nav">
+    <li><p>{{ worker_list['user_itmes'][-1][0] }} {{ worker_list['user_itmes'][-1][1] }}
+        <span class="badge">{{ worker_list['user_count'] }}</span></p></li>
 
+</ul>
+</div>
+{% endif %}
+</div>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script type="text/javascript" src="{{ url_for('static', filename = 'bootstrap.min.js' )}}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename = 'script.js' )}}"></script>
@@ -93,6 +103,8 @@ function showDiv(select){
    }
 }
 
+
 </script>
+
 </body>
 </html>
