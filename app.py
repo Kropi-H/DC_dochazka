@@ -2,6 +2,7 @@ import os
 import tables
 from flask import Flask, session, request, render_template, redirect, url_for, make_response
 from datetime import datetime, date, timedelta, time
+import pytz
 import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
@@ -148,7 +149,7 @@ def index():
                 else:
                     try:
                         f = open('static/login.csv', 'a', encoding='utf-8')
-                        f.write(f"{row_data[4]};{datetime.now().strftime('%d.%m.%Y/%H:%M')}\n")
+                        f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
                         f.close()
                         return redirect(url_for('attendence_individual'))
                     except:
