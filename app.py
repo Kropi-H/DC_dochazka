@@ -557,9 +557,19 @@ def attendence_all():
             ower_time += shorten_time(data[5])
 
         if data[6] == 'pila':
-            pila += int(data[7])
+            value = data[7]
+            if value == '':
+                value = 0
+            else:
+                value = int(data[7])
+            pila += value
         elif data[6] == 'olepka':
-            olepka += int(data[7])
+            value = data[7]
+            if value == '':
+                value = 0
+            else:
+                value = int(data[7])
+            olepka += value
 
     found_strings = find_strings_in_nested_list(workers_result, target_strings)
 

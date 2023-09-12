@@ -62,6 +62,7 @@
                 <th>Přesčas</th>
                 <th>Olepka</th>
                 <th>Pila</th>
+                <th>Poznámky</th>
             </tr>
             </thead>
             <tbody>
@@ -83,6 +84,7 @@
                 {% else %}
                 <td>-</td>
                 {% endif %}
+                <td>{{ user[8] }}</td>
             </tr>
             {% endfor %}
             <tr class="table-dark text-center">
@@ -91,6 +93,7 @@
                 <td>{{sum_ower_work_hour}} hodin přesčasu</td>
                 <td>{{olepka}}m olepeno</td>
                 <td>{{pila}} desek nařezáno</td>
+                <td>-</td>
             </tr>
             </tbody>
         </table>
