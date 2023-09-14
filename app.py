@@ -145,7 +145,15 @@ def index():
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
                 if session['role'] == 4:
-                    return redirect(url_for('attendence_all'))
+                    try:
+                        f = open('static/login.csv', 'a', encoding='utf-8')
+                        f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
+                        f.close()
+                        return redirect(url_for('attendence_all'))
+                    except:
+                        return False
+                    finally:
+                        f.close()
                 else:
                     try:
                         f = open('static/login.csv', 'a', encoding='utf-8')
