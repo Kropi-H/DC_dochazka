@@ -394,13 +394,16 @@ def generate_pdf():
     pass
 
 class AttendenceAllForm(FlaskForm):
+    def validate_default_date():
+        return datetime.today() - timedelta(days=1)
+
     startdate = DateField(label='Od',
                           format='%Y-%m-%d',
-                          default=datetime.today,
+                          default=validate_default_date,
                           validators=[DateRange(),DataRequired()])
     enddate = DateField(label='Do',
                         format='%Y-%m-%d',
-                        default=datetime.today,
+                        default=validate_default_date,
                         validators=[DateRange(),DataRequired()])
 
     submit = SubmitField(label='Zobrazit')
@@ -412,7 +415,7 @@ class AttendenceAllForm(FlaskForm):
         if rv:
             # Ensure end date >= start date
             if self.startdate.data > self.enddate.data:
-                self.enddate.errors.append('Toto datum musí mít nižší hodnotu!')
+                self.enddate.errors.append('Zkus to znovu!')
                 return False
             return True
         return False
