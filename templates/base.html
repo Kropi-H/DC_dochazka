@@ -79,16 +79,14 @@
 <div>
     <p class="mynav">Naposledy přihlášen:</p>
     <ul class="nav navbar-nav">
-    <li><p>
-        {% if worker_list['user_count'] < 1 %}
-        {{ worker_list['user_itmes'][0][0] }} {{ worker_list['user_itmes'][0][1] }}
-        {% elif worker_list['user_count']  == 1 %}
-        {{ worker_list['user_itmes'][-1][0] }} {{ worker_list['user_itmes'][-1][1] }}
-        {% else %}
-        {{ worker_list['user_itmes'][-2][0] }} {{ worker_list['user_itmes'][-2][1] }}
-        {% endif %}
-        <span class="badge">{{ worker_list['user_count'] }}</span></p></li>
-
+    {% for worker in worker_list%}
+        <li>
+        <p>
+        {{ worker['name'] }} {{ worker['date'] }}
+        <span class="badge">{{ worker['count'] }}</span>
+        </p>
+        </li>
+        {% endfor %}
 </ul>
 </div>
 {% endif %}

@@ -59,11 +59,49 @@ def get_current_user():
 def user_records(user):
     user_records_list = []
     user_list = get_user_login_list()
+    result = []
+    # Vytvořte slovník pro uchování počtu výskytů jmen a seznamu dat
+    count_dict = {}
+    date_dict = {}
+
+    # Projděte vnořený list a aktualizujte slovníky
     for item in user_list:
-        if item[0] == user['user']:
-            user_records_list.append(item)
-    return dict({'user_itmes': user_records_list,
-                 'user_count': len(user_records_list)})
+        name, date = item[0], item[1]
+
+        if name in count_dict:
+            count_dict[name] += 1
+        else:
+            count_dict[name] = 1
+
+        if name in date_dict:
+            date_dict[name].append(date)
+        else:
+            date_dict[name] = [date]
+
+    # Případ 1: Seznam všech jmen s předposledními daty a počtem výskytů
+    if user['role'] == 3:
+        result_1 = []
+        for name, count in count_dict.items():
+            dates = date_dict[name]
+            if count >= 1:
+                second_last_date = dates[-2] if len(dates) >= 2 else dates[-1]
+                result_1.append((name, second_last_date, count))
+
+        for name, second_last_date, count in result_1:
+            user_records_list.append(dict({'name':name, 'date':second_last_date, 'count':count}))
+
+
+    # Případ 2: Získání předposledního data a počtu výskytů pro konkrétní jméno
+    elif user['role'] != 3:
+        target_name = user['user']  # Změňte na požadované jméno
+        if target_name in count_dict:
+           dates = date_dict[target_name]
+           count = count_dict[target_name]
+           second_last_date = dates[-2] if len(dates) >= 2 else dates[-1]
+           user_records_list.append(dict({'name':target_name, 'date':second_last_date, 'count':count}))
+
+
+    return user_records_list
 
 @app.context_processor
 def inject_globals():
