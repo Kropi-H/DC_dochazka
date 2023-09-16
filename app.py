@@ -66,7 +66,7 @@ def user_records(user):
 
     # Projděte vnořený list a aktualizujte slovníky
     for item in user_list:
-        name, date = item[0], item[1]
+        name, the_date = item[0], item[1]
 
         if name in count_dict:
             count_dict[name] += 1
@@ -74,9 +74,9 @@ def user_records(user):
             count_dict[name] = 1
 
         if name in date_dict:
-            date_dict[name].append(date)
+            date_dict[name].append(the_date)
         else:
-            date_dict[name] = [date]
+            date_dict[name] = [the_date]
 
     # Případ 1: Seznam všech jmen s předposledními daty a počtem výskytů
     if user['role'] == 3:
@@ -88,7 +88,7 @@ def user_records(user):
                 result_1.append((name, second_last_date, count))
 
         for name, second_last_date, count in result_1:
-            user_records_list.append(dict({'name':name, 'date':second_last_date, 'count':count}))
+            user_records_list.append(dict({'name': name, 'date': second_last_date, 'count': count}))
 
 
     # Případ 2: Získání předposledního data a počtu výskytů pro konkrétní jméno
