@@ -12,6 +12,7 @@ from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
+import csv
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -650,6 +651,95 @@ def logout():
     session['user_name'] = None
     session['role'] = None
     return redirect("/")
+
+
+
+
+def load_contracts(filename):
+    contracts = []
+    try:
+        with open(f'static/{filename}', 'r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if row:
+                    contracts.append({'id':row[0],'contract': row[1], 'note': row[2], 'finished': int(row[3])})
+    except FileNotFoundError:
+        pass
+    return contracts
+
+def save_contracts(contracts, filename):
+    with open(f'static/{filename}', 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        for contract in contracts:
+            writer.writerow([contract['id'], contract['contract'], contract['note'], contract['finished']])
+
+@app.route('/contracts')
+def contracts():
+
+    contracts = load_contracts('contracts.csv')
+    completed_contracts = load_contracts('archived_contracts.csv')
+    return render_template('contracts.html',
+                           contracts=contracts,
+                           completed_contracts=completed_contracts,
+                           page_title='Zakázky')
+
+@app.route('/add_contract', methods=['POST'])
+def add_contract():
+    customer_name = request.form.get('name')
+    customer_note = request.form.get('note')
+    new_id= int()
+    if customer_name:
+        new_contracts = load_contracts('contracts.csv')
+        if not new_contracts:
+            new_id = 230000
+        else:
+            new_id = int(new_contracts[-1]['id'])+1
+
+        new_contracts.append(dict({'id': new_id, 'contract': customer_name, 'note': customer_note, 'finished': 0}))
+        save_contracts(new_contracts, 'contracts.csv')
+    return redirect('/contracts')
+
+@app.route('/complete_contract/<int:contract_index>')
+def complete_contract(contract_index):
+    contracts = load_contracts('contracts.csv')
+    if 0 <= contract_index < len(contracts):
+        contracts[contract_index]['finished'] = 1
+        save_contracts(contracts, 'contracts.csv')
+    return redirect('/contracts')
+
+
+@app.route('/archive_contracts')
+def archive_contracts():
+    contracts = load_contracts('contracts.csv')
+    completed_contracts = [contract for contract in contracts if contract['finished'] == 1]
+
+    try:
+        #with open('static/archived_contracts.csv', 'a', newline='',encoding='utf-8') as csvfile:
+        #    writer = csv.writer(csvfile)
+        #    for contract in completed_contracts:
+        #        writer.writerow([contract['id'], contract['contract'], contract['note'], contract['finished']])
+
+        contracts = [contract for contract in contracts if contract['finished'] == 0]
+        save_contracts(contracts, 'contracts.csv')
+    except FileNotFoundError:
+        pass
+
+    return redirect('/contracts')
+
+@app.route('/update_contract_order', methods=['POST'])
+def update_contract_order():
+    new_order = request.form.getlist('contract_order[]')
+    contracts = load_contracts('contracts.csv')
+
+    # Seřadíme úkoly podle nového pořadí
+    new_contracts = []
+    for index in new_order:
+        new_contracts.append(contracts[int(index)])
+
+    # Uložíme nové pořadí do souboru
+    save_contracts(new_contracts, 'contracts.csv')
+
+    return redirect('/contracts')
 
 
 if __name__=='__main__':

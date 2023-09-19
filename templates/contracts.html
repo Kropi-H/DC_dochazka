@@ -1,0 +1,105 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ page_title }}</title>
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link href="{{ url_for('static', filename = 'theme_zakazky.css' )}}" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading"><h1>Seznam zakázek</h1></div>
+
+        <!-- Table -->
+        <div class="panel panel-default" style="overflow-x:auto;">
+            <table class="table table-bordered table-hover table-sortable">
+                <thead>
+                <form action="/add_contract" method="POST">
+                    <tr>
+                        <th>Zakázka</th>
+                        <th><input type="text" name="name" placeholder="Zákazník" required></th>
+                        <th><textarea name="note" placeholder="Poznámka"
+                                      id="exampleFormControlTextarea1" rows="1"></textarea></th>
+                        <th><button class="btn btn-success" type="submit">Přidat zakázku</button>
+                    </tr>
+                </form>
+                </thead>
+                <tbody id="task-list">
+                {% for contract in contracts %}
+                {% if contract['finished'] == 0 %}
+                <tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)"
+                    ondrop="drop(event, {{ loop.index0 }})" data-index="{{ loop.index0 }}">
+                    <td scope="row">DC{{ contract['id'] }}</td>
+                    <td>{{ contract['contract'] }}</td>
+                    <td>{{ contract['note'] }}</td>
+                    <td>{% if not contract['finished'] %}
+                        <!--<button class="btn btn-success float-right" onclick="completeContract({{ loop.index0 }})">
+                            Uspokojeno
+                        </button>-->
+                        <button class="btn btn-primary glyphicon glyphicon-remove"onclick="completeContract({{ loop.index0 }})"></button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!--<form action="/archive_contracts" method="GET">
+            <button class="btn btn-success" type="submit">Archivovat uspokojené zákazníky</button>
+        </form>-->
+        <button class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
+        <h2>Hotové úkoly</h2>
+        <ul id="completed-task-list">
+            {% for contract in completed_contracts %}
+            <li>
+                <span>DC{{ contract['id'] }}</span>
+                <span>{{ contract['contract'] }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<script>
+
+$( function() {
+  $( "#task-list" ).sortable();
+});
+
+        function completeContract(contractIndex) {
+            $.get(`/complete_contract/${contractIndex}`, function() {
+                location.reload();
+            });
+        }
+
+        function updateContractOrder() {
+            var taskList = document.getElementById('task-list');
+            var items = Array.from(taskList.children);
+            var newOrder = items.map(function (item) {
+                return item.dataset.index;
+            });
+
+            $.ajax({
+                url: '/update_contract_order',
+                type: 'POST',
+                data: { contract_order: newOrder },
+                success: function () {
+                    // Po úspěšném uložení můžete provést nějakou akci, například zobrazení zprávy o úspěchu.
+                }
+            });
+        }
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
