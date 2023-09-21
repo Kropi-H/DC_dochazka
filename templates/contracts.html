@@ -12,7 +12,12 @@
 <div class="container">
     <div class="panel panel-default">
         <!-- Default panel contents -->
-        <div class="panel-heading"><h1>Seznam zakázek</h1></div>
+        <div class="panel-heading"><h1>Seznam zakázek</h1>
+            <div>
+                <span class="label label-info">Řezání celkem: {{ cut_count }} minut</span>
+                <span class="label label-info">Lepení celkem: {{ glue_count }} metrů</span>
+            </div>
+        </div>
 
         <!-- Table -->
         <div class="panel panel-default" style="overflow-x:auto;">
@@ -24,7 +29,14 @@
                         <th><input type="text" name="name" placeholder="Zákazník" required></th>
                         <th><textarea name="note" placeholder="Poznámka"
                                       id="exampleFormControlTextarea1" rows="1"></textarea></th>
-                        <th><button class="btn btn-success" type="submit">Přidat zakázku</button>
+                        <th>
+                            <input type="number" name="cut" placeholder="Řezání">
+                            <input type="number" name="glue" placeholder="Hranění">
+                        </th>
+                        <th>Stav</th>
+                        <th><input type="date" name="date" placeholder="Datum" required></th>
+                        <th>
+                            <button class="btn btn-success" type="submit">Přidat zakázku</button>
                     </tr>
                 </form>
                 </thead>
@@ -36,11 +48,26 @@
                     <td scope="row">DC{{ contract['id'] }}</td>
                     <td>{{ contract['contract'] }}</td>
                     <td>{{ contract['note'] }}</td>
+                    <td>
+                        {% if contract['cut'] > 0 %}<label><input type="checkbox"> {{ contract['cut'] }} minut</label>{% endif %}
+                        {% if contract['glue'] > 0 %}<label><input type="checkbox"> {{ contract['glue'] }} metrů</label>{% endif %}
+                    </td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="70"
+                                 aria-valuemin="0" aria-valuemax="100" style="width:70%">
+                                70%
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ contract['date'] }}</td>
                     <td>{% if not contract['finished'] %}
                         <!--<button class="btn btn-success float-right" onclick="completeContract({{ loop.index0 }})">
                             Uspokojeno
                         </button>-->
-                        <button class="btn btn-primary glyphicon glyphicon-remove"onclick="completeContract({{ loop.index0 }})"></button>
+                        <button class="btn btn-primary glyphicon glyphicon-remove"
+                                onclick="completeContract({{ loop.index0 }})"></button>
+                        <button class="btn btn-warning glyphicon glyphicon-print"></button>
                         {% endif %}
                     </td>
                 </tr>
@@ -54,7 +81,7 @@
             <button class="btn btn-success" type="submit">Archivovat uspokojené zákazníky</button>
         </form>-->
         <button class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
-        <h2>Hotové úkoly</h2>
+        <!--<h2>Hotové úkoly</h2>
         <ul id="completed-task-list">
             {% for contract in completed_contracts %}
             <li>
@@ -62,7 +89,7 @@
                 <span>{{ contract['contract'] }}</span>
             </li>
             {% endfor %}
-        </ul>
+        </ul>-->
     </div>
 </div>
 <script>
@@ -93,6 +120,7 @@ $( function() {
                 }
             });
         }
+
 
 
 

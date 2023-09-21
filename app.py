@@ -662,7 +662,14 @@ def load_contracts(filename):
             reader = csv.reader(csvfile)
             for row in reader:
                 if row:
-                    contracts.append({'id':row[0],'contract': row[1], 'note': row[2], 'finished': int(row[3])})
+                    contracts.append({'id':row[0],
+                                      'contract': row[1],
+                                      'note': row[2],
+                                      'glue': int(row[3]),
+                                      'cut': int(row[4]),
+                                      'date': row[5],
+                                      'finished': int(row[6])
+                                      })
     except FileNotFoundError:
         pass
     return contracts
@@ -671,23 +678,45 @@ def save_contracts(contracts, filename):
     with open(f'static/{filename}', 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         for contract in contracts:
-            writer.writerow([contract['id'], contract['contract'], contract['note'], contract['finished']])
+            writer.writerow([contract['id'],
+                             contract['contract'],
+                             contract['note'],
+                             contract['cut'],
+                             contract['glue'],
+                             contract['date'],
+                             contract['finished']])
 
 @app.route('/contracts')
 def contracts():
 
     contracts = load_contracts('contracts.csv')
     completed_contracts = load_contracts('archived_contracts.csv')
+    cut_count = 0
+    glue_count = 0
+
+    for contract in contracts:
+        if contract['finished'] == 0:
+            cut_count += int(contract['cut'])
+            glue_count += int(contract['glue'])
     return render_template('contracts.html',
                            contracts=contracts,
                            completed_contracts=completed_contracts,
+                           cut_count = cut_count,
+                           glue_count = glue_count,
                            page_title='Zakázky')
 
 @app.route('/add_contract', methods=['POST'])
 def add_contract():
     customer_name = request.form.get('name')
     customer_note = request.form.get('note')
-    new_id= int()
+    contract_cut = request.form.get('cut')
+    contract_glue = request.form.get('glue')
+    contract_date = request.form.get('date')
+    if not contract_cut:
+        contract_cut = 0
+    if not contract_glue:
+        contract_glue = 0
+   
     if customer_name:
         new_contracts = load_contracts('contracts.csv')
         if not new_contracts:
@@ -695,7 +724,13 @@ def add_contract():
         else:
             new_id = int(new_contracts[-1]['id'])+1
 
-        new_contracts.append(dict({'id': new_id, 'contract': customer_name, 'note': customer_note, 'finished': 0}))
+        new_contracts.append(dict({'id': new_id,
+                                   'contract': customer_name,
+                                   'note': customer_note,
+                                   'cut': contract_cut,
+                                   'glue': contract_glue,
+                                   'date': contract_date,
+                                   'finished': 0}))
         save_contracts(new_contracts, 'contracts.csv')
     return redirect('/contracts')
 

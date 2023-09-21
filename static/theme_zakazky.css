@@ -13,3 +13,6 @@
     margin-left: 10px;
  }
 
+.table thead tr th {
+vertical-align:middle;
+}
