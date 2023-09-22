@@ -14,29 +14,33 @@
         <!-- Default panel contents -->
         <div class="panel-heading"><h1>Seznam zakázek</h1>
             <div>
-                <span class="label label-info">Řezání celkem: {{ cut_count }} minut</span>
-                <span class="label label-info">Lepení celkem: {{ glue_count }} metrů</span>
+                <span class="label label-primary">Řezání celkem: {{ cut_count }} minut</span>
+                <span class="label label-primary">Lepení celkem: {{ glue_count }} metrů</span>
             </div>
         </div>
 
         <!-- Table -->
         <div class="panel panel-default" style="overflow-x:auto;">
-            <table class="table table-bordered table-hover table-sortable">
+            <table class="table table-bordered table-hover table-sortable table-striped">
                 <thead>
                 <form action="/add_contract" method="POST">
-                    <tr>
+                    <tr class="table-info">
                         <th>Zakázka</th>
-                        <th><input type="text" name="name" placeholder="Zákazník" required></th>
-                        <th><textarea name="note" placeholder="Poznámka"
-                                      id="exampleFormControlTextarea1" rows="1"></textarea></th>
+                        {{ form.csrt_token }}
+                        {{ form.hidden_tag() }}
+                        <th>{{ form.customer_name }}{{ form.hidden_tag() }}</th>
+                        <th>{{ form.customer_note }}{{ form.hidden_tag() }}</th>
                         <th>
-                            <input type="number" name="cut" placeholder="Řezání">
-                            <input type="number" name="glue" placeholder="Hranění">
+                            <div>{{ form.customer_cut }}{{ form.hidden_tag() }}</div>
+                            <div>{{ form.customer_glue }}{{ form.hidden_tag() }}</div>
                         </th>
                         <th>Stav</th>
-                        <th><input type="date" name="date" placeholder="Datum" required></th>
                         <th>
-                            <button class="btn btn-success" type="submit">Přidat zakázku</button>
+                            {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish') }}
+                            {{ form.customer_date_finish }}{{ form.hidden_tag() }}
+                        </th>
+                        <th>
+                        {{ form.submit(class="btn btn-success") }}
                     </tr>
                 </form>
                 </thead>
@@ -49,8 +53,8 @@
                     <td>{{ contract['contract'] }}</td>
                     <td>{{ contract['note'] }}</td>
                     <td>
-                        {% if contract['cut'] > 0 %}<label><input type="checkbox"> {{ contract['cut'] }} minut</label>{% endif %}
-                        {% if contract['glue'] > 0 %}<label><input type="checkbox"> {{ contract['glue'] }} metrů</label>{% endif %}
+                        {% if contract['cut'] > 0 %}<div><label><input type="checkbox"> {{ contract['cut'] }} minut</label></div>{% endif %}
+                        {% if contract['glue'] > 0 %}<div><label><input type="checkbox"> {{ contract['glue'] }} metrů</label></div>{% endif %}
                     </td>
                     <td>
                         <div class="progress">
@@ -60,12 +64,12 @@
                             </div>
                         </div>
                     </td>
-                    <td>{{ contract['date'] }}</td>
+                    <td>{{ contract['date_create'] }} / {{ contract['date'] }}</td>
                     <td>{% if not contract['finished'] %}
                         <!--<button class="btn btn-success float-right" onclick="completeContract({{ loop.index0 }})">
                             Uspokojeno
                         </button>-->
-                        <button class="btn btn-primary glyphicon glyphicon-remove"
+                        <button class="btn btn-danger glyphicon glyphicon-remove"
                                 onclick="completeContract({{ loop.index0 }})"></button>
                         <button class="btn btn-warning glyphicon glyphicon-print"></button>
                         {% endif %}
@@ -80,16 +84,8 @@
         <!--<form action="/archive_contracts" method="GET">
             <button class="btn btn-success" type="submit">Archivovat uspokojené zákazníky</button>
         </form>-->
-        <button class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
-        <!--<h2>Hotové úkoly</h2>
-        <ul id="completed-task-list">
-            {% for contract in completed_contracts %}
-            <li>
-                <span>DC{{ contract['id'] }}</span>
-                <span>{{ contract['contract'] }}</span>
-            </li>
-            {% endfor %}
-        </ul>-->
+        <button class="btn btn-warning order_btn" class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
+
     </div>
 </div>
 <script>

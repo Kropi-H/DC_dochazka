@@ -7,7 +7,7 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators
+from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField
 from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
@@ -653,6 +653,29 @@ def logout():
     return redirect("/")
 
 
+class ContractForm(FlaskForm):
+    def validate_default_date():
+        return datetime.today() + timedelta(days=14)
+
+    customer_name = StringField(label='Nový uživatel',
+                                 validators=[DataRequired()],
+                                 render_kw={"placeholder": "Jméno"}
+                                )
+    customer_note = TextAreaField(label='Poznámka',
+                                  render_kw={"placeholder": "Poznámka"})
+    customer_cut = IntegerField(label='Řezání',
+                                render_kw={"placeholder": "Řezání"})
+    customer_glue = IntegerField(label='Olepování',
+                                 render_kw={"placeholder": "Olepování"})
+    customer_date_finish = DateField(label='Termín zakázky',
+                          format='%Y-%m-%d',
+                          default=validate_default_date,
+                          validators=[DateRange(),DataRequired()])
+
+
+    submit = SubmitField(label='Nová zakázka')
+
+
 
 
 def load_contracts(filename):
@@ -665,10 +688,11 @@ def load_contracts(filename):
                     contracts.append({'id':row[0],
                                       'contract': row[1],
                                       'note': row[2],
-                                      'glue': int(row[3]),
-                                      'cut': int(row[4]),
-                                      'date': row[5],
-                                      'finished': int(row[6])
+                                      'cut': int(row[3]),
+                                      'glue': int(row[4]),
+                                      'date_create':row[5],
+                                      'date': row[6],
+                                      'finished': int(row[7])
                                       })
     except FileNotFoundError:
         pass
@@ -683,56 +707,67 @@ def save_contracts(contracts, filename):
                              contract['note'],
                              contract['cut'],
                              contract['glue'],
+                             contract['date_create'],
                              contract['date'],
                              contract['finished']])
 
-@app.route('/contracts')
+@app.route('/contracts', methods=['GET'])
 def contracts():
+    form=ContractForm()
+    if request.method == 'GET':
+        contracts = load_contracts('contracts.csv')
+        #completed_contracts = load_contracts('archived_contracts.csv')
+        cut_count = 0
+        glue_count = 0
 
-    contracts = load_contracts('contracts.csv')
-    completed_contracts = load_contracts('archived_contracts.csv')
-    cut_count = 0
-    glue_count = 0
-
-    for contract in contracts:
-        if contract['finished'] == 0:
-            cut_count += int(contract['cut'])
-            glue_count += int(contract['glue'])
-    return render_template('contracts.html',
-                           contracts=contracts,
-                           completed_contracts=completed_contracts,
-                           cut_count = cut_count,
-                           glue_count = glue_count,
-                           page_title='Zakázky')
+        for contract in contracts:
+            if contract['finished'] == 0:
+                cut_count += int(contract['cut'])
+                glue_count += int(contract['glue'])
+        return render_template('contracts.html',
+                               contracts=contracts,
+                               #completed_contracts=completed_contracts,
+                               cut_count = cut_count,
+                               glue_count = glue_count,
+                               page_title='Zakázky',
+                               form=form)
 
 @app.route('/add_contract', methods=['POST'])
 def add_contract():
-    customer_name = request.form.get('name')
-    customer_note = request.form.get('note')
-    contract_cut = request.form.get('cut')
-    contract_glue = request.form.get('glue')
-    contract_date = request.form.get('date')
-    if not contract_cut:
-        contract_cut = 0
-    if not contract_glue:
-        contract_glue = 0
-   
-    if customer_name:
-        new_contracts = load_contracts('contracts.csv')
-        if not new_contracts:
-            new_id = 230000
-        else:
-            new_id = int(new_contracts[-1]['id'])+1
 
-        new_contracts.append(dict({'id': new_id,
-                                   'contract': customer_name,
-                                   'note': customer_note,
-                                   'cut': contract_cut,
-                                   'glue': contract_glue,
-                                   'date': contract_date,
-                                   'finished': 0}))
-        save_contracts(new_contracts, 'contracts.csv')
-    return redirect('/contracts')
+    form = ContractForm()
+    if form.validate_on_submit():
+        customer_name = request.form['customer_name']
+        customer_note = request.form['customer_note']
+        contract_cut = request.form['customer_cut']
+        contract_glue = request.form['customer_glue']
+        contract_date = form.customer_date_finish.data.strftime('%d.%m.%Y')
+        if not contract_cut:
+            contract_cut = 0
+        if not contract_glue:
+            contract_glue = 0
+
+        if customer_name:
+            new_contracts = load_contracts('contracts.csv')
+            if not new_contracts:
+                new_id = 230000
+            else:
+                check_id = 0
+                for contract in new_contracts:
+                    if int(contract['id']) > check_id:
+                        check_id = int(contract['id'])
+                new_id = check_id + 1
+
+            new_contracts.append(dict({'id': new_id,
+                                       'contract': customer_name,
+                                       'note': customer_note,
+                                       'cut': contract_cut,
+                                       'glue': contract_glue,
+                                       'date_create':datetime.today().strftime('%d.%m.%Y'),
+                                       'date': contract_date,
+                                       'finished': 0}))
+            save_contracts(new_contracts, 'contracts.csv')
+        return redirect('/contracts')
 
 @app.route('/complete_contract/<int:contract_index>')
 def complete_contract(contract_index):
@@ -764,6 +799,7 @@ def archive_contracts():
 @app.route('/update_contract_order', methods=['POST'])
 def update_contract_order():
     new_order = request.form.getlist('contract_order[]')
+    print(new_order)
     contracts = load_contracts('contracts.csv')
 
     # Seřadíme úkoly podle nového pořadí

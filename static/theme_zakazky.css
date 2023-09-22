@@ -16,3 +16,30 @@
 .table thead tr th {
 vertical-align:middle;
 }
+
+.table tbody tr td {
+vertical-align:middle;
+font-size:15px;
+font-weight:bold;
+}
+
+.panel-heading .label {
+font-size:15px;
+}
+
+.progress {
+margin-bottom: 0;
+}
+
+.table-info {
+background-color:#d5d5d5;
+}
+
+.order_btn {
+float: right;
+}
+
+table th input {
+width:150px;
+}
+
