@@ -2,3 +2,4 @@ venv
 startup_funding.json
 tables.py
 static/login.csv
+static/contracts.csv
