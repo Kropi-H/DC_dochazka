@@ -43,3 +43,8 @@ table th input {
 width:150px;
 }
 
+table tbody .container span {
+display: inline-block;
+margin-top: 1px;
+}
+

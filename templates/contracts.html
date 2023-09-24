@@ -13,10 +13,11 @@
 <div class="container">
     <div class="panel panel-default">
         <!-- Default panel contents -->
-        <div class="panel-heading"><h1>Seznam zakázek</h1>
+        <div class="panel-heading">
+            <h1>Seznam zakázek</h1>
             <div>
                 <span class="label label-primary">Řezání celkem: {{ cut_count }} minut</span>
-                <span class="label label-primary">Lepení celkem: {{ glue_count }} metrů</span>
+                <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
             </div>
         </div>
 
@@ -38,11 +39,12 @@
                         </th>
                         <th>Stav</th>
                         <th>
-                            {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish') }}
+                            {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish')
+                            }}
                             {{ form.customer_date_finish }}{{ form.hidden_tag() }}
                         </th>
                         <th>
-                        {{ form.submit(class="btn btn-success") }}
+                            {{ form.submit(class="btn btn-success") }}
                     </tr>
                 </form>
                 </thead>
@@ -51,13 +53,18 @@
                 {% if contract['finished'] == 0 %}
                 <tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)"
                     ondrop="drop(event, {{ loop.index0 }})" data-index="{{ loop.index0 }}">
-                    <td id="move"><span class="glyphicon glyphicon-resize-vertical"></span></td>
+                    <td {% if role == 3 %}id="move"{% endif %}><span class="glyphicon glyphicon-resize-vertical"></span>
+                    </td>
                     <td>DC{{ contract['id'] }}</td>
                     <td>{{ contract['contract'] }}</td>
                     <td>{{ contract['note'] }}</td>
                     <td>
-                        {% if contract['cut'] > 0 %}<div><label><input type="checkbox"> {{ contract['cut'] }} minut</label></div>{% endif %}
-                        {% if contract['glue'] > 0 %}<div><label><input type="checkbox"> {{ contract['glue'] }} metrů</label></div>{% endif %}
+                        {% if contract['cut'] > 0 %}
+                        <div><label><input type="checkbox"> {{ contract['cut'] }} minut</label></div>
+                        {% endif %}
+                        {% if contract['glue'] > 0 %}
+                        <div><label><input type="checkbox"> {{ contract['glue'] }} metrů</label></div>
+                        {% endif %}
                     </td>
                     <td>
                         <div class="progress">
@@ -87,10 +94,15 @@
         <!--<form action="/archive_contracts" method="GET">
             <button class="btn btn-success" type="submit">Archivovat uspokojené zákazníky</button>
         </form>-->
+        {% if role == 3 %}
         <button class="btn btn-warning order_btn" class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
+
+        {% endif %}
 
     </div>
 </div>
+</div>
+
 <script>
 
 $( function() {
@@ -106,6 +118,10 @@ Sortable.create(listWithHandle, {
             $.get(`/complete_contract/${contractIndex}`, function() {
                 location.reload();
             });
+        }
+
+        function setNumber() {
+             ('/get_number', { method: 'POST' })
         }
 
         function updateContractOrder() {
@@ -124,6 +140,8 @@ Sortable.create(listWithHandle, {
                 }
             });
         }
+
+
 
 </script>
 </body>

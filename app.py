@@ -709,9 +709,14 @@ def save_contracts(contracts, filename):
                              contract['date'],
                              contract['finished']])
 
-@app.route('/contracts', methods=['GET'])
+@app.route('/contracts', methods=['POST','GET'])
 def contracts():
+    user = get_current_user()
+
+    if not user or user['role'] < 2:
+        return redirect('/')
     form=ContractForm()
+
     if request.method == 'GET':
         contracts = load_contracts('contracts.csv')
         #completed_contracts = load_contracts('archived_contracts.csv')
@@ -728,8 +733,9 @@ def contracts():
                                cut_count = cut_count,
                                glue_count = glue_count,
                                page_title='Zakázky',
-                               form=form)
-
+                               form=form,
+                               user=user['user'],
+                               role=int(user['role']))
 @app.route('/add_contract', methods=['POST'])
 def add_contract():
 
@@ -809,6 +815,10 @@ def update_contract_order():
 
     return redirect('/contracts')
 
+@app.route('/get_number', methods=['POST'])
+def get_number():
+    number = request.form['number']
+    print(number)
 
 if __name__=='__main__':
     app.run(debug=True)
