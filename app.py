@@ -676,8 +676,6 @@ class ContractForm(FlaskForm):
     submit = SubmitField(label='Nová zakázka')
 
 
-
-
 def load_contracts(filename):
     contracts = []
     try:
@@ -767,7 +765,7 @@ def add_contract():
                                        'date': contract_date,
                                        'finished': 0}))
             save_contracts(new_contracts, 'contracts.csv')
-        return redirect('/contracts')
+            return redirect('/contracts')
 
 @app.route('/complete_contract/<int:contract_index>')
 def complete_contract(contract_index):
@@ -799,7 +797,6 @@ def archive_contracts():
 @app.route('/update_contract_order', methods=['POST'])
 def update_contract_order():
     new_order = request.form.getlist('contract_order[]')
-    print(new_order)
     contracts = load_contracts('contracts.csv')
 
     # Seřadíme úkoly podle nového pořadí

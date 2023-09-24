@@ -6,6 +6,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
 <link href="{{ url_for('static', filename = 'theme_zakazky.css' )}}" rel="stylesheet">
 </head>
 <body>
@@ -25,6 +26,7 @@
                 <thead>
                 <form action="/add_contract" method="POST">
                     <tr class="table-info">
+                        <th></th>
                         <th>Zakázka</th>
                         {{ form.csrt_token }}
                         {{ form.hidden_tag() }}
@@ -44,12 +46,13 @@
                     </tr>
                 </form>
                 </thead>
-                <tbody id="task-list">
+                <tbody id="listWithHandle">
                 {% for contract in contracts %}
                 {% if contract['finished'] == 0 %}
                 <tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)"
                     ondrop="drop(event, {{ loop.index0 }})" data-index="{{ loop.index0 }}">
-                    <td scope="row">DC{{ contract['id'] }}</td>
+                    <td id="move"><span class="glyphicon glyphicon-resize-vertical"></span></td>
+                    <td>DC{{ contract['id'] }}</td>
                     <td>{{ contract['contract'] }}</td>
                     <td>{{ contract['note'] }}</td>
                     <td>
@@ -94,6 +97,11 @@ $( function() {
   $( "#task-list" ).sortable();
 });
 
+Sortable.create(listWithHandle, {
+  handle: '#move',
+  animation: 150
+});
+
         function completeContract(contractIndex) {
             $.get(`/complete_contract/${contractIndex}`, function() {
                 location.reload();
@@ -101,7 +109,7 @@ $( function() {
         }
 
         function updateContractOrder() {
-            var taskList = document.getElementById('task-list');
+            var taskList = document.getElementById('listWithHandle');
             var items = Array.from(taskList.children);
             var newOrder = items.map(function (item) {
                 return item.dataset.index;
@@ -116,13 +124,6 @@ $( function() {
                 }
             });
         }
-
-
-
-
-
-
-
 
 </script>
 </body>
