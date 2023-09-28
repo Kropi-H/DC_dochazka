@@ -1,8 +1,8 @@
- ul {
+ table ul {
     list-style-type: none;
     padding: 0;
     }
- li {
+table li {
     margin: 10px 0;
     padding: 10px;
     border: 1px solid #ddd;
@@ -17,7 +17,7 @@
 vertical-align:middle;
 }
 
-.table tbody tr td {
+.panel-contracts table tbody tr td {
 vertical-align:middle;
 font-size:15px;
 font-weight:bold;
@@ -31,7 +31,7 @@ font-size:15px;
 margin-bottom: 0;
 }
 
-.table-info {
+.table-contracts {
 background-color:#d5d5d5;
 }
 
@@ -39,12 +39,18 @@ background-color:#d5d5d5;
 float: right;
 }
 
-table th input {
-width:150px;
+hr {
+margin:0;
+height:1px;
+border-width:1px;
+background-color:#ddd;
 }
 
-table tbody .container span {
+.container .panel-heading span {
 display: inline-block;
 margin-top: 1px;
+}
+table td p {
+margin: 2px 0;
 }
 

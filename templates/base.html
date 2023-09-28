@@ -7,7 +7,6 @@
 
     <title>{{ page_title }}</title>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script>
@@ -18,14 +17,12 @@
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-
-    <!-- Bootstrap core CSS -->
-    <!-- <link href="{{ url_for('static', filename = 'bootstrap.min.css' )}}" rel="stylesheet"> -->
-    <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename = 'theme.css' )}}" rel="stylesheet">
-
     <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='images/dcprofi.ico' )}}">
-
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
+<link href="{{ url_for('static', filename = 'theme_zakazky.css' )}}" rel="stylesheet">
 
 </head>
 
@@ -60,7 +57,9 @@
                 {% if user and role==3 %}
                 <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>
                 <li><a href="{{ url_for('change_password') }}">Změna hesla</a></li>
-                 <li><a href="{{ url_for('contracts') }}">Zakázky</a></li>
+                {% endif %}
+                {% if user and role >= 3 %}
+                <li><a href="{{ url_for('contracts') }}">Zakázky</a></li>
                 {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -76,30 +75,13 @@
 </nav>
 
 {% block body %}{% endblock %}
-{% if user %}
-<div>
-    <p class="mynav">Naposledy přihlášen:</p>
-    <ul class="nav navbar-nav">
-    {% for worker in worker_list%}
-        <li>
-        <p>
-        {{ worker['name'] }} {{ worker['date'] }}
-        <span class="badge">{{ worker['count'] }}</span>
-        </p>
-        </li>
-        {% endfor %}
-</ul>
-</div>
-{% endif %}
-</div>
+
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script type="text/javascript" src="{{ url_for('static', filename = 'bootstrap.min.js' )}}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename = 'script.js' )}}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src=
-                "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="text/javascript">
 function showDiv(select){
    if(select.value=='pila' || select.value == 'olepka'){
@@ -108,8 +90,6 @@ function showDiv(select){
     document.getElementById('field_num').style.display = "none";
    }
 }
-
-
 </script>
 
 </body>

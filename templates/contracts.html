@@ -1,32 +1,23 @@
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
+{% block body %}
 
-<title>{{ page_title }}</title>
-<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>
-<link href="{{ url_for('static', filename = 'theme_zakazky.css' )}}" rel="stylesheet">
-</head>
-<body>
 <div class="container">
     <div class="panel panel-default">
         <!-- Default panel contents -->
         <div class="panel-heading">
             <h1>Seznam zakázek</h1>
             <div>
-                <span class="label label-primary">Řezání celkem: {{ cut_count }} minut</span>
+                <span class="label label-primary">Formátování celkem: {{ cut_count }} minut</span>
                 <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
             </div>
         </div>
 
         <!-- Table -->
-        <div class="panel panel-default" style="overflow-x:auto;">
+        <div class="panel panel-contracts" style="overflow-x:auto;">
             <table class="table table-bordered table-hover table-sortable table-striped">
                 <thead>
                 <form action="/add_contract" method="POST">
-                    <tr class="table-info">
+                    <tr class="table-contracts">
                         <th></th>
                         <th>Zakázka</th>
                         {{ form.csrt_token }}
@@ -34,8 +25,20 @@
                         <th>{{ form.customer_name }}{{ form.hidden_tag() }}</th>
                         <th>{{ form.customer_note }}{{ form.hidden_tag() }}</th>
                         <th>
-                            <div>{{ form.customer_cut }}{{ form.hidden_tag() }}</div>
-                            <div>{{ form.customer_glue }}{{ form.hidden_tag() }}</div>
+                            <div class="col-lg-12">
+                                <div class="input-group">
+                                <span class="input-group-addon">
+                                  {{ form.customer_cut }}{{ form.hidden_tag() }} Formátování
+                                </span>
+                                </div><!-- /input-group -->
+                            </div><!-- /.col-lg-6 -->
+                            <div class="col-lg-12">
+                                <div class="input-group">
+                            <span class="input-group-addon">
+                              {{ form.customer_glue }}{{ form.hidden_tag() }} Hranění
+                            </span>
+                                </div><!-- /input-group -->
+                            </div><!-- /.col-lg-6 -->
                         </th>
                         <th>Stav</th>
                         <th>
@@ -51,20 +54,54 @@
                 <tbody id="listWithHandle">
                 {% for contract in contracts %}
                 {% if contract['finished'] == 0 %}
-                <tr draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)"
-                    ondrop="drop(event, {{ loop.index0 }})" data-index="{{ loop.index0 }}">
-                    <td {% if role == 3 %}id="move"{% endif %}><span class="glyphicon glyphicon-resize-vertical"></span>
+                <tr draggable="true" data-index="{{ loop.index0 }}">
+                    <td {% if role== 3 %}id="move" {% endif %}><span class="glyphicon glyphicon-resize-vertical"></span>
                     </td>
-                    <td>DC{{ contract['id'] }}</td>
+                    <td class="number">DC{{ contract['id'] }}</td>
                     <td>{{ contract['contract'] }}</td>
                     <td>{{ contract['note'] }}</td>
                     <td>
-                        {% if contract['cut'] > 0 %}
-                        <div><label><input type="checkbox"> {{ contract['cut'] }} minut</label></div>
-                        {% endif %}
-                        {% if contract['glue'] > 0 %}
-                        <div><label><input type="checkbox"> {{ contract['glue'] }} metrů</label></div>
-                        {% endif %}
+                        <div class="col-lg-12">
+                            {% if contract['cut_logic'] == 'True' and contract['cut_value'] == '0' %}
+                            <div class="input-group">
+                                <input type="number" name="cut_value" class="form-control" placeholder="Formátování">
+                                <span class="input-group-btn">
+                            <button class="btn btn-info" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
+                          </span>
+                            </div><!-- /input-group -->
+                            {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
+                            <p style="text-decoration: line-through;">{{ contract['cut_value'] }} nařezáno</p>
+                            {% elif contract['cut_logic'] == 'False' %}
+                            <p>Bez řezání</p>
+                            {% else %}
+                            <button name="cut_logic" class="btn btn-danger" type="button" {% if role== 3
+                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['cut_value'] }}</span>
+                                minut nařezat
+                            </button>
+                            {% endif %}
+                        </div><!-- /.col-lg-12 -->
+                        <hr>
+
+                        <div class="col-lg-12">
+                            {% if contract['glue_logic'] == 'True' and contract['glue_value'] == '0' %}
+                            <div class="input-group">
+                                <input type="number" name="glue_value" class="form-control" placeholder="Hranění">
+                                <span class="input-group-btn">
+                            <button class="btn btn-info" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
+                          </span>
+                            </div><!-- /input-group -->
+                            {% elif contract['glue_logic'] == 'False' and contract['glue_value'] != '0' %}
+                            <p style="text-decoration: line-through;">{{ contract['glue_value'] }} ohraněno</p>
+                            {% elif contract['glue_logic'] == 'False' %}
+                            <p>Bez hranění</p>
+                            {% else %}
+                            <button name="glue_logic" class="btn btn-danger" type="button" {% if role== 3
+                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['glue_value'] }}</span>
+                                metrů ohranit
+                            </button>
+                            {% endif %}
+                        </div><!-- /.col-lg-12 -->
+
                     </td>
                     <td>
                         <div class="progress">
@@ -90,15 +127,9 @@
                 </tbody>
             </table>
         </div>
-
-        <!--<form action="/archive_contracts" method="GET">
-            <button class="btn btn-success" type="submit">Archivovat uspokojené zákazníky</button>
-        </form>-->
         {% if role == 3 %}
         <button class="btn btn-warning order_btn" class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
-
         {% endif %}
-
     </div>
 </div>
 </div>
@@ -116,6 +147,22 @@ Sortable.create(listWithHandle, {
 
         function completeContract(contractIndex) {
             $.get(`/complete_contract/${contractIndex}`, function() {
+                location.reload();
+            });
+        }
+
+        function setFunction(contractIndex, button) {
+            var inputField = button.parentNode.previousElementSibling;
+            var inputValue = inputField.value;
+            var inputName = inputField.name;
+            $.get(`/set_value/${contractIndex}/${inputValue}/${inputName}`, function() {
+                location.reload();
+            });
+        }
+
+        function clearFunction(contractIndex, button) {
+            var buttonName = button.name;
+            $.get(`/clear_value/${contractIndex}/${buttonName}`, function() {
                 location.reload();
             });
         }
@@ -140,9 +187,6 @@ Sortable.create(listWithHandle, {
                 }
             });
         }
-
-
-
 </script>
-</body>
-</html>
+{% endblock %}
+

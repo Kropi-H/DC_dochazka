@@ -7,7 +7,7 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField
+from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
 from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
@@ -415,7 +415,7 @@ def attendence_overview(select_month):
             recursive_search(nested_list)
             return result  # Množina automaticky odstraní duplicity
 
-        target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine']
+        target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine', '']
 
         found_strings = find_strings_in_nested_list(months_values, target_strings)
 
@@ -663,10 +663,13 @@ class ContractForm(FlaskForm):
                                 )
     customer_note = TextAreaField(label='Poznámka',
                                   render_kw={"placeholder": "Poznámka"})
-    customer_cut = IntegerField(label='Řezání',
-                                render_kw={"placeholder": "Řezání"})
-    customer_glue = IntegerField(label='Olepování',
-                                 render_kw={"placeholder": "Olepování"})
+
+    customer_cut = BooleanField(label='Řezání')
+    customer_glue = BooleanField(label='Olepování')
+    #customer_cut = IntegerField(label='Řezání',
+    #                            render_kw={"placeholder": "Řezání"})
+    #customer_glue = IntegerField(label='Olepování',
+    #                             render_kw={"placeholder": "Olepování"})
     customer_date_finish = DateField(label='Termín zakázky',
                           format='%Y-%m-%d',
                           default=validate_default_date,
@@ -683,14 +686,16 @@ def load_contracts(filename):
             reader = csv.reader(csvfile)
             for row in reader:
                 if row:
-                    contracts.append({'id':row[0],
+                    contracts.append({'id': row[0],
                                       'contract': row[1],
                                       'note': row[2],
-                                      'cut': int(row[3]),
-                                      'glue': int(row[4]),
-                                      'date_create':row[5],
-                                      'date': row[6],
-                                      'finished': int(row[7])
+                                      'cut_logic': row[3],
+                                      'cut_value':row[4],
+                                      'glue_logic': row[5],
+                                      'glue_value': row[6],
+                                      'date_create': row[7],
+                                      'date': row[8],
+                                      'finished': int(row[9])
                                       })
     except FileNotFoundError:
         pass
@@ -703,8 +708,10 @@ def save_contracts(contracts, filename):
             writer.writerow([contract['id'],
                              contract['contract'],
                              contract['note'],
-                             contract['cut'],
-                             contract['glue'],
+                             contract['cut_logic'],
+                             contract['cut_value'],
+                             contract['glue_logic'],
+                             contract['glue_value'],
                              contract['date_create'],
                              contract['date'],
                              contract['finished']])
@@ -715,7 +722,7 @@ def contracts():
 
     if not user or user['role'] < 2:
         return redirect('/')
-    form=ContractForm()
+    form = ContractForm()
 
     if request.method == 'GET':
         contracts = load_contracts('contracts.csv')
@@ -725,13 +732,15 @@ def contracts():
 
         for contract in contracts:
             if contract['finished'] == 0:
-                cut_count += int(contract['cut'])
-                glue_count += int(contract['glue'])
+                if contract['cut_value'].isnumeric() and contract['cut_logic'] == 'True':
+                    cut_count += int(contract['cut_value'])
+                if contract['glue_value'].isnumeric() and contract['glue_logic'] == 'True':
+                    glue_count += int(contract['glue_value'])
         return render_template('contracts.html',
                                contracts=contracts,
                                #completed_contracts=completed_contracts,
-                               cut_count = cut_count,
-                               glue_count = glue_count,
+                               cut_count=cut_count,
+                               glue_count=glue_count,
                                page_title='Zakázky',
                                form=form,
                                user=user['user'],
@@ -743,13 +752,9 @@ def add_contract():
     if form.validate_on_submit():
         customer_name = request.form['customer_name']
         customer_note = request.form['customer_note']
-        contract_cut = request.form['customer_cut']
-        contract_glue = request.form['customer_glue']
+        contract_cut = form.customer_cut.data
+        contract_glue = form.customer_glue.data
         contract_date = form.customer_date_finish.data.strftime('%d.%m.%Y')
-        if not contract_cut:
-            contract_cut = 0
-        if not contract_glue:
-            contract_glue = 0
 
         if customer_name:
             new_contracts = load_contracts('contracts.csv')
@@ -765,13 +770,31 @@ def add_contract():
             new_contracts.append(dict({'id': new_id,
                                        'contract': customer_name,
                                        'note': customer_note,
-                                       'cut': contract_cut,
-                                       'glue': contract_glue,
-                                       'date_create':datetime.today().strftime('%d.%m.%Y'),
+                                       'cut_logic': contract_cut,
+                                       'cut_value': 0,
+                                       'glue_logic': contract_glue,
+                                       'glue_value': 0,
+                                       'date_create': datetime.today().strftime('%d.%m.%Y'),
                                        'date': contract_date,
                                        'finished': 0}))
             save_contracts(new_contracts, 'contracts.csv')
             return redirect('/contracts')
+
+@app.route('/set_value/<int:contract_index>/<int:value>/<type>')
+def set_value(contract_index, value, type):
+    contracts = load_contracts('contracts.csv')
+    if 0 <= contract_index < len(contracts):
+        contracts[contract_index][type] = value
+        save_contracts(contracts, 'contracts.csv')
+    return redirect('/contracts')
+
+@app.route('/clear_value/<int:contract_index>/<type>')
+def clear_value(contract_index, type):
+    contracts = load_contracts('contracts.csv')
+    if 0 <= contract_index < len(contracts):
+        contracts[contract_index][type] = False
+        save_contracts(contracts, 'contracts.csv')
+    return redirect('/contracts')
 
 @app.route('/complete_contract/<int:contract_index>')
 def complete_contract(contract_index):
