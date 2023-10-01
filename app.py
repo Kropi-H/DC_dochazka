@@ -1,6 +1,6 @@
 import os
 import tables
-from flask import Flask, session, request, render_template, redirect, url_for, make_response
+from flask import Flask, session, request, render_template, redirect, url_for, send_from_directory
 from datetime import datetime, date, timedelta, time
 import pytz
 import gspread
@@ -13,6 +13,8 @@ from wtforms_components import DateRange
 import hashlib
 import calendar
 import csv
+from xhtml2pdf import pisa
+from io import BytesIO
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -678,6 +680,13 @@ class ContractForm(FlaskForm):
 
     submit = SubmitField(label='Nová zakázka')
 
+def load_id():
+    try:
+        with open('static/contract_id.csv', 'r', newline='', encoding='utf-8') as csfile:
+            result_id = csfile.readlines()
+    except FileNotFoundError:
+        result_id = None
+    return(result_id)
 
 def load_contracts(filename):
     contracts = []
@@ -700,6 +709,12 @@ def load_contracts(filename):
     except FileNotFoundError:
         pass
     return contracts
+
+def set_id(value):
+    new_value = value
+    with open('static/contract_id.csv', 'a', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([new_value])
 
 def save_contracts(contracts, filename):
     with open(f'static/{filename}', 'w', newline='', encoding='utf-8') as csvfile:
@@ -744,7 +759,14 @@ def contracts():
                                page_title='Zakázky',
                                form=form,
                                user=user['user'],
-                               role=int(user['role']))
+                               role=int(user['role']),
+                               contract_id=load_id())
+
+@app.route('/set_contract_id/<contract_id>')
+def set_contract_id(contract_id):
+    set_id(contract_id.strip())
+    return redirect('/contracts')
+
 @app.route('/add_contract', methods=['POST'])
 def add_contract():
 
@@ -758,15 +780,8 @@ def add_contract():
 
         if customer_name:
             new_contracts = load_contracts('contracts.csv')
-            if not new_contracts:
-                new_id = 230000
-            else:
-                check_id = 0
-                for contract in new_contracts:
-                    if int(contract['id']) > check_id:
-                        check_id = int(contract['id'])
-                new_id = check_id + 1
-
+            new_id = int(load_id()[-1])+1
+            set_id(new_id)
             new_contracts.append(dict({'id': new_id,
                                        'contract': customer_name,
                                        'note': customer_note,
@@ -842,6 +857,17 @@ def update_contract_order():
 def get_number():
     number = request.form['number']
     print(number)
+
+@app.route('/print_pdf/<int:contract_index>', methods=['POST', 'GET'])
+def print_pdf(contract_index):
+    user = get_current_user()
+    contracts = load_contracts('contracts.csv')
+
+    id = contracts[contract_index]['id']
+    name = contracts[contract_index]['contract']
+    note = contracts[contract_index]['note']
+
+    return render_template('contract_pdf.html', user=user['user'], id=f'DC{id}', name=name, note = note)
 
 if __name__=='__main__':
     app.run(debug=True)

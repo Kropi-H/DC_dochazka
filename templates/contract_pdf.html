@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+  <link href="{{ url_for('static', filename = 'contract_pdf.css' )}}" rel="stylesheet">
+
+<title>HTML CSS JS</title>
+</head>
+<body>
+<table>
+  <tr class="height10">
+    <td colspan='2' style="width:10%"></td>
+    <td colspan='2' style="width:20%" class='bcolor border center'>Zakázku přijal</td>
+    <td colspan='6' style="width:70%" class='border center'>{{ user }}</td>
+  </tr>
+  <tr class="height10">
+    <td colspan='2'></td>
+    <td colspan='2' class='bcolor border center'>Formátování</td>
+    <td colspan='6' class='border'></td>
+  </tr>
+  <tr class="height10">
+   <td colspan='2' class='bcolor border center'>Tuply</td>
+    <td colspan='2' class='bcolor border center'>Slepení</td>
+    <td colspan='6' class='border'></td>
+  </tr>
+  <tr class="height10">
+    <td colspan = '2'></td>
+    <td colspan = '2' class='bcolor border center'>Formátování</td>
+    <td colspan = '6' class='border'></td>
+  </tr>
+  <tr class="height10">
+    <td colspan = '2'></td>
+    <td colspan = '2' class='bcolor border center'>Olepování</td>
+    <td colspan = '6' class='border'></td>
+  </tr>
+  <tr class="height10">
+    <td colspan = '2' class='bcolor border center'>Tvary</td>
+    <td colspan = '2' class='bcolor border center'>Formátování</td>
+    <td colspan = '6' class='border'></td>
+  </tr>
+  <tr class="height10">
+    <td colspan = '2'></td>
+    <td colspan = '2' class='bcolor border center'>Olepování</td>
+    <td colspan = '6' class='border'></td>
+  </tr>
+  <tr class="height10">
+    <td colspan='2' style='width:18%' class='bcolor border right'>Číslo zakázky:</td>
+    <td colspan='2' class='border center'><p class='frame'>
+      {{ id }}
+      </p></td>
+    <td colspan='1' style="width:20%" class='bcolor border right'>Zákazník:</td>
+    <td colspan='4' class='border center'>{{ name }}</td>
+  </tr>
+  <tr>
+    <td colspan='10' style='height:3%' class='bcolor border center'>Poznánka:</td>
+  </tr>
+  <tr style='height:15%'>
+    <td colspan='10' class='border' style="vertical-align:top; padding:0 10px"><p>{{ note }}</p></td>
+  </tr>
+  </table>
+</body>
+</html>

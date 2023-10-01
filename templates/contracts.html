@@ -118,7 +118,7 @@
                         </button>-->
                         <button class="btn btn-danger glyphicon glyphicon-remove"
                                 onclick="completeContract({{ loop.index0 }})"></button>
-                        <button class="btn btn-warning glyphicon glyphicon-print"></button>
+                        <button onclick="printContract({{ loop.index0 }})" class="btn btn-warning glyphicon glyphicon-print"></button>
                         {% endif %}
                     </td>
                 </tr>
@@ -131,6 +131,16 @@
         <button class="btn btn-warning order_btn" class="btn" onclick="updateContractOrder()">Uložit pořadí</button>
         {% endif %}
     </div>
+    {% if contract_id == None %}
+    <div class="col-lg-4">
+    <div class="input-group">
+        <input type="number" name="glue_value" class="form-control" placeholder="Nenastaveno">
+        <span class="input-group-btn">
+            <button class="btn btn-info" type="button" onclick="setContractId(this)">Nastav</button>
+        </span>
+    </div><!-- /input-group -->
+        </div>
+    {% endif %}
 </div>
 </div>
 
@@ -160,9 +170,24 @@ Sortable.create(listWithHandle, {
             });
         }
 
+        function printContract(contractIndex) {
+            string = 'print_pdf/'+contractIndex
+            $.post(`/print_pdf/${contractIndex}`, function(){
+                window.open(string, '_blank')
+            });
+        }
+
         function clearFunction(contractIndex, button) {
             var buttonName = button.name;
             $.get(`/clear_value/${contractIndex}/${buttonName}`, function() {
+                location.reload();
+            });
+        }
+
+        function setContractId(button) {
+            var inputField = button.parentNode.previousElementSibling;
+            var newId = inputField.value;
+            $.get(`/set_contract_id/${newId}`, function() {
                 location.reload();
             });
         }
