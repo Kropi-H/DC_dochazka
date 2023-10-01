@@ -183,7 +183,9 @@ def index():
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
-                if session['role'] == 4:
+                if session['role'] == 5:
+                    return redirect(url_for('contracts'))
+                elif session['role'] == 4:
                     try:
                         f = open('static/login.csv', 'a', encoding='utf-8')
                         f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
