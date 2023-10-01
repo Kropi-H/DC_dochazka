@@ -13,8 +13,6 @@ from wtforms_components import DateRange
 import hashlib
 import calendar
 import csv
-from xhtml2pdf import pisa
-from io import BytesIO
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
