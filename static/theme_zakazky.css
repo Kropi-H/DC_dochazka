@@ -1,3 +1,6 @@
+body {
+height:100vh;
+}
  table ul {
     list-style-type: none;
     padding: 0;
@@ -52,5 +55,8 @@ margin-top: 1px;
 }
 table td p {
 margin: 2px 0;
+}
+.panel-contracts {
+height:65vh;
 }
 

@@ -751,6 +751,21 @@ def contracts():
                     cut_count += int(contract['cut_value'])
                 if contract['glue_value'].isnumeric() and contract['glue_logic'] == 'True':
                     glue_count += int(contract['glue_value'])
+            date_today = datetime.today()
+            datum_start = datetime.strptime(contract['date_create'], '%d.%m.%Y')
+            datum_end = datetime.strptime(contract['date'], '%d.%m.%Y')
+            rozdil_celkem = (datum_end - datum_start).days
+            rozdil_aktualni = (date_today - datum_start).days
+            rozdil = rozdil_celkem - rozdil_aktualni
+            try:
+                procenta_uplynulo = (rozdil_aktualni / rozdil_celkem) * 100
+            except ZeroDivisionError:
+                procenta_uplynulo = 100
+            contract['diff'] = rozdil  # Přidejte rozdíl v dnech (můžete použít jinou jednotku podle potřeby)
+            contract['percent'] = f'{procenta_uplynulo:.2f}'
+            contract['date_create']=contract['date_create'][:-4]
+            contract['date']=contract['date'][:-4]
+
         return render_template('contracts.html',
                                contracts=contracts,
                                #completed_contracts=completed_contracts,
