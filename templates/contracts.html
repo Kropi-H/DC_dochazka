@@ -5,7 +5,7 @@
     <div class="panel panel-default">
         <!-- Default panel contents -->
         <div class="panel-heading">
-            <h1>Seznam zakázek</h1>
+            <h3>Seznam zakázek <span class="label label-default">Bílé lep.</span></h3>
             <div>
                 <span class="label label-primary">Formátování celkem: {{ cut_count }} minut</span>
                 <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
@@ -40,7 +40,7 @@
                                 </div><!-- /input-group -->
                             </div><!-- /.col-lg-6 -->
                         </th>
-                        <th>Stav</th>
+                        <th>Zbývá</th>
                         <th>
                             {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish')
                             }}
@@ -104,19 +104,11 @@
 
                     </td>
                     <td>
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" aria-valuenow="{{ contract['percent'] }}"
-                                 aria-valuemin="0" aria-valuemax="100" style="width:70%">
-                                {{ contract['percent'] }}%
-                            </div>
-                        </div>
+                        <p>( {{contract['diff'] }} )</p>
                     </td>
-                    <td>{{ contract['date_create'] }} / {{ contract['date'] }} ( {{contract['diff'] }} )
+                    <td>{{ contract['date_create'] }} / {{ contract['date'] }}
                     </td>
                     <td>{% if not contract['finished'] %}
-                        <!--<button class="btn btn-success float-right btn-sm" onclick="completeContract({{ loop.index0 }})">
-                            Uspokojeno
-                        </button>-->
                         <button class="btn btn-danger btn-sm glyphicon glyphicon-remove"
                                 onclick="completeContract({{ loop.index0 }})"></button>
                         <button onclick="printContract({{ loop.index0 }})" class="btn btn-warning btn-sm glyphicon glyphicon-print"></button>
@@ -129,6 +121,7 @@
             </table>
         </div>
         {% if role == 3 %}
+        <button class="btn btn-success float-right btn-sm" onclick="archiveContracts()">Uspokojeno</button>
         <button class="btn btn-warning order_btn btn-sm" onclick="updateContractOrder()">Uložit pořadí</button>
         {% endif %}
     </div>
@@ -181,6 +174,12 @@ Sortable.create(listWithHandle, {
         function clearFunction(contractIndex, button) {
             var buttonName = button.name;
             $.get(`/clear_value/${contractIndex}/${buttonName}`, function() {
+                location.reload();
+            });
+        }
+
+        function archiveContracts() {
+            $.get(`/archive_contracts`, function() {
                 location.reload();
             });
         }

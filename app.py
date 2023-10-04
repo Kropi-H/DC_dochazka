@@ -841,10 +841,19 @@ def archive_contracts():
     completed_contracts = [contract for contract in contracts if contract['finished'] == 1]
 
     try:
-        #with open('static/archived_contracts.csv', 'a', newline='',encoding='utf-8') as csvfile:
-        #    writer = csv.writer(csvfile)
-        #    for contract in completed_contracts:
-        #        writer.writerow([contract['id'], contract['contract'], contract['note'], contract['finished']])
+        with open('static/archived_contracts.csv', 'a', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            for contract in completed_contracts:
+                writer.writerow([contract['id'],
+                             contract['contract'],
+                             contract['note'],
+                             contract['cut_logic'],
+                             contract['cut_value'],
+                             contract['glue_logic'],
+                             contract['glue_value'],
+                             contract['date_create'],
+                             contract['date'],
+                             contract['finished']])
 
         contracts = [contract for contract in contracts if contract['finished'] == 0]
         save_contracts(contracts, 'contracts.csv')
