@@ -5,7 +5,14 @@
     <div class="panel panel-default">
         <!-- Default panel contents -->
         <div class="panel-heading">
-            <h3>Seznam zakázek <span class="label label-default">Bílé lep.</span></h3>
+            <h3>Seznam zakázek <span class="label label-default">Na olepce: bílé</span></h3>
+{% if role== 3 %}
+  <div class="col-lg-6">
+    <button value="Transparent" onclick="setGlue(this)" class="btn btn-info">Transparent</button>
+    <button value="Bílé" onclick="setGlue(this)" class="btn btn-info btn-sm">Bilé</button>
+
+  </div><!-- /input-group -->
+{% endif %}
             <div>
                 <span class="label label-primary">Formátování celkem: {{ cut_count }} minut</span>
                 <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
@@ -50,6 +57,16 @@
                             {{ form.submit(class="btn btn-success") }}
                     </tr>
                 </form>
+                <colgroup>
+                    <col style="width:1%;">
+                    <col style="width:4%;">
+                    <col style="width:10%;">
+                    <col style="width:10%;">
+                    <col style="width:15%;">
+                    <col style="width:3%;">
+                    <col style="width:10%;">
+                    <col style="width:15%;">
+                </colgroup>
                 </thead>
                 <tbody id="listWithHandle">
                 {% for contract in contracts %}
@@ -74,10 +91,10 @@
                             {% elif contract['cut_logic'] == 'False' %}
                             <p>Bez řezání</p>
                             {% else %}
-                            <button name="cut_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
+                            <p><button name="cut_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
                                     %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['cut_value'] }}</span>
                                 minut nařezat
-                            </button>
+                            </button></p>
                             {% endif %}
                         </div><!-- /.col-lg-12 -->
                         <hr>
@@ -95,10 +112,10 @@
                             {% elif contract['glue_logic'] == 'False' %}
                             <p>Bez hranění</p>
                             {% else %}
-                            <button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
+                            <p><button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
                                     %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['glue_value'] }}</span>
                                 metrů ohranit
-                            </button>
+                            </button></p>
                             {% endif %}
                         </div><!-- /.col-lg-12 -->
 
@@ -109,10 +126,12 @@
                     <td>{{ contract['date_create'] }} / {{ contract['date'] }}
                     </td>
                     <td>{% if not contract['finished'] %}
-                        <button class="btn btn-danger btn-sm glyphicon glyphicon-remove"
-                                onclick="completeContract({{ loop.index0 }})"></button>
+                        <button class="btn btn-danger btn-sm glyphicon glyphicon-remove" onclick="completeContract({{ loop.index0 }})"></button>
                         <button onclick="printContract({{ loop.index0 }})" class="btn btn-warning btn-sm glyphicon glyphicon-print"></button>
+                        {% if role == 3 %}
+                        <button onclick="updateRow({{ loop.index0 }})" class="btn btn-info btn-sm glyphicon glyphicon-pencil"></button>
                         {% endif %}
+                    {% endif %}
                     </td>
                 </tr>
                 {% endif %}
@@ -188,6 +207,19 @@ Sortable.create(listWithHandle, {
             var inputField = button.parentNode.previousElementSibling;
             var newId = inputField.value;
             $.get(`/set_contract_id/${newId}`, function() {
+                location.reload();
+            });
+        }
+
+        function updateRow(contractIndex) {
+            $.get(`/update_row/${contractIndex}`, function() {
+                location.reload();
+            });
+        }
+
+        function setGlue(button) {
+            var checkValue = button.value;
+            $.get(`/set_glue/${checkValue}`, function(){
                 location.reload();
             });
         }

@@ -716,6 +716,21 @@ def set_id(value):
         writer = csv.writer(csvfile)
         writer.writerow([new_value])
 
+def readGlue():
+    glue_type = str()
+    try:
+        with open('static/glue_type.csv', 'r', encoding='utf-8') as csvfile:
+            glue_type = csv.reader(csvfile)
+            return(glue_type)
+    except FileNotFoundError:
+        pass
+    return glue_type
+
+def set_glue(value):
+    with open('static/glue_type.csv', 'w', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([value])
+
 def save_contracts(contracts, filename):
     with open(f'static/{filename}', 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
@@ -766,6 +781,7 @@ def contracts():
             contract['date_create']=contract['date_create'][:-4]
             contract['date']=contract['date'][:-4]
 
+            glue = readGlue()
         return render_template('contracts.html',
                                contracts=contracts,
                                #completed_contracts=completed_contracts,
@@ -775,7 +791,8 @@ def contracts():
                                form=form,
                                user=user['user'],
                                role=int(user['role']),
-                               contract_id=load_id())
+                               contract_id=load_id(),
+                               glue=glue)
 
 @app.route('/set_contract_id/<contract_id>')
 def set_contract_id(contract_id):
@@ -814,7 +831,12 @@ def add_contract():
 def set_value(contract_index, value, type):
     contracts = load_contracts('contracts.csv')
     if 0 <= contract_index < len(contracts):
-        contracts[contract_index][type] = value
+        if value == 0 and type == 'glue_value':
+            contracts[contract_index]['glue_logic'] = False
+        elif value == 0 and type == 'cut_value':
+            contracts[contract_index]['cut_logic'] = False
+        else:
+            contracts[contract_index][type] = value
         save_contracts(contracts, 'contracts.csv')
     return redirect('/contracts')
 
@@ -892,6 +914,21 @@ def print_pdf(contract_index):
     note = contracts[contract_index]['note']
 
     return render_template('contract_pdf.html', user=user['user'], id=f'DC{id}', name=name, note = note)
+
+@app.route('/update_row/<int:contract_index>', methods=['GET'])
+def update_row(contract_index):
+    contracts = load_contracts('contracts.csv')
+    if 0 <= contract_index < len(contracts):
+        contracts[contract_index]['cut_logic'] = True
+        contracts[contract_index]['cut_value'] = 0
+        contracts[contract_index]['glue_logic'] = True
+        contracts[contract_index]['glue_value'] = 0
+        save_contracts(contracts, 'contracts.csv')
+    return redirect('/contracts')
+
+@app.route('/set_glue/<glue>', methods=['GET'])
+def setGlue(glue):
+    set_glue(glue)
 
 if __name__=='__main__':
     app.run(debug=True)

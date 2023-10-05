@@ -4,3 +4,4 @@ tables.py
 static/login.csv
 static/contracts.csv
 static/contract_id.csv
+static/glue_type.csv
