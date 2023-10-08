@@ -5,12 +5,13 @@
     <div class="panel panel-default">
         <!-- Default panel contents -->
         <div class="panel-heading">
-            <h3>Seznam zakázek <span class="label label-default">Na olepce: bílé</span></h3>
-{% if role== 3 %}
-  <div class="col-lg-6">
-    <button value="Transparent" onclick="setGlue(this)" class="btn btn-info">Transparent</button>
+        <button type="button" onclick="location.reload()" class="close glyphicon glyphicon-refresh" aria-label="Close"></button>
+            <h3>Seznam zakázek</h3>
+            <span class="label label-default">Na olepce: {{ glue }} lep.</span>
+  {% if role== 3 %}
+  <div class="col-lg-12">
+    <button value="Transparent" onclick="setGlue(this)" class="btn btn-info btn-sm">Transparent</button>
     <button value="Bílé" onclick="setGlue(this)" class="btn btn-info btn-sm">Bilé</button>
-
   </div><!-- /input-group -->
 {% endif %}
             <div>
@@ -83,8 +84,8 @@
                             <div class="input-group">
                                 <input type="number" name="cut_value" class="form-control" placeholder="Formátování">
                                 <span class="input-group-btn">
-                            <button class="btn btn-info btn-sm" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
-                          </span>
+                                <button class="btn btn-info btn-sm" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
+                                </span>
                             </div><!-- /input-group -->
                             {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
                             <p style="text-decoration: line-through;">{{ contract['cut_value'] }} nařezáno</p>

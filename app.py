@@ -717,14 +717,13 @@ def set_id(value):
         writer.writerow([new_value])
 
 def readGlue():
-    glue_type = str()
     try:
         with open('static/glue_type.csv', 'r', encoding='utf-8') as csvfile:
-            glue_type = csv.reader(csvfile)
-            return(glue_type)
+            reader = csv.reader(csvfile)
+            glue_type = next(reader)
     except FileNotFoundError:
         pass
-    return glue_type
+    return glue_type[0]
 
 def set_glue(value):
     with open('static/glue_type.csv', 'w', encoding='utf-8') as csvfile:
@@ -781,7 +780,6 @@ def contracts():
             contract['date_create']=contract['date_create'][:-4]
             contract['date']=contract['date'][:-4]
 
-            glue = readGlue()
         return render_template('contracts.html',
                                contracts=contracts,
                                #completed_contracts=completed_contracts,
@@ -792,7 +790,7 @@ def contracts():
                                user=user['user'],
                                role=int(user['role']),
                                contract_id=load_id(),
-                               glue=glue)
+                               glue=readGlue())
 
 @app.route('/set_contract_id/<contract_id>')
 def set_contract_id(contract_id):
@@ -929,6 +927,7 @@ def update_row(contract_index):
 @app.route('/set_glue/<glue>', methods=['GET'])
 def setGlue(glue):
     set_glue(glue)
+    return redirect('/contracts')
 
 if __name__=='__main__':
     app.run(debug=True)

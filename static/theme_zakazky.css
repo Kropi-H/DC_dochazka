@@ -64,3 +64,14 @@ height:65vh;
 margin-left:0px;
 }
 
+.panel .table tbody td {
+padding: 1px 8px;
+}
+
+.table-striped tbody tr:nth-of-type(2n+1) {
+  background-color: #f0f0f0;
+}
+
+.panel-default .panel-heading {
+    background-color: #f0f0f0;
+}
