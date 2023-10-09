@@ -27,7 +27,7 @@
                 <form action="/add_contract" method="POST">
                     <tr class="table-contracts">
                         <th></th>
-                        <th>Zakázka</th>
+                        <th>Zakázka <span>DC{{ last_id }}</span></th>
                         {{ form.csrt_token }}
                         {{ form.hidden_tag() }}
                         <th>{{ form.customer_name }}{{ form.hidden_tag() }}</th>
@@ -58,6 +58,7 @@
                             {{ form.submit(class="btn btn-success") }}
                     </tr>
                 </form>
+
                 <colgroup>
                     <col style="width:1%;">
                     <col style="width:4%;">

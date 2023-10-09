@@ -790,7 +790,8 @@ def contracts():
                                user=user['user'],
                                role=int(user['role']),
                                contract_id=load_id(),
-                               glue=readGlue())
+                               glue=readGlue(),
+                               last_id = int(load_id()[-1])+1)
 
 @app.route('/set_contract_id/<contract_id>')
 def set_contract_id(contract_id):
