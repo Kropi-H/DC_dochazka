@@ -151,7 +151,7 @@ class AttendanceForm(FlaskForm):
     endtime = TimeField('Konec',
                         default=end_time,
                         validators=[DataRequired()])
-    selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
+    selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[DataRequired()])
     numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
                                validators=[validators.Optional(strip_whitespace=True)])
@@ -417,7 +417,7 @@ def attendence_overview(select_month):
             recursive_search(nested_list)
             return result  # Množina automaticky odstraní duplicity
 
-        target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine', '']
+        target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'obchod', 'kancl', 'jine', '']
 
         found_strings = find_strings_in_nested_list(months_values, target_strings)
 
