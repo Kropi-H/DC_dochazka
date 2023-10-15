@@ -791,7 +791,8 @@ def contracts():
                                role=int(user['role']),
                                contract_id=load_id(),
                                glue=readGlue(),
-                               last_id = int(load_id()[-1])+1)
+                               last_id = int(load_id()[-1])+1,
+                               count_contracts = len(contracts))
 
 @app.route('/set_contract_id/<contract_id>')
 def set_contract_id(contract_id):
@@ -913,7 +914,7 @@ def print_pdf(contract_index):
     name = contracts[contract_index]['contract']
     note = contracts[contract_index]['note']
 
-    return render_template('contract_pdf.html', user=user['user'], id=f'DC{id}', name=name, note = note)
+    return render_template('contract_pdf.html', user=user['user'], id=f'DC{id}', name=name, note= note)
 
 @app.route('/update_row/<int:contract_index>', methods=['GET'])
 def update_row(contract_index):
