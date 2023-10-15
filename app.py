@@ -755,7 +755,7 @@ def contracts():
 
     if request.method == 'GET':
         contracts = load_contracts('contracts.csv')
-        #completed_contracts = load_contracts('archived_contracts.csv')
+        completed_contracts = load_contracts('archived_contracts.csv')
         cut_count = 0
         glue_count = 0
 
@@ -782,7 +782,7 @@ def contracts():
 
         return render_template('contracts.html',
                                contracts=contracts,
-                               #completed_contracts=completed_contracts,
+                               completed_contracts=completed_contracts,
                                cut_count=cut_count,
                                glue_count=glue_count,
                                page_title='Zakázky',
@@ -865,6 +865,7 @@ def archive_contracts():
         with open('static/archived_contracts.csv', 'a', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
             for contract in completed_contracts:
+                contract['date']=datetime.today().strftime('%d.%m.%Y')
                 writer.writerow([contract['id'],
                              contract['contract'],
                              contract['note'],

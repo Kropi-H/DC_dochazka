@@ -16,6 +16,14 @@ table li {
     margin-left: 10px;
  }
 
+th {
+  background: #d5d5d5;
+  position: sticky;
+  top: 0; /* Don't forget this, required for the stickiness */
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  z-index:10;
+}
+
 .table thead tr th {
 vertical-align:middle;
 }
@@ -57,7 +65,7 @@ table td p {
 margin: 2px 0;
 }
 .panel-contracts {
-height:65vh;
+max-height:65vh;
 }
 
 .table td button {
@@ -74,4 +82,26 @@ padding: 1px 8px;
 
 .panel-default .panel-heading {
     background-color: #f0f0f0;
+}
+.panel {
+margin:0;
+}
+.panel li form {
+margin-bottom: 0;
+}
+.panel-heading ul {
+padding:0;
+
+}
+.panel-heading ul li {
+  list-style: none;
+}
+
+#archiv{
+    margin-top: 10px;
+    }
+
+#aTable {
+    height: 30vh;
+  overflow: auto;
 }

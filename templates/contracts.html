@@ -5,158 +5,203 @@
     <div class="panel panel-default">
         <!-- Default panel contents -->
         <div class="panel-heading">
-        <button type="button" onclick="location.reload()" class="close glyphicon glyphicon-refresh" aria-label="Close"></button>
-            <h3>Seznam zakázek</h3>
-            <span class="label label-default">Na olepce: {{ glue }} lep.</span>
-  {% if role== 3 %}
-  <div class="col-lg-12">
-    <button value="Transparent" onclick="setGlue(this)" class="btn btn-info btn-sm">Transparent</button>
-    <button value="Bílé" onclick="setGlue(this)" class="btn btn-info btn-sm">Bilé</button>
-  </div><!-- /input-group -->
-{% endif %}
-            <div>
-                <span class="label label-primary">Formátování celkem: {{ cut_count }} minut</span>
-                <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
-            </div>
+            <ul>
+                <li>
+                    <button type="button" onclick="location.reload()" class="close glyphicon glyphicon-refresh"
+                            aria-label="Close"></button>
+                </li>
+                <li>
+                    <h3>Seznam zakázek</h3>
+                </li>
+                <li>
+                    <form class="navbar-form navbar-right">
+                        <div class="form-group">
+                            <input id="contractSearch" onkeyup="myFunction()" value="DC231" type="text"
+                                   class="form-control" placeholder="Vyhledat">
+                        </div>
+                    </form>
+                </li>
+                </li>
+                <span class="label label-default">Na olepce: {{ glue }} lep.</span>
+                {% if role== 3 %}
+                <button value="Transparent" onclick="setGlue(this)" class="btn btn-info btn-sm">Transparent</button>
+                <button value="Bílé" onclick="setGlue(this)" class="btn btn-info btn-sm">Bilé</button>
+                {% endif %}
+                </li>
+                <li>
+                    <div>
+                        <span class="label label-primary">Formátování celkem: {{ cut_count }} minut</span>
+                        <span class="label label-primary">Hranění celkem: {{ glue_count }} metrů</span>
+                    </div>
+                </li>
+            </ul>
         </div>
+    </div>
 
-        <!-- Table -->
-        <div class="panel panel-contracts" style="overflow-x:auto;">
-            <table class="table table-bordered table-hover table-sortable table-striped">
-                <thead>
-                <form action="/add_contract" method="POST">
-                    <tr class="table-contracts">
-                        <th></th>
-                        <th>Zakázka <span>DC{{ last_id }}</span></th>
-                        {{ form.csrt_token }}
-                        {{ form.hidden_tag() }}
-                        <th>{{ form.customer_name }}{{ form.hidden_tag() }}</th>
-                        <th>{{ form.customer_note }}{{ form.hidden_tag() }}</th>
-                        <th>
-                            <div class="col-lg-12">
-                                <div class="input-group">
+    <!-- Table -->
+    <div class="panel panel-contracts" style="overflow-x:auto;">
+        <table class="table table-bordered table-hover table-sortable table-striped">
+            <thead>
+            <form action="/add_contract" method="POST">
+                <tr class="table-contracts">
+                    <th></th>
+                    <th>Zakázka <span>DC{{ last_id }}</span></th>
+                    {{ form.csrt_token }}
+                    {{ form.hidden_tag() }}
+                    <th>{{ form.customer_name }}{{ form.hidden_tag() }}</th>
+                    <th>{{ form.customer_note }}{{ form.hidden_tag() }}</th>
+                    <th>
+                        <div class="col-lg-12">
+                            <div class="input-group">
                                 <span class="input-group-addon">
                                   {{ form.customer_cut }}{{ form.hidden_tag() }} Formátování
                                 </span>
-                                </div><!-- /input-group -->
-                            </div><!-- /.col-lg-6 -->
-                            <div class="col-lg-12">
-                                <div class="input-group">
+                            </div><!-- /input-group -->
+                        </div><!-- /.col-lg-6 -->
+                        <div class="col-lg-12">
+                            <div class="input-group">
                             <span class="input-group-addon">
                               {{ form.customer_glue }}{{ form.hidden_tag() }} Hranění
                             </span>
-                                </div><!-- /input-group -->
-                            </div><!-- /.col-lg-6 -->
-                        </th>
-                        <th>Zbývá</th>
-                        <th>
-                            {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish')
-                            }}
-                            {{ form.customer_date_finish }}{{ form.hidden_tag() }}
-                        </th>
-                        <th>
-                            {{ form.submit(class="btn btn-success") }}
-                    </tr>
-                </form>
-
-                <colgroup>
-                    <col style="width:1%;">
-                    <col style="width:4%;">
-                    <col style="width:10%;">
-                    <col style="width:10%;">
-                    <col style="width:15%;">
-                    <col style="width:3%;">
-                    <col style="width:10%;">
-                    <col style="width:15%;">
-                </colgroup>
-                </thead>
-                <tbody id="listWithHandle">
-                {% for contract in contracts %}
-                {% if contract['finished'] == 0 %}
-                <tr draggable="true" data-index="{{ loop.index0 }}">
-                    <td {% if role== 3 %}id="move" {% endif %}><span class="glyphicon glyphicon-resize-vertical"></span>
-                    </td>
-                    <td class="number">DC{{ contract['id'] }}</td>
-                    <td>{{ contract['contract'] }}</td>
-                    <td>{{ contract['note'] }}</td>
-                    <td>
-                        <div class="col-lg-12">
-                            {% if contract['cut_logic'] == 'True' and contract['cut_value'] == '0' %}
-                            <div class="input-group">
-                                <input type="number" name="cut_value" class="form-control" placeholder="Formátování">
-                                <span class="input-group-btn">
-                                <button class="btn btn-info btn-sm" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
-                                </span>
                             </div><!-- /input-group -->
-                            {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
-                            <p style="text-decoration: line-through;">{{ contract['cut_value'] }} nařezáno</p>
-                            {% elif contract['cut_logic'] == 'False' %}
-                            <p>Bez řezání</p>
-                            {% else %}
-                            <p><button name="cut_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
-                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['cut_value'] }}</span>
-                                minut nařezat
-                            </button></p>
-                            {% endif %}
-                        </div><!-- /.col-lg-12 -->
-                        <hr>
-
-                        <div class="col-lg-12">
-                            {% if contract['glue_logic'] == 'True' and contract['glue_value'] == '0' %}
-                            <div class="input-group">
-                                <input type="number" name="glue_value" class="form-control" placeholder="Hranění">
-                                <span class="input-group-btn">
-                            <button class="btn btn-info btn-sm" type="button" onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
-                          </span>
-                            </div><!-- /input-group -->
-                            {% elif contract['glue_logic'] == 'False' and contract['glue_value'] != '0' %}
-                            <p style="text-decoration: line-through;">{{ contract['glue_value'] }} ohraněno</p>
-                            {% elif contract['glue_logic'] == 'False' %}
-                            <p>Bez hranění</p>
-                            {% else %}
-                            <p><button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
-                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span class="badge">{{ contract['glue_value'] }}</span>
-                                metrů ohranit
-                            </button></p>
-                            {% endif %}
-                        </div><!-- /.col-lg-12 -->
-
-                    </td>
-                    <td>
-                        <p>( {{contract['diff'] }} )</p>
-                    </td>
-                    <td>{{ contract['date_create'] }} / {{ contract['date'] }}
-                    </td>
-                    <td>{% if not contract['finished'] %}
-                        <button class="btn btn-danger btn-sm glyphicon glyphicon-remove" onclick="completeContract({{ loop.index0 }})"></button>
-                        <button onclick="printContract({{ loop.index0 }})" class="btn btn-warning btn-sm glyphicon glyphicon-print"></button>
-                        {% if role == 3 %}
-                        <button onclick="updateRow({{ loop.index0 }})" class="btn btn-info btn-sm glyphicon glyphicon-pencil"></button>
-                        {% endif %}
-                    {% endif %}
-                    </td>
+                        </div><!-- /.col-lg-6 -->
+                    </th>
+                    <th>Zbývá</th>
+                    <th>
+                        {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish')
+                        }}
+                        {{ form.customer_date_finish }}{{ form.hidden_tag() }}
+                    </th>
+                    <th>
+                        {{ form.submit(class="btn btn-success") }}
                 </tr>
-                {% endif %}
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if role == 3 %}
-        <button class="btn btn-success float-right btn-sm" onclick="archiveContracts()">Uspokojeno</button>
-        <button class="btn btn-warning order_btn btn-sm" onclick="updateContractOrder()">Uložit pořadí</button>
-        {% endif %}
+            </form>
+
+            <colgroup>
+                <col style="width:1%;">
+                <col style="width:4%;">
+                <col style="width:10%;">
+                <col style="width:10%;">
+                <col style="width:15%;">
+                <col style="width:3%;">
+                <col style="width:10%;">
+                <col style="width:15%;">
+            </colgroup>
+            </thead>
+            <tbody id="listWithHandle">
+            {% for contract in contracts %}
+            {% if contract['finished'] == 0 %}
+            <tr draggable="true" data-index="{{ loop.index0 }}">
+                <td {% if role== 3 %}id="move" {% endif %}><span class="glyphicon glyphicon-resize-vertical"></span>
+                </td>
+                <td class="number">DC{{ contract['id'] }}</td>
+                <td>{{ contract['contract'] }}</td>
+                <td>{{ contract['note'] }}</td>
+                <td>
+                    <div class="col-lg-12">
+                        {% if contract['cut_logic'] == 'True' and contract['cut_value'] == '0' %}
+                        <div class="input-group">
+                            <input type="number" name="cut_value" class="form-control" placeholder="Formátování">
+                            <span class="input-group-btn">
+                                <button class="btn btn-info btn-sm" type="button"
+                                        onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
+                                </span>
+                        </div><!-- /input-group -->
+                        {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
+                        <p style="text-decoration: line-through;">{{ contract['cut_value'] }} nařezáno</p>
+                        {% elif contract['cut_logic'] == 'False' %}
+                        <p>Bez řezání</p>
+                        {% else %}
+                        <p>
+                            <button name="cut_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
+                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span
+                                    class="badge">{{ contract['cut_value'] }}</span>
+                                minut nařezat
+                            </button>
+                        </p>
+                        {% endif %}
+                    </div><!-- /.col-lg-12 -->
+                    <hr>
+
+                    <div class="col-lg-12">
+                        {% if contract['glue_logic'] == 'True' and contract['glue_value'] == '0' %}
+                        <div class="input-group">
+                            <input type="number" name="glue_value" class="form-control" placeholder="Hranění">
+                            <span class="input-group-btn">
+                            <button class="btn btn-info btn-sm" type="button"
+                                    onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
+                          </span>
+                        </div><!-- /input-group -->
+                        {% elif contract['glue_logic'] == 'False' and contract['glue_value'] != '0' %}
+                        <p style="text-decoration: line-through;">{{ contract['glue_value'] }} ohraněno</p>
+                        {% elif contract['glue_logic'] == 'False' %}
+                        <p>Bez hranění</p>
+                        {% else %}
+                        <p>
+                            <button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
+                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span
+                                    class="badge">{{ contract['glue_value'] }}</span>
+                                metrů ohranit
+                            </button>
+                        </p>
+                        {% endif %}
+                    </div><!-- /.col-lg-12 -->
+
+                </td>
+                <td>
+                    <p>( {{contract['diff'] }} )</p>
+                </td>
+                <td>{{ contract['date_create'] }} / {{ contract['date'] }}
+                </td>
+                <td>{% if not contract['finished'] %}
+                    <button class="btn btn-danger btn-sm glyphicon glyphicon-remove"
+                            onclick="completeContract({{ loop.index0 }})"></button>
+                    <button onclick="printContract({{ loop.index0 }})"
+                            class="btn btn-warning btn-sm glyphicon glyphicon-print"></button>
+                    {% if role >= 2 and role < 4 %}
+                    <button onclick="updateRow({{ loop.index0 }})"
+                            class="btn btn-info btn-sm glyphicon glyphicon-pencil"></button>
+                    {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% if contract_id == None %}
-    <div class="col-lg-4">
+    {% if role == 3 %}
+    <button class="btn btn-success float-right btn-sm" onclick="archiveContracts()">Uspokojeno</button>
+    <button class="btn btn-warning order_btn btn-sm" onclick="updateContractOrder()">Uložit pořadí</button>
+    {% endif %}
+
+{% if contract_id == None %}
+<div class="col-lg-4">
     <div class="input-group">
         <input type="number" name="glue_value" class="form-control" placeholder="Nenastaveno">
         <span class="input-group-btn">
             <button class="btn btn-info btn-sm" type="button" onclick="setContractId(this)">Nastav</button>
         </span>
     </div><!-- /input-group -->
-        </div>
-    {% endif %}
 </div>
+{% endif %}
+    <div id="archiv">
+    <h5>Archiv</h5>
+<div id="aTable">
+    <table id="archivedContracts" class="table table-bordered table-hover table-sortable table-striped">
+        {% for complete_contract in completed_contracts %}
+        <tr>
+            <td></td>
+            <td>DC{{complete_contract['id']}}</td>
+            <td>{{complete_contract['contract']}}</td>
+            <td>{{complete_contract['note']}}</td>
+            <td>{{complete_contract['date']}}</td>
+
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+        </div>
 </div>
 
 <script>
@@ -246,6 +291,40 @@ Sortable.create(listWithHandle, {
                 }
             });
         }
+
+
+
+</script>
+<script>
+function myFunction() {
+  var input, filter, table, tr, a, i, archive;
+  input = document.getElementById("contractSearch");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("listWithHandle");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    a = tr[i].getElementsByTagName("td")[1];
+    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      tr[i].style.display = "";
+    } else {
+      tr[i].style.display = "none";
+    }
+  }
+
+  archive = document.getElementById("archivedContracts")
+  archiveTr = archive.getElementsByTagName("tr");
+  for (i = 0; i < archiveTr.length; i++) {
+    a = archiveTr[i].getElementsByTagName("td")[1];
+    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      archiveTr[i].style.display = "";
+    } else {
+      archiveTr[i].style.display = "none";
+    }
+  }
+
+}
+
+
 </script>
 {% endblock %}
 
