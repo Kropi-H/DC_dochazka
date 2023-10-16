@@ -854,7 +854,7 @@ def complete_contract(contract_index):
     if 0 <= contract_index < len(contracts):
         contracts[contract_index]['finished'] = 1
         save_contracts(contracts, 'contracts.csv')
-    return redirect('/contracts')
+    return redirect('/archive_contracts')
 
 
 @app.route('/archive_contracts')

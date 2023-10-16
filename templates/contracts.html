@@ -172,7 +172,6 @@
         </table>
     </div>
     {% if role == 3 %}
-    <button class="btn btn-success float-right btn-sm" onclick="archiveContracts()">Uspokojeno</button>
     <button class="btn btn-warning order_btn btn-sm" onclick="updateContractOrder()">Uložit pořadí</button>
     {% endif %}
 
@@ -187,7 +186,7 @@
 </div>
 {% endif %}
     <div id="archiv">
-    <h5>Archiv</h5>
+    <h5>Archiv zakázek</h5>
 <div id="aTable">
     <table id="archivedContracts" class="table table-bordered table-hover table-sortable table-striped">
         {% for complete_contract in completed_contracts %}
@@ -241,12 +240,6 @@ Sortable.create(listWithHandle, {
         function clearFunction(contractIndex, button) {
             var buttonName = button.name;
             $.get(`/clear_value/${contractIndex}/${buttonName}`, function() {
-                location.reload();
-            });
-        }
-
-        function archiveContracts() {
-            $.get(`/archive_contracts`, function() {
                 location.reload();
             });
         }
