@@ -916,14 +916,24 @@ def print_pdf(contract_index):
 
     return render_template('contract_pdf.html', user=user['user'], id=f'DC{id}', name=name, note= note)
 
-@app.route('/update_row/<int:contract_index>', methods=['GET'])
-def update_row(contract_index):
+@app.route('/update_row/<int:contract_index>/<name>/<note>/<int:cut>/<int:glue>/<new_date>', methods=['GET'])
+def update_row(contract_index, name, note, cut, glue, new_date):
+    current_date = datetime.strptime(new_date, '%Y-%m-%d').strftime('%d.%m.%Y')
     contracts = load_contracts('contracts.csv')
     if 0 <= contract_index < len(contracts):
-        contracts[contract_index]['cut_logic'] = True
-        contracts[contract_index]['cut_value'] = 0
-        contracts[contract_index]['glue_logic'] = True
-        contracts[contract_index]['glue_value'] = 0
+        contracts[contract_index]['contract'] = name
+        contracts[contract_index]['note'] = note
+
+        if int(contracts[contract_index]['cut_value']) != cut:
+            contracts[contract_index]['cut_logic'] = True
+            contracts[contract_index]['cut_value'] = cut
+
+        if int(contracts[contract_index]['glue_value']) != glue:
+            contracts[contract_index]['glue_logic'] = True
+            contracts[contract_index]['glue_value'] = glue
+
+
+        contracts[contract_index]['date'] = current_date
         save_contracts(contracts, 'contracts.csv')
     return redirect('/contracts')
 

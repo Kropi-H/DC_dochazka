@@ -109,9 +109,9 @@
                                 </span>
                         </div><!-- /input-group -->
                         {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
-                        <p style="text-decoration: line-through;">{{ contract['cut_value'] }} nařezáno</p>
+                        <p style="text-decoration: line-through;"><span>{{ contract['cut_value'] }}</span> nařezáno</p>
                         {% elif contract['cut_logic'] == 'False' %}
-                        <p>Bez řezání</p>
+                        <p><span></span>Bez řezání</p>
                         {% else %}
                         <p>
                             <button name="cut_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
@@ -134,9 +134,9 @@
                           </span>
                         </div><!-- /input-group -->
                         {% elif contract['glue_logic'] == 'False' and contract['glue_value'] != '0' %}
-                        <p style="text-decoration: line-through;">{{ contract['glue_value'] }} ohraněno</p>
+                        <p style="text-decoration: line-through;"><span>{{ contract['glue_value'] }}</span> ohraněno</p>
                         {% elif contract['glue_logic'] == 'False' %}
-                        <p>Bez hranění</p>
+                        <p><span></span>Bez hranění</p>
                         {% else %}
                         <p>
                             <button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
@@ -160,7 +160,7 @@
                     <button onclick="printContract({{ loop.index0 }})"
                             class="btn btn-warning btn-sm glyphicon glyphicon-print"></button>
                     {% if role >= 2 and role < 4 %}
-                    <button onclick="updateRow({{ loop.index0 }})"
+                    <button onclick="upContract({{ loop.index0 }}, this)"
                             class="btn btn-info btn-sm glyphicon glyphicon-pencil"></button>
                     {% endif %}
                     {% endif %}
@@ -204,121 +204,6 @@
         </div>
 </div>
 
-<script>
-
-$( function() {
-  $( "#task-list" ).sortable();
-});
-
-Sortable.create(listWithHandle, {
-  handle: '#move',
-  animation: 150
-});
-
-        function completeContract(contractIndex) {
-            $.get(`/complete_contract/${contractIndex}`, function() {
-                location.reload();
-            });
-        }
-
-        function setFunction(contractIndex, button) {
-            var inputField = button.parentNode.previousElementSibling;
-            var inputValue = inputField.value;
-            var inputName = inputField.name;
-            $.get(`/set_value/${contractIndex}/${inputValue}/${inputName}`, function() {
-                location.reload();
-            });
-        }
-
-        function printContract(contractIndex) {
-            string = 'print_pdf/'+contractIndex
-            $.post(`/print_pdf/${contractIndex}`, function(){
-                window.open(string, '_blank')
-            });
-        }
-
-        function clearFunction(contractIndex, button) {
-            var buttonName = button.name;
-            $.get(`/clear_value/${contractIndex}/${buttonName}`, function() {
-                location.reload();
-            });
-        }
-
-        function setContractId(button) {
-            var inputField = button.parentNode.previousElementSibling;
-            var newId = inputField.value;
-            $.get(`/set_contract_id/${newId}`, function() {
-                location.reload();
-            });
-        }
-
-        function updateRow(contractIndex) {
-            $.get(`/update_row/${contractIndex}`, function() {
-                location.reload();
-            });
-        }
-
-        function setGlue(button) {
-            var checkValue = button.value;
-            $.get(`/set_glue/${checkValue}`, function(){
-                location.reload();
-            });
-        }
-
-        function setNumber() {
-             ('/get_number', { method: 'POST' })
-        }
-
-        function updateContractOrder() {
-            var taskList = document.getElementById('listWithHandle');
-            var items = Array.from(taskList.children);
-            var newOrder = items.map(function (item) {
-                return item.dataset.index;
-            });
-
-            $.ajax({
-                url: '/update_contract_order',
-                type: 'POST',
-                data: { contract_order: newOrder },
-                success: function () {
-                    // Po úspěšném uložení můžete provést nějakou akci, například zobrazení zprávy o úspěchu.
-                }
-            });
-        }
-
-
-
-</script>
-<script>
-function myFunction() {
-  var input, filter, table, tr, a, i, archive;
-  input = document.getElementById("contractSearch");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("listWithHandle");
-  tr = table.getElementsByTagName("tr");
-  for (i = 0; i < tr.length; i++) {
-    a = tr[i].getElementsByTagName("td")[1];
-    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
-      tr[i].style.display = "";
-    } else {
-      tr[i].style.display = "none";
-    }
-  }
-
-  archive = document.getElementById("archivedContracts")
-  archiveTr = archive.getElementsByTagName("tr");
-  for (i = 0; i < archiveTr.length; i++) {
-    a = archiveTr[i].getElementsByTagName("td")[1];
-    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
-      archiveTr[i].style.display = "";
-    } else {
-      archiveTr[i].style.display = "none";
-    }
-  }
-
-}
-
-
-</script>
+<script type="text/javascript" src="{{ url_for('static', filename = 'contract_script.js' )}}"></script>
 {% endblock %}
 
