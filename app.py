@@ -430,6 +430,7 @@ def attendence_overview(select_month):
                                user_month_values=months_values,
                                month_name=months_name[select_month-1],
                                found_strings=found_strings)
+
 @app.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
     pass
