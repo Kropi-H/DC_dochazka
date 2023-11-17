@@ -6,3 +6,5 @@ static/contracts.csv
 static/contract_id.csv
 static/archived_contracts.csv
 static/glue_type.csv
+static/statistics.json
+.idea/

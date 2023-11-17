@@ -72,9 +72,6 @@ max-height:65vh;
 margin-left:0px;
 }
 
-.panel .table tbody td {
-padding: 1px 8px;
-}
 
 .table-striped tbody tr:nth-of-type(2n+1) {
   background-color: #f0f0f0;
@@ -97,6 +94,51 @@ padding:0;
   list-style: none;
 }
 
+.table td {
+vertical-align:middle;
+}
+
+.prac_doba {
+}
+
+.vikend_svatek {
+background-color:black;
+color:white;
+}
+
+.dovolena {
+background-color:green;
+color:white;
+}
+
+.plac_volno {
+background-color:purple;
+color:white;
+}
+
+.neplac_volno {
+background-color:red;
+color:white;
+}
+
+
+.prac_neschopnost {
+background-color:orange;
+}
+
+.doprovod_lekar {
+background-color:lightblue;
+}
+
+.pohreb {
+background-color:yellow;
+}
+
+.vybrane_prescasy {
+background-color:grey;
+color:white;
+}
+
 #archiv{
     margin-top: 10px;
     }
@@ -109,4 +151,12 @@ padding:0;
 #archiv h5 {
 padding-top: 5px;
 border-top: 1px solid #ddd;
+}
+
+.statistic_row {
+margin-top:10px;
+}
+div.ex {
+position:absolute;
+height:10px;
 }

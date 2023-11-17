@@ -1,3 +1,4 @@
+import json
 import os
 import tables
 from flask import Flask, session, request, render_template, redirect, url_for, send_from_directory
@@ -179,7 +180,7 @@ def index():
 
             user_row = user.row
             row_data = workers_sheet.row_values(user_row)
-            #print(row_data, file=sys.stdout)
+
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
@@ -234,7 +235,7 @@ def change_password():
         oldPassword = request.form['oldPassword'].strip()
         newPassword = request.form['newPassword'].strip()
         checkPassword = request.form['checkPassword'].strip()
-        print(type(worker_id))
+
         for value in worker_values:
             if (value[1] == hashlib.md5(newPassword.encode()).hexdigest()) and (int(worker_id) == int(value[7])) and (newPassword == checkPassword):
                 worker_name = value[4]
@@ -363,6 +364,43 @@ def attendence_individual():
         cell_range = f'B{date_row}:H{date_row}' # Cell range as string
         attendece_sheet.update(cell_range, [[str(starttime),str(endtime),str(time_result),str(over_work_time),selectfield,numberfield,textfield]], value_input_option='USER_ENTERED' )
 
+        employee_sheet = attendence_tab.worksheet(user['user']).get_all_values()
+
+        def create_dict(data):
+            months_dict = {}
+            for row in employee_sheet[1:-5]:
+                row_filtered = [value if value != '' else None for value in row]
+                date = row_filtered[0]
+                day_data = dict(zip(employee_sheet[0], row_filtered[0:]))
+
+                # Rozdělení datumu na den, měsíc a rok
+                day, month, year = map(int, date.split('.'))
+                month_key = f"{year}-{month:02d}"
+
+                # Přidání klíče "Den" s číslem dne
+                day_data["Den"] = day
+
+                # Přidání do slovníku pod klíčem měsíce
+                if month_key not in months_dict:
+                    months_dict[month_key] = {}
+                months_dict[month_key][day] = day_data
+            return months_dict
+
+        # Načtení existujících dat ze souboru, pokud soubor existuje
+        try:
+            with open("static/statistics.json", "r", encoding='utf-8') as infile:
+                existing_data = json.load(infile)
+        except FileNotFoundError:
+            existing_data = {}
+
+        # Vytvoření slovníků
+        months_dict = {user['user']: create_dict(employee_sheet)}
+
+        # Aktualizace existujících dat
+        existing_data.update(months_dict)
+
+        with open(f"static/statistics.json", "w", encoding='utf-8') as outfile:
+            json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
 
         return redirect(url_for('attendence_overview',select_month=datetime.now().month))
 
@@ -399,8 +437,6 @@ def attendence_overview(select_month):
         row_value = attendece_sheet.row_values(current_date.row)
         current_table_range = f'A{date_row}:H{(date_row+currentMonthRange)-1}'
         months_values = attendece_sheet.batch_get((current_table_range,))
-        #return '{}'.format(currentMonth)
-        #print(months_values, file=sys.stdout)
 
         def find_strings_in_nested_list(nested_list, target_strings):
             result = set()  # Použijeme množinu pro unikátní výsledky
@@ -904,7 +940,6 @@ def update_contract_order():
 @app.route('/get_number', methods=['POST'])
 def get_number():
     number = request.form['number']
-    print(number)
 
 @app.route('/print_pdf/<int:contract_index>', methods=['POST', 'GET'])
 def print_pdf(contract_index):
@@ -942,6 +977,54 @@ def update_row(contract_index, name, note, cut, glue, new_date):
 def setGlue(glue):
     set_glue(glue)
     return redirect('/contracts')
+
+@app.route('/statistics/<selected_month>', methods=['GET','POST'])
+def statistics(selected_month):
+    user = get_current_user()
+
+    if not user:
+       return redirect('/')
+
+    months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
+                  7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
+    months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
+
+    currentYear = datetime.now().year
+    currentMonth = selected_month
+    currentMonthRange = calendar.monthrange(currentYear,int(currentMonth))[1]
+
+    # Načtení existujících dat ze souboru, pokud soubor existuje
+    try:
+        with open("static/statistics.json", "r", encoding='utf-8') as infile:
+            existing_data = json.load(infile)
+    except FileNotFoundError:
+        existing_data = {}
+
+    # Iterace pro získání dat současného měsíce
+    statistic_data = {}
+    def itter_data_function(expression):
+        i = 1
+        data = []
+        while i <= currentMonthRange:
+            data.append(existing_data[name][f'{currentYear}-{selected_month}'][f'{i}'][expression])
+            i= i+1
+        return(data)
+    # Rekurzivní funkce pro odstranění klíčů s hodnotou None
+    def remove_none_values(d):
+        for key, value in list(d.items()):
+            if value is None:
+                del d[key]
+            elif isinstance(value, dict):
+                remove_none_values(value)
+
+    return render_template('statistics.html',
+                           page_title = 'Statistics',
+                           statistic_data= existing_data,
+                           user=user['user'],
+                           role=int(user['role']),
+                           choose_month = f'{currentYear}-{selected_month}',
+                           currentMonth=currentMonthRange,
+                           month_name=months_name[int(selected_month)-1])
 
 if __name__=='__main__':
     app.run(debug=True)
