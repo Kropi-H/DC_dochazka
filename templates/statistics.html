@@ -34,23 +34,23 @@
             </ul>
         </div>
         <div class="panel panel-default" style="overflow-x:auto;">
-            <table class="table table-hover table-bordered">
+            <table class="statistics table table-hover table-bordered">
                 <thead>
-                <tr class="text-center">
+                <tr class="text-center parent">
                     <th>Jméno</th>
 
                     {% for i in range(currentMonth) %}
-                    <th>{{i+1}}</th>
+                    <th class="parent">{{i+1}}</th>
                     {% endfor %}
-                    <th>Celkem hodin</th>
-                    <th>Celkem přesčas</th>
+                    <th>Hodiny</th>
+                    <th>Přesčas</th>
 
                 </tr>
                 </thead>
                 <tbody>
                 {% for key, value in statistic_data.items() %}
                 <tr class="text-center">
-                    <th>{{ key }}</th>
+                    <th class="parent">{{ key }}</th>
                     {% for key2, value2 in value.items() %}
                     {% if key2 == choose_month %}
                     {% for key3, value3 in value2.items() %}
@@ -85,8 +85,8 @@
                             <td class="vikend_svatek">-</td>
                         {% endif %}
                     {% endfor %}
-                    <td style="background-color:orange">{{ value[choose_month]['1']['Hodiny soucet'] }}</td>
-                    <td style="background-color:yellow">{{ value[choose_month]['1']['Přesčas/Součet'] }}</td>
+                    <td style="background-color:#d5d5d5">{{ value[choose_month]['1']['Hodiny soucet'] }}</td>
+                    <td style="background-color:#d8e0de">{{ value[choose_month]['1']['Přesčas/Součet'] }}</td>
                     {% endif %}
                     {% endfor %}
                 </tr>

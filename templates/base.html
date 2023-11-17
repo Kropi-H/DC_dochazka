@@ -48,6 +48,7 @@
                 {% endif %}
                 {% if user and role >= 3 and role < 5 %}
                 <li><a href="{{ url_for('attendence_all') }}">Přehled docházky všech</a></li>
+                <li><a href="{{ url_for('statistics',selected_month=current_month) }}">Evidence docházky</a></li>
                 {% endif %}
                 {% if user and role==3 %}
                 <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>

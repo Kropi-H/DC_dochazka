@@ -982,7 +982,7 @@ def setGlue(glue):
 def statistics(selected_month):
     user = get_current_user()
 
-    if not user:
+    if not user or user['role'] < 3:
        return redirect('/')
 
     months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
@@ -1000,15 +1000,6 @@ def statistics(selected_month):
     except FileNotFoundError:
         existing_data = {}
 
-    # Iterace pro získání dat současného měsíce
-    statistic_data = {}
-    def itter_data_function(expression):
-        i = 1
-        data = []
-        while i <= currentMonthRange:
-            data.append(existing_data[name][f'{currentYear}-{selected_month}'][f'{i}'][expression])
-            i= i+1
-        return(data)
     # Rekurzivní funkce pro odstranění klíčů s hodnotou None
     def remove_none_values(d):
         for key, value in list(d.items()):
