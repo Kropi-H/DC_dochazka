@@ -366,41 +366,6 @@ def attendence_individual():
 
         employee_sheet = attendence_tab.worksheet(user['user']).get_all_values()
 
-        def create_dict(data):
-            months_dict = {}
-            for row in employee_sheet[1:-5]:
-                row_filtered = [value if value != '' else None for value in row]
-                date = row_filtered[0]
-                day_data = dict(zip(employee_sheet[0], row_filtered[0:]))
-
-                # Rozdělení datumu na den, měsíc a rok
-                day, month, year = map(int, date.split('.'))
-                month_key = f"{year}-{month:02d}"
-
-                # Přidání klíče "Den" s číslem dne
-                day_data["Den"] = day
-
-                # Přidání do slovníku pod klíčem měsíce
-                if month_key not in months_dict:
-                    months_dict[month_key] = {}
-                months_dict[month_key][day] = day_data
-            return months_dict
-
-        # Načtení existujících dat ze souboru, pokud soubor existuje
-        try:
-            with open("static/statistics.json", "r", encoding='utf-8') as infile:
-                existing_data = json.load(infile)
-        except FileNotFoundError:
-            existing_data = {}
-
-        # Vytvoření slovníků
-        months_dict = {user['user']: create_dict(employee_sheet)}
-
-        # Aktualizace existujících dat
-        existing_data.update(months_dict)
-
-        with open(f"static/statistics.json", "w", encoding='utf-8') as outfile:
-            json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
 
         return redirect(url_for('attendence_overview',select_month=datetime.now().month))
 
@@ -456,6 +421,45 @@ def attendence_overview(select_month):
         target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'obchod', 'kancl', 'jine', '']
 
         found_strings = find_strings_in_nested_list(months_values, target_strings)
+
+        employee_sheet = attendece_sheet.get_all_values()
+
+        def create_dict(data):
+            months_dict = {}
+            for row in employee_sheet[1:-5]:
+                row_filtered = [value if value != '' else None for value in row]
+                date = row_filtered[0]
+                day_data = dict(zip(employee_sheet[0], row_filtered[0:]))
+
+                # Rozdělení datumu na den, měsíc a rok
+                day, month, year = map(int, date.split('.'))
+                month_key = f"{year}-{month:02d}"
+
+                # Přidání klíče "Den" s číslem dne
+                day_data["Den"] = day
+
+                # Přidání do slovníku pod klíčem měsíce
+                if month_key not in months_dict:
+                    months_dict[month_key] = {}
+                months_dict[month_key][day] = day_data
+            return months_dict
+
+        # Načtení existujících dat ze souboru, pokud soubor existuje
+        try:
+            with open("static/statistics.json", "r", encoding='utf-8') as infile:
+                existing_data = json.load(infile)
+        except FileNotFoundError:
+            existing_data = {}
+
+        # Vytvoření slovníků
+        months_dict = {user['user']: create_dict(employee_sheet)}
+
+        # Aktualizace existujících dat
+        existing_data.update(months_dict)
+
+        with open(f"static/statistics.json", "w", encoding='utf-8') as outfile:
+            json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
+
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
