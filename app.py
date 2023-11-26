@@ -570,7 +570,7 @@ def attendence_all():
 
                     if start_date <= date_str <= end_date:
                         if day_data['Činnost'] == activity:
-                            if day_data[activity_count] == None:
+                            if day_data[activity_count] == '':
                                 pass
                             elif activity_count in day_data:
                                 user_count += int(day_data[activity_count])
