@@ -510,184 +510,101 @@ def attendence_all():
     if not user or user['role'] < 2:
        return redirect('/')
 
+    try:
+        with open("static/statistics.json", "r", encoding='utf-8') as infile:
+            existing_data = json.load(infile)
+    except FileNotFoundError:
+        existing_data = {}
+
+        # Rekurzivní funkce pro odstranění klíčů s hodnotou None
+
+    def remove_none_values(d):
+        for key, value in list(d.items()):
+            if value is None:
+                del d[key]
+            elif isinstance(value, dict):
+                remove_none_values(value)
+
+    remove_none_values(existing_data)
+
     form = AttendenceAllForm()
 
-    attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-    workers_list = []
-    for name in attendence_tab:
-        if name.title == 'mustr':
-            pass
-        else:
-            workers_list.append(name.title)
+    def date_range_text(startdate, enddate):
+        return f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}'
 
-    def find_strings_in_nested_list(nested_list, target_strings):
-            result = set()  # Použijeme množinu pro unikátní výsledky
+    #yesterday_date = datetime.now().strftime("%Y-%m-%d") - timedelta(days=1)
+    yesterday_date = str((datetime.now().date() - timedelta(days=1)))
 
-            def recursive_search(nested_list):
-                for item in nested_list:
-                    if isinstance(item, list):
-                        recursive_search(item)
-                    else:
-                        for target_string in target_strings:
-                            if target_string in item:
-                                result.add(item)  # Přidáme do množiny místo seznamu
+    worker_list = []
+    for worker, value in existing_data.items():
+        worker_list.append(worker)
 
-            recursive_search(nested_list)
-            return result  # Množina automaticky odstraní duplicity
+    def konvertovat_na_cisla(slovnik):
+        for klic, hodnota in slovnik.items():
+            if isinstance(hodnota, dict):
+                # Pokud je hodnota slovníku, zavoláme funkci rekurzivně pro tuto hodnotu.
+                konvertovat_na_cisla(hodnota)
+            elif isinstance(hodnota, list):
+                # Pokud je hodnota seznam, zavoláme funkci rekurzivně pro každý prvek seznamu.
+                for i, prvek in enumerate(hodnota):
+                    if isinstance(prvek, dict):
+                        konvertovat_na_cisla(prvek)
+            elif isinstance(hodnota, str):
+                try:
+                    # Pokusíme se převést řetězec na číslo.
+                    cislo = int(hodnota)
+                    slovnik[klic] = cislo
+                except ValueError:
+                    # Pokud selže převod, ponecháme hodnotu nezměněnou.
+                    pass
 
-    target_strings = ['pila', 'olepka', 'zavoz', 'sklad', 'kancl', 'jine']
+    konvertovat_na_cisla(existing_data)
 
     if request.method == 'POST' and form.validate_on_submit():
-        result = request.form.getlist('worker')
-        startdate = form.startdate.data
-        enddate =  form.enddate.data
+        result_name = request.form.getlist('worker')
+        start_day = str(form.startdate.data)
+        end_day = str(form.enddate.data)
 
-        time_difference = enddate-startdate
-        count_days = time_difference.days
-        result = [int(i) for i in result]
+        new_data = {}
 
-        date_range = [startdate + timedelta(days=i) for i in range((enddate - startdate).days+1)]
-        date_string_range=[]
-        for i in date_range:
-            date_string_range.append(i.strftime('%d.%m.%Y'))
+        # Iterace přes slovník
+        for jmeno, data in existing_data.items():
+            # Kontrola, zda je jméno mezi hledanými
+            if jmeno in result_name:
+                # Inicializace slovníku pro dané jméno
+                new_data[jmeno] = {}
+                # Iterace přes data pro dané jméno
+                for datum, hodnoty in data.items():
+                    # Kontrola rozsahu datumů
+                    if start_day[:-3] <= datum <= end_day[:-3]:
+                        # Uložení hodnot do nového slovníku
+                        new_data[jmeno][datum] = hodnoty
 
-        workers_result_selection = []
-
-        for worker in range(len(result)):
-            employee_sheet = attendence_tab.worksheet(workers_list[result[worker]]).get_all_values()
-
-            for day in employee_sheet:
-                for d in date_string_range:
-                    if d in day:
-                        day.insert(0,workers_list[result[worker]])
-                        workers_result_selection.append(day)
-        workers_result_selection.sort(key=lambda x: x[1])
-
-        def shorten_time(time_str):
-            parts = time_str.split(":")
-            if len(parts) > 2:
-                parts.pop()
-            d = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
-            return(d)
-
-        pila = 0
-        olepka = 0
-        work_time = timedelta()
-        ower_time = timedelta()
-        for data in workers_result_selection:
-            if data[4]:
-                work_time += shorten_time(data[4])
-
-            if data[5]:
-                ower_time += shorten_time(data[5])
-
-            if data[6] == 'pila':
-                value = data[7]
-                if value == "":
-                    value = 0
-                else:
-                    value = int(data[7])
-                pila += value
-            elif data[6] == 'olepka':
-                value = data[7]
-                if value == "":
-                    value = 0
-                else:
-                    value = int(data[7])
-                olepka += value
-
-        def timedelta_to_string(convert_time):
-            hours = convert_time.days * 24 + convert_time.seconds // 3600
-            minutes = (convert_time.seconds % 3600) // 60
-            return(f"{hours:02d}:{minutes:02d}")
-
-
-        found_strings_selection = find_strings_in_nested_list(workers_result_selection, target_strings)
-
-        date_range_text = f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}'
         return render_template('attendence_all.html',
                                 worker_list=user_records(user),
+                                list_of_workers= worker_list,
                                 user=user['user'],
                                 role=int(user['role']),
                                 page_title='Přehled všech',
                                 form=form,
-                                head_text=f'Přehled { date_range_text }',
-                                workers_list=enumerate(workers_list,0),
-                                found_strings = found_strings_selection,
-                                workers_result=workers_result_selection,
-                                pila = pila,
-                                olepka = olepka,
-                                sum_work_hour = timedelta_to_string(work_time),
-                                sum_ower_work_hour = timedelta_to_string(ower_time))
+                                workers_result=new_data,
+                                start_day=start_day,
+                                end_day=end_day,
+                                head_text=f'Přehled {start_day} {end_day}')
 
 
-    workers_result = []
-    lookup_date = (date.today()-timedelta(days=1)).strftime('%d.%m.%Y')
-
-    for worker in range(len(workers_list)):
-        attendece_sheet = attendence_tab.worksheet(workers_list[worker]).get_all_values()
-        for item in attendece_sheet:
-            if item[0] == lookup_date:
-                item.insert(0,workers_list[worker])
-                workers_result.append(item)
-
-    def shorten_time(time_str):
-            parts = time_str.split(":")
-            if len(parts) > 2:
-                parts.pop()
-            d = timedelta(hours=int(parts[0]), minutes=int(parts[1]))
-            return(d)
-
-    pila = 0
-    olepka = 0
-    work_time = timedelta()
-    ower_time = timedelta()
-    for data in workers_result:
-        if data[4]:
-            work_time += shorten_time(data[4])
-
-        if data[5]:
-            ower_time += shorten_time(data[5])
-
-        if data[6] == 'pila':
-            value = data[7]
-            if value == '':
-                value = 0
-            else:
-                value = int(data[7])
-            pila += value
-        elif data[6] == 'olepka':
-            value = data[7]
-            if value == '':
-                value = 0
-            else:
-                value = int(data[7])
-            olepka += value
-
-    found_strings = find_strings_in_nested_list(workers_result, target_strings)
-
-    def timedelta_to_string(convert_time):
-            hours = convert_time.days * 24 + convert_time.seconds // 3600
-            minutes = (convert_time.seconds % 3600) // 60
-            return(f"{hours:02d}:{minutes:02d}")
-
-    date_range_text = 'včera'
 
     return render_template('attendence_all.html',
-                       user=user['user'],
-                       role=int(user['role']),
-                       page_title='Přehled všech',
-                       worker_list=user_records(user),
-                       date_range=date_range_text,
-                       form=form,
-                       head_text=f'Přehled {date_range_text} všichni',
-                       workers_list=enumerate(workers_list,0),
-                       found_strings = found_strings,
-                       pila = pila,
-                       olepka = olepka,
-                       workers_result=workers_result,
-                       sum_work_hour = timedelta_to_string(work_time),
-                       sum_ower_work_hour = timedelta_to_string(ower_time))
+                            worker_list=user_records(user),
+                            list_of_workers=worker_list,
+                            user=user['user'],
+                            role=int(user['role']),
+                            page_title='Přehled všech',
+                            workers_result=existing_data,
+                            start_day= yesterday_date,
+                            end_day= yesterday_date,
+                            form=form,
+                            head_text=f'Přehled všichni včera')
 
 @app.route('/logout')
 def logout():

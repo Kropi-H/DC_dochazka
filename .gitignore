@@ -7,5 +7,5 @@ static/contract_id.csv
 static/archived_contracts.csv
 static/glue_type.csv
 static/statistics.json
-.idea/
 __pycache__/
+.idea/
