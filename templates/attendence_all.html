@@ -39,8 +39,8 @@
                     {{form.enddate(class='form-control', id='enddate')}} {{form.hidden_tag()}}
                 </div>
                 <div class="col-md-12">
-                {% for num, name in workers_list %}
-                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ num }} name="worker"></span>
+                {% for name in list_of_workers %}
+                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
                 {% endfor %}
                 </div>
 
@@ -66,33 +66,39 @@
             </tr>
             </thead>
             <tbody>
-            {% for user in workers_result %}
+            {% for worker, worker_data in workers_result.items() %}
+            {% for month, month_data in worker_data.items() %}
+            {% for day, day_data in month_data.items() %}
+            {% if start_day <= month +'-'+ day <= end_day %}
             <tr class="worker_row">
-                <td>{{ user[0] }}</td>
-                <td>{{ user[1] }}</td>
-                <td>{{ user[2] }}</td>
-                <td>{{ user[3] }}</td>
-                <td>{{ user[4] }}</td>
-                <td>{{ user[5] }}</td>
-                {% if user[6] == 'olepka' %}
-                <td>{{ user[7] }}</td>
+                <td>{{ worker }}</td>
+                <td>{{ day+'.'+month[5:] }}.</td>
+                <td>{{ day_data['Příchod'] }}</td>
+                <td>{{ day_data['Odchod'] }}</td>
+                <td>{{ day_data['Hodiny/Den'] }}</td>
+                <td>{{ day_data['Přesčasy'] }}</td>
+                {% if day_data['Činnost'] == 'olepka' %}
+                <td>{{ day_data['Počet činnosti'] }}</td>
                 {% else %}
                 <td>-</td>
                 {% endif %}
-                {% if user[6] == 'pila' %}
-                <td>{{ user[7] }}</td>
+                {% if day_data['Činnost'] == 'pila' %}
+                <td>{{ day_data['Počet činnosti'] }}</td>
                 {% else %}
                 <td>-</td>
                 {% endif %}
-                <td>{{ user[8] }}</td>
+                <td>{{ day_data['Poznámky'] }}</td>
             </tr>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
             {% endfor %}
             <tr class="table-dark text-center">
                 <td colspan="4">{{ head_text }}</td>
-                <td>{{sum_work_hour}} hodin</td>
-                <td>{{sum_ower_work_hour}} hodin přesčasu</td>
-                <td>{{olepka}}m olepeno</td>
-                <td>{{pila}} desek nařezáno</td>
+                <td>Hodiny:</td>
+                <td>Přesčasy</td>
+                <td>Olepeno</td>
+                <td>Desek nařezáno</td>
                 <td>-</td>
             </tr>
             </tbody>
