@@ -521,7 +521,7 @@ def attendence_all():
     def remove_none_values(d):
         for key, value in list(d.items()):
             if value is None:
-                del d[key]
+                d[key] = ""
             elif isinstance(value, dict):
                 remove_none_values(value)
 
@@ -558,7 +558,26 @@ def attendence_all():
                     # Pokud selže převod, ponecháme hodnotu nezměněnou.
                     pass
 
-    konvertovat_na_cisla(existing_data)
+    def sum_of_activitiy_count(my_dict, start_date, end_date, activity_count, activity):
+        total_count = 0  # Celkový součet počtu činností pro všechny uživatele
+
+        for user, user_data in my_dict.items():
+            user_count = 0  # Součet počtu činností pro konkrétního uživatele
+
+            for month, month_data in user_data.items():
+                for day, day_data in month_data.items():
+                    date_str = f'{month}-{day}'
+
+                    if start_date <= date_str <= end_date:
+                        if day_data['Činnost'] == activity:
+                            if day_data[activity_count] == None:
+                                pass
+                            elif activity_count in day_data:
+                                user_count += int(day_data[activity_count])
+
+            total_count += user_count
+        return total_count
+
 
     if request.method == 'POST' and form.validate_on_submit():
         result_name = request.form.getlist('worker')
@@ -580,7 +599,10 @@ def attendence_all():
                         # Uložení hodnot do nového slovníku
                         new_data[jmeno][datum] = hodnoty
 
+
         return render_template('attendence_all.html',
+                                glue_activity_sum= sum_of_activitiy_count(new_data, start_day, end_day,'Počet činnosti', 'olepka'),
+                                cut_activity_sum = sum_of_activitiy_count(new_data, start_day, end_day,'Počet činnosti', 'pila'),
                                 worker_list=user_records(user),
                                 list_of_workers= worker_list,
                                 user=user['user'],
@@ -592,9 +614,9 @@ def attendence_all():
                                 end_day=end_day,
                                 head_text=f'Přehled {start_day} {end_day}')
 
-
-
     return render_template('attendence_all.html',
+                            glue_activity_sum = sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'olepka'),
+                            cut_activity_sum= sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'pila'),
                             worker_list=user_records(user),
                             list_of_workers=worker_list,
                             user=user['user'],
