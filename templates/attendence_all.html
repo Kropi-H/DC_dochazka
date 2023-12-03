@@ -69,15 +69,15 @@
             {% for worker, worker_data in workers_result.items() %}
             {% for month, month_data in worker_data.items() %}
             {% for day, day_data in month_data.items() %}
-            {% if start_day <= month +'-'+ day <= end_day %}
+
             <tr class="worker_row">
                 <td>{{ worker }}</td>
-                <td>{{ day+'.'+month[5:] }}.</td>
+                <td>{{ month }}</td>
                 <td>{{ day_data['Příchod'] }}</td>
                 <td>{{ day_data['Odchod'] }}</td>
                 <td>{{ day_data['Hodiny/Den'] }}</td>
                 <td>{{ day_data['Přesčasy'] }}</td>
-                {% if day_data['Činnost'] == 'olepka' %}
+                {% if  day_data['Činnost'] == 'olepka' %}
                 <td>{{ day_data['Počet činnosti'] }}</td>
                 {% else %}
                 <td>-</td>
@@ -89,7 +89,6 @@
                 {% endif %}
                 <td>{{ day_data['Poznámky'] }}</td>
             </tr>
-            {% endif %}
             {% endfor %}
             {% endfor %}
             {% endfor %}

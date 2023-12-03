@@ -38,57 +38,46 @@
                 <thead>
                 <tr class="text-center parent">
                     <th>Jméno</th>
-
                     {% for i in range(currentMonth) %}
                     <th class="parent">{{i+1}}</th>
                     {% endfor %}
                     <th>Hodiny</th>
                     <th>Přesčas</th>
-
                 </tr>
                 </thead>
                 <tbody>
-                {% for key, value in statistic_data.items() %}
+                {% for worker, worker_value in statistic_data.items() %}
                 <tr class="text-center">
-                    <th class="parent">{{ key }}</th>
-                    {% for key2, value2 in value.items() %}
-                    {% if key2 == choose_month %}
-                    {% for key3, value3 in value2.items() %}
-                        {% if value3['Hodiny/Den'] != None %}
-                            <td class="prac_doba">{{ value3['Hodiny/Den'] }}</td>
+                    <th class="parent">{{ worker }}</th>
+                    {% for month, month_value in worker_value.items() %}
+                    {% if month.split('-')[0]+'-'+month.split('-')[1] == choose_month %}
+                    {% for day, day_value in month_value.items() %}
 
-                        {% elif value3['Neplacené volno'] != None %}
-                            <td class="neplac_volno">{{ value3['Neplacené volno'] }}</td>
-
-                        {% elif value3['Nemoc/Lékař'] != None %}
-                            <td class="prac_neschopnost">{{ value3['Nemoc/Lékař'] }}</td>
-
-                        {% elif value3['Vybraná dovolená'] != None %}
-                            <td class="dovolena">{{ value3['Vybraná dovolená'] }}</td>
-
-                        {% elif value3['Vybrané přesčasy'] != None %}
-                            <td class="vybrane_prescasy">{{ value3['Vybrané přesčasy'] }}</td>
-
-
-                        {% elif value3['Placené volno/Krev'] != None %}
-                            <td class="plac_volno">{{ value3['Placené volno/Krev'] }}</td>
-
-                        {% elif value3['Doprovod k lékaři'] != None %}
-                            <td class="doprovod_lekar">{{ value3['Doprovod k lékaři'] }}</td>
-
-                        {% elif value3['Překážka na straně zaměstnavatele'] != None %}
-                            <td class="vikend_svatek">{{ value3['Překážka na straně zaměstnavatele'] }}</td>
-
-
-
-                        {% else %}
+                    {% if day_value['Hodiny/Den'] != None %}
+                            <td class="prac_doba">{{ day_value['Hodiny/Den'] }}</td>
+                    {% elif day_value['Neplacené volno'] != None %}
+                            <td class="neplac_volno">{{ day_value['Neplacené volno'] }}</td>
+                    {% elif day_value['Nemoc/Lékař'] != None %}
+                            <td class="prac_neschopnost">{{ day_value['Nemoc/Lékař'] }}</td>
+                    {% elif day_value['Vybraná dovolená'] != None %}
+                            <td class="dovolena">{{ day_value['Vybraná dovolená'] }}</td>
+                    {% elif day_value['Vybrané přesčasy'] != None %}
+                            <td class="vybrane_prescasy">{{ day_value['Vybrané přesčasy'] }}</td>
+                    {% elif day_value['Placené volno/Krev'] != None %}
+                            <td class="plac_volno">{{ day_value['Placené volno/Krev'] }}</td>
+                    {% elif day_value['Doprovod k lékaři'] != None %}
+                            <td class="doprovod_lekar">{{ day_value['Doprovod k lékaři'] }}</td>
+                    {% elif day_value['Překážka na straně zaměstnavatele'] != None %}
+                            <td class="vikend_svatek">{{ day_value['Překážka na straně zaměstnavatele'] }}</td>
+                    {% else %}
                             <td class="vikend_svatek">-</td>
-                        {% endif %}
-                    {% endfor %}
-                    <td style="background-color:#d5d5d5">{{ value[choose_month]['1']['Hodiny soucet'] }}</td>
-                    <td style="background-color:#d8e0de">{{ value[choose_month]['1']['Přesčas/Součet'] }}</td>
+
                     {% endif %}
                     {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    <td style="background-color:#d5d5d5">{{ worker_value[choose_month+'-01']['01']['Hodiny soucet'] }}</td>
+                    <td style="background-color:#d8e0de">{{ worker_value[choose_month+'-01']['01']['Přesčas/Součet'] }}</td>
                 </tr>
                 {% endfor %}
                 </tbody>

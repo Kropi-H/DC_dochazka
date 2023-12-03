@@ -433,15 +433,15 @@ def attendence_overview(select_month):
 
                 # Rozdělení datumu na den, měsíc a rok
                 day, month, year = map(int, date.split('.'))
-                month_key = f"{year}-{month:02d}"
+                month_key = f"{year}-{month:02d}-{day:02d}"
 
                 # Přidání klíče "Den" s číslem dne
-                day_data["Den"] = day
+                day_data['Den'] = f'{day:02d}'
 
                 # Přidání do slovníku pod klíčem měsíce
                 if month_key not in months_dict:
                     months_dict[month_key] = {}
-                months_dict[month_key][day] = day_data
+                months_dict[month_key][f'{day:02d}'] = day_data
             return months_dict
 
         # Načtení existujících dat ze souboru, pokud soubor existuje
@@ -579,39 +579,39 @@ def attendence_all():
         return total_count
 
 
+    def get_values_in_date_range(data_dict,name_arr, start_day, end_day):
+        new_data = {}
+        # Iterace přes slovník
+        for jmeno, name_data in data_dict.items():
+            # Kontrola, zda je jméno mezi hledanými
+            if jmeno in name_arr:
+                # Inicializace slovníku pro dané jméno
+                new_data[jmeno] = {}
+                # Iterace přes data pro dané jméno
+                for month, month_value in name_data.items():
+                    # Kontrola rozsahu datumů
+                    if start_day <= month <= end_day:
+                        new_data[jmeno][month] = month_value
+        return new_data
+
+
     if request.method == 'POST' and form.validate_on_submit():
         result_name = request.form.getlist('worker')
         start_day = str(form.startdate.data)
         end_day = str(form.enddate.data)
 
-        new_data = {}
-
-        # Iterace přes slovník
-        for jmeno, data in existing_data.items():
-            # Kontrola, zda je jméno mezi hledanými
-            if jmeno in result_name:
-                # Inicializace slovníku pro dané jméno
-                new_data[jmeno] = {}
-                # Iterace přes data pro dané jméno
-                for datum, hodnoty in data.items():
-                    # Kontrola rozsahu datumů
-                    if start_day[:-3] <= datum <= end_day[:-3]:
-                        # Uložení hodnot do nového slovníku
-                        new_data[jmeno][datum] = hodnoty
-
-
         return render_template('attendence_all.html',
-                                glue_activity_sum= sum_of_activitiy_count(new_data, start_day, end_day,'Počet činnosti', 'olepka'),
-                                cut_activity_sum = sum_of_activitiy_count(new_data, start_day, end_day,'Počet činnosti', 'pila'),
+                                glue_activity_sum= sum_of_activitiy_count(get_values_in_date_range(existing_data,result_name,start_day, end_day), start_day, end_day,'Počet činnosti', 'olepka'),
+                                cut_activity_sum = sum_of_activitiy_count(get_values_in_date_range(existing_data,result_name,start_day, end_day), start_day, end_day,'Počet činnosti', 'pila'),
                                 worker_list=user_records(user),
                                 list_of_workers= worker_list,
                                 user=user['user'],
                                 role=int(user['role']),
                                 page_title='Přehled všech',
                                 form=form,
-                                workers_result=new_data,
-                                start_day=start_day,
-                                end_day=end_day,
+                                workers_result= get_values_in_date_range(existing_data, result_name, start_day, end_day),
+                                start_day= start_day,
+                                end_day= end_day,
                                 head_text=f'Přehled {start_day} {end_day}')
 
     return render_template('attendence_all.html',
@@ -622,7 +622,7 @@ def attendence_all():
                             user=user['user'],
                             role=int(user['role']),
                             page_title='Přehled všech',
-                            workers_result=existing_data,
+                            workers_result= get_values_in_date_range(existing_data, worker_list, yesterday_date, yesterday_date),
                             start_day= yesterday_date,
                             end_day= yesterday_date,
                             form=form,
