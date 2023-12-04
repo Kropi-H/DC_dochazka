@@ -566,7 +566,7 @@ def attendence_all():
 
             for month, month_data in user_data.items():
                 for day, day_data in month_data.items():
-                    date_str = f'{month}-{day}'
+                    date_str = f'{month}'
 
                     if start_date <= date_str <= end_date:
                         if day_data['Činnost'] == activity:
