@@ -342,7 +342,7 @@ def attendence_individual():
         timedelta2 = timedelta(hours=end_time.hour, minutes=end_time.minute)
         delta_time = timedelta2-timedelta1
 
-        if delta_time > work_hour_limit:
+        if delta_time >= work_hour_limit:
             time_result = delta_time-break_time
         else:
             time_result = delta_time
