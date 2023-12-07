@@ -594,6 +594,39 @@ def attendence_all():
                         new_data[jmeno][month] = month_value
         return new_data
 
+    def worker_sum_total_awg_data(existing_data):
+        worker_data = {}
+        for worker, worker_item in existing_data.items():
+            worker_data[worker] = {}
+            worker_olepka_count = 0
+            worker_olepka_sum = 0
+            worker_pila_count = 0
+            worker_pila_sum = 0
+            for month, month_item in worker_item.items():
+                for day, day_item in month_item.items():
+
+                    if day_item['Činnost'] == 'olepka':
+                        worker_olepka_count += 1
+                        if day_item['Počet činnosti'] != "":
+                            worker_olepka_sum += int(day_item['Počet činnosti'])
+
+                    if day_item['Činnost'] == 'pila':
+                        worker_pila_count += 1
+                        if day_item['Počet činnosti'] != "":
+                            worker_pila_sum += int(day_item['Počet činnosti'])
+
+                if worker_olepka_count != 0:
+                    worker_data[worker]['olepka']= worker_olepka_count
+                    worker_data[worker]['total olepeno']= worker_olepka_sum
+                    if worker_olepka_sum != 0:
+                        worker_data[worker]['awg olepka']=round(worker_olepka_sum/worker_olepka_count)
+
+                if worker_pila_count != 0:
+                    worker_data[worker]['pila']= worker_pila_count
+                    worker_data[worker]['total narezano']= worker_pila_sum
+                    if worker_pila_sum != 0:
+                        worker_data[worker]['awg pila']=round(worker_pila_sum/worker_pila_count)
+        return worker_data
 
     if request.method == 'POST' and form.validate_on_submit():
         result_name = request.form.getlist('worker')
@@ -612,6 +645,7 @@ def attendence_all():
                                 workers_result= get_values_in_date_range(existing_data, result_name, start_day, end_day),
                                 start_day= start_day,
                                 end_day= end_day,
+                                worker_statistics = worker_sum_total_awg_data(existing_data),
                                 head_text=f'Přehled {start_day} {end_day}')
 
     return render_template('attendence_all.html',
@@ -625,6 +659,7 @@ def attendence_all():
                             workers_result= get_values_in_date_range(existing_data, worker_list, yesterday_date, yesterday_date),
                             start_day= yesterday_date,
                             end_day= yesterday_date,
+                            worker_statistics = worker_sum_total_awg_data(existing_data),
                             form=form,
                             head_text=f'Přehled všichni včera')
 
