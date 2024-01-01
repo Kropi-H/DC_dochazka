@@ -7,5 +7,6 @@ static/contract_id.csv
 static/archived_contracts.csv
 static/glue_type.csv
 static/statistics.json
+static/statistics_zaloha_2023.json
 __pycache__/
 .idea/

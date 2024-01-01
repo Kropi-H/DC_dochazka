@@ -108,7 +108,7 @@ def user_records(user):
 @app.context_processor
 def inject_globals():
     return dict({
-        'current_month': datetime.now().month
+        'current_month': f'{datetime.today().month:02d}'
     })
 
 class AttendanceForm(FlaskForm):
@@ -386,8 +386,8 @@ def attendence_overview(select_month):
 
     if request.method == 'GET':
 
-        months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
-                  7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
+        months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
+                  7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
         months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
         currentYear = datetime.now().year
 
@@ -398,6 +398,7 @@ def attendence_overview(select_month):
         attendece_sheet = attendence_tab.worksheet(user['user']) # Chose current user sheet
 
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
+
         date_row = current_date.row # Current day row
         row_value = attendece_sheet.row_values(current_date.row)
         current_table_range = f'A{date_row}:H{(date_row+currentMonthRange)-1}'
@@ -963,8 +964,8 @@ def statistics(selected_month):
     if not user or user['role'] < 3:
        return redirect('/')
 
-    months = {1: '01.01.2023', 2: '01.02.2023', 3: '01.03.2023', 4: '01.04.2023', 5: '01.05.2023', 6: '01.06.2023',
-                  7: '01.07.2023', 8: '01.08.2023', 9: '01.09.2023', 10: '01.10.2023', 11: '01.11.2023', 12: '01.12.2023'}
+    months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
+                  7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
     months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
 
     currentYear = datetime.now().year
