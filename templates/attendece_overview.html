@@ -32,6 +32,19 @@
     <li><a href="{{ url_for('attendence_overview', select_month=12) }}">Prosinec</a></li>
   </ul>
 </div>
+        {% if rep_glue_count > 0 %}
+        <span class="badge">
+        Průměr je: {{rep_glue_count}} metrů
+        </span>
+        {% endif %}
+
+        {% if rep_cut_count > 0 %}
+        <span class="badge">
+        Průměr je: {{rep_cut_count}} desek
+        </span>
+        {% endif %}
+
+
         <div class="panel panel-default" style="overflow-x:auto;">
             <table class="table table-bordered">
                 <thead>
@@ -86,6 +99,7 @@
             </table>
         </div>
     </div>
+
     {% if user %}
 <div>
     <p class="mynav">Naposledy přihlášen:</p>

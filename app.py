@@ -461,6 +461,17 @@ def attendence_overview(select_month):
         with open(f"static/statistics.json", "w", encoding='utf-8') as outfile:
             json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
 
+        def sum_of_repetition(name):
+            for i in months_values:
+                count = []
+                for t in i:
+                    if len(t) > 1:
+                        if t[5] == name:
+                            count.append(int(t[6]))
+            if not count:
+                return(0)
+            else:
+                return(round(sum(count)/len(count)))
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
@@ -470,7 +481,9 @@ def attendence_overview(select_month):
                                user_value=row_value,
                                user_month_values=months_values,
                                month_name=months_name[select_month-1],
-                               found_strings=found_strings)
+                               found_strings=found_strings,
+                               rep_glue_count=sum_of_repetition('olepka'),
+                               rep_cut_count=sum_of_repetition('pila'))
 
 @app.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
