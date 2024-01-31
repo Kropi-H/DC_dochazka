@@ -466,8 +466,9 @@ def attendence_overview(select_month):
                 count = []
                 for t in i:
                     if len(t) > 1:
-                        if t[5] == name:
+                        if name in t:
                             count.append(int(t[6]))
+
             if not count:
                 return(0)
             else:
