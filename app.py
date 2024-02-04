@@ -8,12 +8,13 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
+from wtforms import DecimalField, TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
 from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
 import calendar
 import csv
+import math
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -154,7 +155,7 @@ class AttendanceForm(FlaskForm):
                         validators=[DataRequired()])
     selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[DataRequired()])
-    numberfield = IntegerField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+    numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
                                validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
     submit = SubmitField(label='Uložit')
@@ -326,7 +327,7 @@ def attendence_individual():
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
         selectfield = form.selectfield.data
-        numberfield = form.numberfield.data
+        numberfield = str(form.numberfield.data).replace('.',',')
         textfield = form.textfield.data
 
         hodiny_start, minuty_start = map(int, starttime.split(':'))
@@ -467,12 +468,12 @@ def attendence_overview(select_month):
                 for t in i:
                     if len(t) > 1:
                         if name in t:
-                            count.append(int(t[6]))
+                            count.append(float(t[6].replace(',','.')))
 
             if not count:
                 return(0)
             else:
-                return(round(sum(count)/len(count)))
+                return(math.ceil(sum(count)/len(count)))
 
         return render_template('attendece_overview.html',
                                page_title = 'Přehled',
