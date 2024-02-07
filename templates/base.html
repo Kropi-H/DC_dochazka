@@ -40,17 +40,18 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 {% if user and role < 4 %}
-                <li class=""><a href="{{ url_for('attendence_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a>
+                <li class=""><a href="{{ url_for('attendance_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a>
                 </li>
-                <li class=""><a href="{{ url_for('attendence_overview', select_month=current_month)  }}">Přehled {{ user
+                <li class=""><a href="{{ url_for('attendance_overview', select_month=current_month)  }}">Přehled {{ user
                     }}<span class="sr-only">
                 </span></a></li>
                 {% endif %}
                 {% if user and role >= 3 and role < 5 %}
-                <li><a href="{{ url_for('attendence_all') }}">Přehled docházky všech</a></li>
+                <li><a href="{{ url_for('attendance_all') }}">Přehled docházky všech</a></li>
                 <li><a href="{{ url_for('statistics',selected_month=current_month) }}">Evidence docházky</a></li>
                 {% endif %}
                 {% if user and role==3 %}
+                <li><a href="{{ url_for('set_attendance') }}">Doplnění docházky</a></li>
                 <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>
                 <li><a href="{{ url_for('change_password') }}">Změna hesla</a></li>
                 {% endif %}

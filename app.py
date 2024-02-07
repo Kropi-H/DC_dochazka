@@ -15,6 +15,7 @@ import hashlib
 import calendar
 import csv
 import math
+import re
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -112,54 +113,6 @@ def inject_globals():
         'current_month': f'{datetime.today().month:02d}'
     })
 
-class AttendanceForm(FlaskForm):
-    def validate_end_date(self, field):
-
-        if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
-            raise ValidationError("Max 2 dny zpět")
-
-    def start_time():
-        specific_time = datetime.now().replace(hour=15, minute=0, second=0)
-        morning_start_time = datetime.now().replace(hour=6, minute=0, second=0)
-        afternoon_start_time = datetime.now().replace(hour=13, minute=30, second=0)
-        friday_afternoon_start_time = datetime.now().replace(hour=9, minute=30, second=0)
-        if datetime.now() < specific_time:
-            return morning_start_time
-        elif datetime.now().weekday() == 4:
-            return friday_afternoon_start_time
-        else:
-            return afternoon_start_time
-    def end_time():
-        specific_time = datetime.now().replace(hour=16, minute=00, second=0)
-        morning_end_time = datetime.now().replace(hour=14, minute=30, second=0)
-        afternoon_end_time = datetime.now().replace(hour=22, minute=0, second=0)
-        friday_morning_end_time = datetime.now().replace(hour=18, minute=0, second=0)
-        if datetime.now() < specific_time:
-            return morning_end_time
-        elif datetime.now().weekday() == 4:
-            return friday_morning_end_time
-        else:
-            return afternoon_end_time
-
-    startdate = DateField(label='Datum',
-                          default=date.today,
-                          validators=[
-                              DataRequired(),
-                              validate_end_date
-                          ])
-    starttime = TimeField('Začátek',
-                          default=start_time,
-                          validators=[DataRequired()])
-    endtime = TimeField('Konec',
-                        default=end_time,
-                        validators=[DataRequired()])
-    selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
-                              validators=[DataRequired()])
-    numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
-                               validators=[validators.Optional(strip_whitespace=True)])
-    textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
-    submit = SubmitField(label='Uložit')
-
 
 @app.route('/', methods=['GET','POST'])
 def index():
@@ -192,7 +145,7 @@ def index():
                         f = open('static/login.csv', 'a', encoding='utf-8')
                         f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
                         f.close()
-                        return redirect(url_for('attendence_all'))
+                        return redirect(url_for('attendance_all'))
                     except:
                         return False
                     finally:
@@ -202,7 +155,7 @@ def index():
                         f = open('static/login.csv', 'a', encoding='utf-8')
                         f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
                         f.close()
-                        return redirect(url_for('attendence_individual'))
+                        return redirect(url_for('attendance_individual'))
                     except:
                         return False
                     finally:
@@ -304,8 +257,57 @@ def register_new_user():
                                user=user['user'],
                                role=int(user['role']))
 
-@app.route('/attendence_individual', methods=['GET', 'POST'])
-def attendence_individual():
+class AttendanceIndividualForm(FlaskForm):
+      def validate_end_date(self, field):
+
+          if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
+              raise ValidationError("Max 2 dny zpět")
+
+      def start_time():
+          specific_time = datetime.now().replace(hour=15, minute=0, second=0)
+          morning_start_time = datetime.now().replace(hour=6, minute=0, second=0)
+          afternoon_start_time = datetime.now().replace(hour=13, minute=30, second=0)
+          friday_afternoon_start_time = datetime.now().replace(hour=9, minute=30, second=0)
+          if datetime.now() < specific_time:
+              return morning_start_time
+          elif datetime.now().weekday() == 4:
+              return friday_afternoon_start_time
+          else:
+              return afternoon_start_time
+      def end_time():
+          specific_time = datetime.now().replace(hour=16, minute=00, second=0)
+          morning_end_time = datetime.now().replace(hour=14, minute=30, second=0)
+          afternoon_end_time = datetime.now().replace(hour=22, minute=0, second=0)
+          friday_morning_end_time = datetime.now().replace(hour=18, minute=0, second=0)
+          if datetime.now() < specific_time:
+              return morning_end_time
+          elif datetime.now().weekday() == 4:
+              return friday_morning_end_time
+          else:
+              return afternoon_end_time
+
+      startdate = DateField(label='Datum',
+                            default=date.today,
+                            validators=[
+                                DataRequired(),
+                                validate_end_date
+                            ])
+      starttime = TimeField('Začátek',
+                            default=start_time,
+                            validators=[DataRequired()])
+      endtime = TimeField('Konec',
+                          default=end_time,
+                          validators=[DataRequired()])
+      selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
+                                validators=[DataRequired()])
+      numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+                                 validators=[validators.Optional(strip_whitespace=True),DataRequired()])
+      textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
+      submit = SubmitField(label='Uložit')
+
+
+@app.route('/attendance_individual', methods=['GET', 'POST'])
+def attendance_individual():
 
     user = get_current_user()
 
@@ -320,7 +322,7 @@ def attendence_individual():
         else:
             workers_list.append(name.title)
 
-    form = AttendanceForm()
+    form = AttendanceIndividualForm()
     # Attencence form data request
     if form.validate_on_submit():
         startdate = form.startdate.data.strftime('%d.%m.%Y')
@@ -329,6 +331,10 @@ def attendence_individual():
         selectfield = form.selectfield.data
         numberfield = str(form.numberfield.data).replace('.',',')
         textfield = form.textfield.data
+
+        if numberfield == 'None':
+            numberfield = str('')
+
 
         hodiny_start, minuty_start = map(int, starttime.split(':'))
         hodiny_end, minuty_end = map(int,endtime.split(':'))
@@ -368,9 +374,9 @@ def attendence_individual():
         employee_sheet = attendence_tab.worksheet(user['user']).get_all_values()
 
 
-        return redirect(url_for('attendence_overview',select_month=datetime.now().month))
+        return redirect(url_for('attendance_overview',select_month=datetime.now().month))
 
-    return render_template('attendence_individual.html',
+    return render_template('attendance_individual.html',
                            select_month=datetime.now().month,
                            page_title='Zadání docházky',
                            worker_list=user_records(user),
@@ -378,8 +384,8 @@ def attendence_individual():
                            role=int(user['role']),
                            form=form)
 
-@app.route('/attendence_overview/<int:select_month>', methods=['GET', 'POST'])
-def attendence_overview(select_month):
+@app.route('/attendance_overview/<int:select_month>', methods=['GET', 'POST'])
+def attendance_overview(select_month):
     user = get_current_user()
 
     if not user:
@@ -468,14 +474,15 @@ def attendence_overview(select_month):
                 for t in i:
                     if len(t) > 1:
                         if name in t:
-                            count.append(float(t[6].replace(',','.')))
+                            t[6] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',t[6])
+                            count.append(float(t[6].strip(' ').replace(',','.')))
 
             if not count:
                 return(0)
             else:
                 return(math.ceil(sum(count)/len(count)))
 
-        return render_template('attendece_overview.html',
+        return render_template('attendance_overview.html',
                                page_title = 'Přehled',
                                worker_list=user_records(user),
                                user=user['user'],
@@ -491,7 +498,7 @@ def attendence_overview(select_month):
 def generate_pdf():
     pass
 
-class AttendenceAllForm(FlaskForm):
+class AttendanceAllForm(FlaskForm):
     def validate_default_date():
         return datetime.today() - timedelta(days=1)
 
@@ -518,8 +525,8 @@ class AttendenceAllForm(FlaskForm):
             return True
         return False
 
-@app.route('/attendence_all', methods=['GET', 'POST'])
-def attendence_all():
+@app.route('/attendance_all', methods=['GET', 'POST'])
+def attendance_all():
 
     user = get_current_user()
 
@@ -543,7 +550,7 @@ def attendence_all():
 
     remove_none_values(existing_data)
 
-    form = AttendenceAllForm()
+    form = AttendanceAllForm()
 
     def date_range_text(startdate, enddate):
         return f'{startdate.strftime("%d.%m.%Y")} - {enddate.strftime("%d.%m.%Y")}'
@@ -589,7 +596,8 @@ def attendence_all():
                             if day_data[activity_count] == '':
                                 pass
                             elif activity_count in day_data:
-                                user_count += int(day_data[activity_count])
+                                day_data[activity_count] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_data[activity_count])
+                                user_count += float(day_data[activity_count].replace(',','.'))
 
             total_count += user_count
         return total_count
@@ -624,15 +632,17 @@ def attendence_all():
                     if day_item['Činnost'] == 'olepka':
                         worker_olepka_count += 1
                         if day_item['Počet činnosti'] != "":
-                            worker_olepka_sum += int(day_item['Počet činnosti'])
+                            day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
+                            worker_olepka_sum += float(day_item['Počet činnosti'].replace(',','.'))
 
                     if day_item['Činnost'] == 'pila':
                         worker_pila_count += 1
                         if day_item['Počet činnosti'] != "":
-                            worker_pila_sum += int(day_item['Počet činnosti'])
+                            day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
+                            worker_pila_sum += float(day_item['Počet činnosti'].replace(',','.'))
 
                 if worker_olepka_count != 0:
-                    worker_data[worker]['olepka']= worker_olepka_count
+                    worker_data[worker]['olepka']= round(worker_olepka_count)
                     worker_data[worker]['total olepeno']= worker_olepka_sum
                     if worker_olepka_sum != 0:
                         worker_data[worker]['awg olepka']=round(worker_olepka_sum/worker_olepka_count)
@@ -649,7 +659,7 @@ def attendence_all():
         start_day = str(form.startdate.data)
         end_day = str(form.enddate.data)
 
-        return render_template('attendence_all.html',
+        return render_template('attendance_all.html',
                                 glue_activity_sum= sum_of_activitiy_count(get_values_in_date_range(existing_data,result_name,start_day, end_day), start_day, end_day,'Počet činnosti', 'olepka'),
                                 cut_activity_sum = sum_of_activitiy_count(get_values_in_date_range(existing_data,result_name,start_day, end_day), start_day, end_day,'Počet činnosti', 'pila'),
                                 worker_list=user_records(user),
@@ -664,7 +674,7 @@ def attendence_all():
                                 worker_statistics = worker_sum_total_awg_data(existing_data),
                                 head_text=f'Přehled {start_day} {end_day}')
 
-    return render_template('attendence_all.html',
+    return render_template('attendance_all.html',
                             glue_activity_sum = sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'olepka'),
                             cut_activity_sum= sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'pila'),
                             worker_list=user_records(user),
@@ -1010,6 +1020,81 @@ def statistics(selected_month):
                            choose_month = f'{currentYear}-{selected_month}',
                            currentMonth=currentMonthRange,
                            month_name=months_name[int(selected_month)-1])
+
+class AttendanceAdditionForm(AttendanceIndividualForm):
+      def start_time():
+          return datetime.now()
+      def end_time():
+          return datetime.now()
+
+      startdate = DateField(label='Datum',
+                            default=date.today,
+                            validators=[
+                                DataRequired()
+                            ])
+      starttime = TimeField('Začátek',
+                            default=start_time,
+                            validators=[DataRequired()])
+      endtime = TimeField('Konec',
+                          default=end_time,
+                          validators=[DataRequired()])
+      selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
+                                validators=[])
+      numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+                                 validators=[validators.Optional(strip_whitespace=True)])
+      textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
+
+
+@app.route('/set_attendance', methods = ['GET','POST'])
+def set_attendance():
+
+    user = get_current_user()
+
+    if not user or user['role'] < 3:
+        return redirect('/')
+
+    try:
+        with open("static/statistics.json", "r", encoding='utf-8') as infile:
+            existing_data = json.load(infile)
+    except FileNotFoundError:
+        existing_data = {}
+
+    # Rekurzivní funkce pro odstranění klíčů s hodnotou None
+    def remove_none_values(d):
+        for key, value in list(d.items()):
+            if value is None:
+                d[key] = ""
+            elif isinstance(value, dict):
+                remove_none_values(value)
+
+    remove_none_values(existing_data)
+
+    worker_list = []
+    for worker, value in existing_data.items():
+        worker_list.append(worker)
+
+    attendance_form = AttendanceAdditionForm()
+
+    if attendance_form.validate_on_submit():
+        workers_result = request.form.getlist('worker')
+        startdate = attendance_form.startdate.data.strftime('%d.%m.%Y')
+        starttime = attendance_form.starttime.data.strftime('%H:%M')
+        endtime = attendance_form.endtime.data.strftime('%H:%M')
+        selectfield = attendance_form.selectfield.data
+        numberfield = str(attendance_form.numberfield.data).replace('.',',')
+        textfield = attendance_form.textfield.data
+
+        return f'{workers_result=},{startdate=}, {starttime=},{endtime=},{selectfield=},{numberfield=},{textfield=}'
+        #return redirect(url_for('set_attendance'))
+
+
+
+    return render_template('attendance.html',
+                           user = user['user'],
+                           role = int(user['role']),
+                           attendance_form = attendance_form,
+                           list_of_workers=worker_list
+                           )
 
 if __name__=='__main__':
     app.run(debug=True)
