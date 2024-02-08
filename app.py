@@ -301,7 +301,7 @@ class AttendanceIndividualForm(FlaskForm):
       selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                                 validators=[DataRequired()])
       numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
-                                 validators=[validators.Optional(strip_whitespace=True),DataRequired()])
+                                 validators=[validators.Optional(strip_whitespace=True)])
       textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
       submit = SubmitField(label='Uložit')
 
@@ -329,12 +329,15 @@ def attendance_individual():
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
         selectfield = form.selectfield.data
-        numberfield = str(form.numberfield.data).replace('.',',')
+        numberfield = form.numberfield.data
         textfield = form.textfield.data
 
-        if numberfield == 'None':
-            numberfield = str('')
-
+        if numberfield <= 0:
+            textfield += f' !-Zadáno {str(numberfield)}-!'
+            selectfield = 'jine'
+            numberfield = None
+        else:
+            numberfield = str(numberfield).replace('.',',')
 
         hodiny_start, minuty_start = map(int, starttime.split(':'))
         hodiny_end, minuty_end = map(int,endtime.split(':'))
