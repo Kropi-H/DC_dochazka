@@ -332,12 +332,15 @@ def attendance_individual():
         numberfield = form.numberfield.data
         textfield = form.textfield.data
 
-        if numberfield <= 0:
-            textfield += f' !-Zadáno {str(numberfield)}-!'
-            selectfield = 'jine'
-            numberfield = None
+        if selectfield == 'olepka' or selectfield == 'pila':
+            if numberfield <= 0:
+                textfield += f' !-Zadáno {str(numberfield)}-!'
+                selectfield = 'jine'
+                numberfield = None
+            else:
+                numberfield = str(numberfield).replace('.',',')
         else:
-            numberfield = str(numberfield).replace('.',',')
+            numberfield = None
 
         hodiny_start, minuty_start = map(int, starttime.split(':'))
         hodiny_end, minuty_end = map(int,endtime.split(':'))
