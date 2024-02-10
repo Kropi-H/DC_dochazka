@@ -14,50 +14,137 @@
             </div>
             <div class="row">
 
-                    {{ attendance_form.csrt_token }}
-                    {{ attendance_form.hidden_tag() }}
+                {{ attendance_form.csrt_token }}
+                {{ attendance_form.hidden_tag() }}
 
                 <div class="col-md-12">
-                {% for name in list_of_workers %}
+                    {% for name in list_of_workers %}
                     <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
-                {% endfor %}
+                    {% endfor %}
                 </div>
-                    <div class="col-md-4 mb-15">
+                <div class="col-md-4 mb-15">
 
-                        {% if attendance_form.startdate.errors %}
-                        {% for error in attendance_form.startdate.errors %}
-                        <label class="control-label" for="startdate">{{ error }}</label>
-                        {% endfor %}
-                        {% else %}
-                        {{ attendance_form.startdate.label(class='form-control-label', for='startdate') }}
-                        {% endif %}
-                        {{attendance_form.startdate(class='form-control', id='startdate')}} {{attendance_form.hidden_tag()}}
+                    {% if attendance_form.startdate.errors %}
+                    {% for error in attendance_form.startdate.errors %}
+                    <label class="control-label" for="startdate">{{ error }}</label>
+                    {% endfor %}
+                    {% else %}
+                    {{ attendance_form.startdate.label(class='form-control-label', for='startdate') }}
+                    {% endif %}
+                    {{attendance_form.startdate(class='form-control', id='startdate')}} {{attendance_form.hidden_tag()}}
 
-                    </div>
-                    <div class="col-md-4 mb-15">
-                        {{ attendance_form.starttime.label(class='form-control-label', for='starttime') }}
-                        {{ attendance_form.starttime(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                        <small>
-                        </small>
-                    </div>
+                </div>
+                <div class="col-md-4 mb-15">
+                    {{ attendance_form.starttime.label(class='form-control-label', for='starttime') }}
+                    {{ attendance_form.starttime(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                    <small>
+                    </small>
+                </div>
 
-                    <div class="col-md-4 mb-15">
-                        {{ attendance_form.endtime.label(class='form-control-label', for='endtime') }}
-                        {{ attendance_form.endtime(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                        <small>
-                        </small>
-                    </div>
+                <div class="col-md-4 mb-15">
+                    {{ attendance_form.endtime.label(class='form-control-label', for='endtime') }}
+                    {{ attendance_form.endtime(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                    <small>
+                    </small>
+                </div>
 
 
+                <div class="col-md-6 mb-15">
+                    {{ attendance_form.selectfield.label(class='form-control-label', for='selectfield') }}
+                    {{attendance_form.selectfield(class='form-control',onchange='showDiv(this)')}}
+                    {{attendance_form.hidden_tag()}}
+                </div>
+                <div class="col-md-6 mb-15" id="field_num" style="display:none">
+                    {{ attendance_form.numberfield.label(class='form-control-label', for='numberfield') }}
+                    {{ attendance_form.numberfield(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                </div>
+                <div class="col-md-6 mb-15" style="clear:both">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="vybrana_dovolena_bool" type="checkbox" aria-label="...">
+                    </span>
+                        {{ attendance_form.vybrana_dovolena(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
 
-                    <div class="col-md-6 mb-15">
-                        {{ attendance_form.selectfield.label(class='form-control-label', for='selectfield') }}
-                        {{attendance_form.selectfield(class='form-control',onchange='showDiv(this)')}} {{attendance_form.hidden_tag()}}
-                    </div>
-                    <div class="col-md-6 mb-15" id="field_num" style="display:none">
-                        {{ attendance_form.numberfield.label(class='form-control-label', for='numberfield') }}
-                        {{ attendance_form.numberfield(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div>
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="vybrane_prescasy_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input type="number" name="vybrane_prescasy" class="form-control" aria-label="..." placeholder="Vybrané přesčasy">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="nemoc_lekar_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="nemoc_lekar" type="number" class="form-control" aria-label="..." placeholder="Nemoc/Lékař">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="neplacene_volno_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="neplacene_volno" type="number" class="form-control" aria-label="..." placeholder="Neplacené volno">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="placene_volno_krev_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="placene_volno_krev" type="number" class="form-control" aria-label="..." placeholder="Placené volno/Krev">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="svatek_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="svatek" type="number" class="form-control" aria-label="..." placeholder="Svátek">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="prekazka_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="prekazka" type="number" class="form-control" aria-label="..." placeholder="Překážka na straně zaměstnavatele">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="doprovod_k_lekari_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="doprovod_k_lekari" type="number" class="form-control" aria-label="..." placeholder="Doprovod k lékaři">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                <span class="input-group-addon">
+                    <input name="pohreb_bool" type="checkbox" aria-label="...">
+                </span>
+                    <input name="pohreb" type="number" class="form-control" aria-label="..." placeholder="Pohřeb">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+                <div class="col-md-6 mb-15">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="proplacene_prescasy_bool" type="checkbox" aria-label="...">
+                    </span>
+                        <input name="proplacene_prescasy" type="number" class="form-control" aria-label="..." placeholder="Proplacené přesčasy">
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
 
 
                 <div class="form-group mb-15">
@@ -71,20 +158,20 @@
         </form>
     </div>
     {% if user %}
-<div>
-    <p class="mynav">Naposledy přihlášen:</p>
-    <ul class="nav navbar-nav">
-    {% for worker in worker_list%}
-        <li>
-        <p>
-        {{ worker['name'] }} {{ worker['date'] }}
-        <span class="badge">{{ worker['count'] }}</span>
-        </p>
-        </li>
-        {% endfor %}
-</ul>
-</div>
-{% endif %}
+    <div>
+        <p class="mynav">Naposledy přihlášen:</p>
+        <ul class="nav navbar-nav">
+            {% for worker in worker_list%}
+            <li>
+                <p>
+                    {{ worker['name'] }} {{ worker['date'] }}
+                    <span class="badge">{{ worker['count'] }}</span>
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

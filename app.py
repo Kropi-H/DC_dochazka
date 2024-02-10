@@ -8,7 +8,7 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DecimalField, TimeField, TextAreaField, SelectField, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
+from wtforms import DecimalField, TimeField, TextAreaField, SelectField, widgets, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
 from wtforms.validators import DataRequired, ValidationError
 from wtforms_components import DateRange
 import hashlib
@@ -168,10 +168,14 @@ def index():
         return render_template('login.html', page_title='login')
 
 class form_check_pass(FlaskForm):
-        oldPassword = PasswordField('Staré heslo', validators=[DataRequired()])
-        newPassword = PasswordField('Nové heslo', validators=[DataRequired()])
-        checkPassword = PasswordField('Nové heslo znovu ', validators=[DataRequired()])
-        submit = SubmitField(label='Uložit')
+    def check_equal(self):
+        if self.newPassword.data != self.checkPassword.data:
+            raise ValidationError('Hesla se neshodují!')
+    worker_id = widgets.CheckboxInput()
+    oldPassword = PasswordField('Staré heslo', validators=[DataRequired()])
+    newPassword = PasswordField('Nové heslo', validators=[DataRequired()])
+    checkPassword = PasswordField('Nové heslo znovu ', validators=[DataRequired(), check_equal])
+    submit = SubmitField(label='Uložit')
 
 
 @app.route('/change_password', methods=['GET', 'POST'])
@@ -190,8 +194,11 @@ def change_password():
         newPassword = request.form['newPassword'].strip()
         checkPassword = request.form['checkPassword'].strip()
 
+        if not worker_id:
+            return redirect('/change_password')
+
         for value in worker_values:
-            if (value[1] == hashlib.md5(newPassword.encode()).hexdigest()) and (int(worker_id) == int(value[7])) and (newPassword == checkPassword):
+            if (value[1] == hashlib.md5(oldPassword.encode()).hexdigest()) and (int(worker_id) == int(value[7])) and (newPassword == checkPassword):
                 worker_name = value[4]
                 cell = workers_sheet.find(value[7])
                 workers_sheet.update_cell(cell.row, 2, hashlib.md5(newPassword.encode()).hexdigest())
@@ -203,6 +210,7 @@ def change_password():
                                     role=int(user['role']),
                                     workers_list=worker_values,
                                     head_text=f'Heslo pro {worker_name} uloženo!',
+                                    method='POST',
                                     form=form)
 
         return 'Something went wrong!'
@@ -314,13 +322,13 @@ def attendance_individual():
     if not user:
        return redirect('/')
 
-    attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-    workers_list = []
-    for name in attendence_tab:
-        if name.title == 'mustr':
-            pass
-        else:
-            workers_list.append(name.title)
+    # attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
+    # workers_list = []
+    # for name in attendence_tab:
+    #     if name.title == 'mustr':
+    #         pass
+    #     else:
+    #         workers_list.append(name.title)
 
     form = AttendanceIndividualForm()
     # Attencence form data request
@@ -332,6 +340,7 @@ def attendance_individual():
         numberfield = form.numberfield.data
         textfield = form.textfield.data
 
+        # Clean up user input
         if selectfield == 'olepka' or selectfield == 'pila':
             if numberfield <= 0:
                 textfield += f' !-Zadáno {str(numberfield)}-!'
@@ -342,6 +351,7 @@ def attendance_individual():
         else:
             numberfield = None
 
+        # Count user work time
         hodiny_start, minuty_start = map(int, starttime.split(':'))
         hodiny_end, minuty_end = map(int,endtime.split(':'))
         come_time = time(hodiny_start, minuty_start)
@@ -355,6 +365,7 @@ def attendance_individual():
         timedelta2 = timedelta(hours=end_time.hour, minutes=end_time.minute)
         delta_time = timedelta2-timedelta1
 
+
         if delta_time >= work_hour_limit:
             time_result = delta_time-break_time
         else:
@@ -365,10 +376,7 @@ def attendance_individual():
         else:
             over_work_time = ''
 
-        # Získání hodin a minut z rozdílu
-        hodiny_rozdil = time_result.seconds // 3600
-        minuty_rozdil = (time_result.seconds // 60) % 60
-
+        # Save user data to Google Sheet
         attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
         attendece_sheet = attendence_tab.worksheet(user['user']) # Chose current user sheet
         current_date = attendece_sheet.find(startdate) # Find current day cell
@@ -376,9 +384,6 @@ def attendance_individual():
 
         cell_range = f'B{date_row}:H{date_row}' # Cell range as string
         attendece_sheet.update(cell_range, [[str(starttime),str(endtime),str(time_result),str(over_work_time),selectfield,numberfield,textfield]], value_input_option='USER_ENTERED' )
-
-        employee_sheet = attendence_tab.worksheet(user['user']).get_all_values()
-
 
         return redirect(url_for('attendance_overview',select_month=datetime.now().month))
 
@@ -1050,6 +1055,10 @@ class AttendanceAdditionForm(AttendanceIndividualForm):
                                  validators=[validators.Optional(strip_whitespace=True)])
       textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
 
+      vybrana_dovolena = SelectField('Vybraná dovolená',
+                                   choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
+                                   validators=[])
+
 
 @app.route('/set_attendance', methods = ['GET','POST'])
 def set_attendance():
@@ -1075,6 +1084,12 @@ def set_attendance():
 
     remove_none_values(existing_data)
 
+    def valid_logic_checkbox(chekbox_field):
+        if chekbox_field == None:
+            return 'False'
+        else:
+            return 'True'
+
     worker_list = []
     for worker, value in existing_data.items():
         worker_list.append(worker)
@@ -1083,6 +1098,37 @@ def set_attendance():
 
     if attendance_form.validate_on_submit():
         workers_result = request.form.getlist('worker')
+
+        vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
+        vybrana_dovolena = attendance_form.vybrana_dovolena.data
+
+        vybrane_prescasy_bool = valid_logic_checkbox(request.form.get('vybrane_prescasy_bool'))
+        vybrane_prescasy = request.form['vybrane_prescasy']
+
+        nemoc_lekar_bool = valid_logic_checkbox(request.form.get('nemoc_lekar_bool'))
+        nemoc_lekar = request.form['nemoc_lekar']
+
+        neplacene_volno_bool = valid_logic_checkbox(request.form.get('neplacene_volno_bool'))
+        neplacene_volno = request.form['neplacene_volno']
+
+        placene_volno_krev_bool = valid_logic_checkbox(request.form.get('placene_volno_krev_bool'))
+        placene_volno_krev = request.form['placene_volno_krev']
+
+        svatek_bool = valid_logic_checkbox(request.form.get('svatek_bool'))
+        svatek = request.form['svatek']
+
+        prekazka_bool = valid_logic_checkbox(request.form.get('prekazka_bool'))
+        prekazka = request.form['prekazka']
+
+        doprovod_k_lekari_bool = valid_logic_checkbox(request.form.get('doprovod_k_lekari_bool'))
+        doprovod_k_lekari = request.form['doprovod_k_lekari']
+
+        pohreb_bool = valid_logic_checkbox(request.form.get('pohreb_bool'))
+        pohreb = request.form['pohreb']
+
+        proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
+        proplacene_prescasy = request.form['doprovod_k_lekari']
+
         startdate = attendance_form.startdate.data.strftime('%d.%m.%Y')
         starttime = attendance_form.starttime.data.strftime('%H:%M')
         endtime = attendance_form.endtime.data.strftime('%H:%M')
@@ -1090,7 +1136,35 @@ def set_attendance():
         numberfield = str(attendance_form.numberfield.data).replace('.',',')
         textfield = attendance_form.textfield.data
 
-        return f'{workers_result=},{startdate=}, {starttime=},{endtime=},{selectfield=},{numberfield=},{textfield=}'
+        return f'<ul>' \
+               f'<li>{workers_result=}</li>' \
+               f'<li>{startdate=}</li> ' \
+               f'<li>{starttime=}</li>' \
+               f'<li>{endtime=}</li>' \
+               f'<li>{selectfield=}</li>' \
+               f'<li>{numberfield=}</li>' \
+               f'<li>{vybrana_dovolena_bool=}</li>' \
+               f'<li>{vybrana_dovolena=}</li>' \
+               f'<li>{vybrane_prescasy_bool=}</li>' \
+               f'<li>{vybrane_prescasy=}</li>' \
+               f'<li>{nemoc_lekar_bool=}</li>' \
+               f'<li>{nemoc_lekar=}</li>' \
+               f'<li>{neplacene_volno_bool=}</li>' \
+               f'<li>{neplacene_volno=}</li>' \
+               f'<li>{placene_volno_krev_bool=}</li>' \
+               f'<li>{placene_volno_krev=}</li>' \
+               f'<li>{svatek_bool=}</li>' \
+               f'<li>{svatek=}</li>' \
+               f'<li>{prekazka_bool=}</li>' \
+               f'<li>{prekazka=}</li>' \
+               f'<li>{doprovod_k_lekari_bool=}</li>' \
+               f'<li>{doprovod_k_lekari=}</li>' \
+               f'<li>{pohreb_bool=}</li>' \
+               f'<li>{pohreb=}</li>' \
+               f'<li>{proplacene_prescasy_bool=}</li>' \
+               f'<li>{proplacene_prescasy=}</li>' \
+               f'<li>{textfield=}</li>'\
+               f'</ul>'
         #return redirect(url_for('set_attendance'))
 
 
