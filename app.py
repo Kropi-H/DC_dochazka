@@ -1032,32 +1032,41 @@ def statistics(selected_month):
                            currentMonth=currentMonthRange,
                            month_name=months_name[int(selected_month)-1])
 
-class AttendanceAdditionForm(AttendanceIndividualForm):
-      def start_time():
-          return datetime.now()
-      def end_time():
-          return datetime.now()
+class AttendanceAdditionForm(FlaskForm):
 
-      startdate = DateField(label='Datum',
+      datum = DateField(label='Datum',
                             default=date.today,
                             validators=[
                                 DataRequired()
                             ])
-      starttime = TimeField('Začátek',
-                            default=start_time,
-                            validators=[DataRequired()])
-      endtime = TimeField('Konec',
-                          default=end_time,
-                          validators=[DataRequired()])
-      selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
+      prace_od = StringField('Začátek',
+                            render_kw={'placeholder': 'Od 6:00'},
+                            validators=[])
+      prace_do = StringField('Konec',
+                            render_kw={'placeholder': 'Do 14:30'},
+                            validators=[])
+      cinnost = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                                 validators=[])
-      numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+      pocet_cinnosti = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
                                  validators=[validators.Optional(strip_whitespace=True)])
       textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
 
       vybrana_dovolena = SelectField('Vybraná dovolená',
                                    choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
                                    validators=[])
+      vybrane_prescasy= StringField('Vybrané přesčasy',render_kw={'placeholder':'Vybrané přesčasy'})
+      nemoc_lekar=StringField('Nemoc/Lékař',render_kw={'placeholder':'Nemoc/Lékař'})
+      neplacene_volno=StringField('Neplacené volno',render_kw={'placeholder':'Neplacené volno'})
+      placene_volno_krev=StringField('Placené volno / Krev',render_kw={'placeholder':'Placené volno / Krev'})
+      svatek=SelectField(u'Vyber',choices=[("","Svátek"),("8:00", "1 Den")])
+      prekazka=StringField('Překážka na straně zaměstnavatele',render_kw={'placeholder':'Překážka na straně zaměstnavatele'})
+      doprovod_k_lekari=StringField('Doprovod k lékaři',render_kw={'placeholder':'Doprovod k lékaři'})
+      pohreb=SelectField('Pohřeb',
+                                   choices=[("", "Pohřeb"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
+                                   validators=[])
+      proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
+      submit = SubmitField(label='Uložit')
+
 
 
 @app.route('/set_attendance', methods = ['GET','POST'])
@@ -1103,46 +1112,48 @@ def set_attendance():
         vybrana_dovolena = attendance_form.vybrana_dovolena.data
 
         vybrane_prescasy_bool = valid_logic_checkbox(request.form.get('vybrane_prescasy_bool'))
-        vybrane_prescasy = request.form['vybrane_prescasy']
+        vybrane_prescasy = attendance_form.vybrane_prescasy.data
 
         nemoc_lekar_bool = valid_logic_checkbox(request.form.get('nemoc_lekar_bool'))
-        nemoc_lekar = request.form['nemoc_lekar']
+        nemoc_lekar = attendance_form.nemoc_lekar.data
 
         neplacene_volno_bool = valid_logic_checkbox(request.form.get('neplacene_volno_bool'))
-        neplacene_volno = request.form['neplacene_volno']
+        neplacene_volno = attendance_form.neplacene_volno.data
 
         placene_volno_krev_bool = valid_logic_checkbox(request.form.get('placene_volno_krev_bool'))
-        placene_volno_krev = request.form['placene_volno_krev']
+        placene_volno_krev = attendance_form.placene_volno_krev.data
 
         svatek_bool = valid_logic_checkbox(request.form.get('svatek_bool'))
-        svatek = request.form['svatek']
+        svatek = attendance_form.svatek.data
 
         prekazka_bool = valid_logic_checkbox(request.form.get('prekazka_bool'))
-        prekazka = request.form['prekazka']
+        prekazka = attendance_form.prekazka.data
 
         doprovod_k_lekari_bool = valid_logic_checkbox(request.form.get('doprovod_k_lekari_bool'))
-        doprovod_k_lekari = request.form['doprovod_k_lekari']
+        doprovod_k_lekari = attendance_form.doprovod_k_lekari.data
 
         pohreb_bool = valid_logic_checkbox(request.form.get('pohreb_bool'))
-        pohreb = request.form['pohreb']
+        pohreb = attendance_form.pohreb.data
 
         proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
-        proplacene_prescasy = request.form['doprovod_k_lekari']
+        proplacene_prescasy = attendance_form.proplacene_prescasy.data
 
-        startdate = attendance_form.startdate.data.strftime('%d.%m.%Y')
-        starttime = attendance_form.starttime.data.strftime('%H:%M')
-        endtime = attendance_form.endtime.data.strftime('%H:%M')
-        selectfield = attendance_form.selectfield.data
-        numberfield = str(attendance_form.numberfield.data).replace('.',',')
+        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
+        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
+        prace_od = attendance_form.prace_od.data
+        prace_do = attendance_form.prace_do.data
+        cinnost = attendance_form.cinnost.data
+        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
         textfield = attendance_form.textfield.data
 
         return f'<ul>' \
                f'<li>{workers_result=}</li>' \
-               f'<li>{startdate=}</li> ' \
-               f'<li>{starttime=}</li>' \
-               f'<li>{endtime=}</li>' \
-               f'<li>{selectfield=}</li>' \
-               f'<li>{numberfield=}</li>' \
+               f'<li>{datum=}</li> ' \
+               f'<li>{prace_bool=}</li> ' \
+               f'<li>{prace_od=}</li>' \
+               f'<li>{prace_do=}</li>' \
+               f'<li>{cinnost=}</li>' \
+               f'<li>{pocet_cinnosti=}</li>' \
                f'<li>{vybrana_dovolena_bool=}</li>' \
                f'<li>{vybrana_dovolena=}</li>' \
                f'<li>{vybrane_prescasy_bool=}</li>' \

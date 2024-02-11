@@ -22,41 +22,35 @@
                     <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
                     {% endfor %}
                 </div>
-                <div class="col-md-4 mb-15">
+                <div class="col-md-6 mb-15" style="float:none;margin:auto;margin-bottom:15px">
 
-                    {% if attendance_form.startdate.errors %}
-                    {% for error in attendance_form.startdate.errors %}
+                    {% if attendance_form.datum.errors %}
+                    {% for error in attendance_form.datum.errors %}
                     <label class="control-label" for="startdate">{{ error }}</label>
                     {% endfor %}
                     {% else %}
-                    {{ attendance_form.startdate.label(class='form-control-label', for='startdate') }}
+                    {{ attendance_form.datum.label(class='form-control-label', for='startdate') }}
                     {% endif %}
-                    {{attendance_form.startdate(class='form-control', id='startdate')}} {{attendance_form.hidden_tag()}}
+                    {{attendance_form.datum(class='form-control', id='startdate')}} {{attendance_form.hidden_tag()}}
 
                 </div>
+                <div class="col-md-4 mb-15" style="clear:both">
+                    <div class="input-group">
+                    <span class="input-group-addon">
+                        <input name="prace_bool" type="checkbox" aria-label="...">
+                    </span>
+                        {{ attendance_form.prace_od(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                        {{ attendance_form.prace_do(class='form-control') }} {{ attendance_form.hidden_tag() }}
+
+                    </div><!-- /input-group -->
+                </div><!-- /.row -->
+
+
                 <div class="col-md-4 mb-15">
-                    {{ attendance_form.starttime.label(class='form-control-label', for='starttime') }}
-                    {{ attendance_form.starttime(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    <small>
-                    </small>
+                    {{attendance_form.cinnost(class='form-control',onchange='showDiv(this)')}}{{attendance_form.hidden_tag()}}
                 </div>
-
-                <div class="col-md-4 mb-15">
-                    {{ attendance_form.endtime.label(class='form-control-label', for='endtime') }}
-                    {{ attendance_form.endtime(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    <small>
-                    </small>
-                </div>
-
-
-                <div class="col-md-6 mb-15">
-                    {{ attendance_form.selectfield.label(class='form-control-label', for='selectfield') }}
-                    {{attendance_form.selectfield(class='form-control',onchange='showDiv(this)')}}
-                    {{attendance_form.hidden_tag()}}
-                </div>
-                <div class="col-md-6 mb-15" id="field_num" style="display:none">
-                    {{ attendance_form.numberfield.label(class='form-control-label', for='numberfield') }}
-                    {{ attendance_form.numberfield(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                <div class="col-md-4 mb-15" id="field_num" style="display:none">
+                    {{ attendance_form.pocet_cinnosti(class='form-control') }} {{ attendance_form.hidden_tag() }}
                 </div>
                 <div class="col-md-6 mb-15" style="clear:both">
                     <div class="input-group">
@@ -72,7 +66,7 @@
                     <span class="input-group-addon">
                         <input name="vybrane_prescasy_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input type="number" name="vybrane_prescasy" class="form-control" aria-label="..." placeholder="Vybrané přesčasy">
+                        {{ attendance_form.vybrane_prescasy(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -81,7 +75,7 @@
                     <span class="input-group-addon">
                         <input name="nemoc_lekar_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="nemoc_lekar" type="number" class="form-control" aria-label="..." placeholder="Nemoc/Lékař">
+                        {{ attendance_form.nemoc_lekar(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -90,7 +84,7 @@
                     <span class="input-group-addon">
                         <input name="neplacene_volno_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="neplacene_volno" type="number" class="form-control" aria-label="..." placeholder="Neplacené volno">
+                        {{ attendance_form.neplacene_volno(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -99,7 +93,7 @@
                     <span class="input-group-addon">
                         <input name="placene_volno_krev_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="placene_volno_krev" type="number" class="form-control" aria-label="..." placeholder="Placené volno/Krev">
+                        {{ attendance_form.placene_volno_krev(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -108,7 +102,7 @@
                     <span class="input-group-addon">
                         <input name="svatek_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="svatek" type="number" class="form-control" aria-label="..." placeholder="Svátek">
+                        {{ attendance_form.svatek(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -117,7 +111,7 @@
                     <span class="input-group-addon">
                         <input name="prekazka_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="prekazka" type="number" class="form-control" aria-label="..." placeholder="Překážka na straně zaměstnavatele">
+                        {{ attendance_form.prekazka(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -126,7 +120,7 @@
                     <span class="input-group-addon">
                         <input name="doprovod_k_lekari_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="doprovod_k_lekari" type="number" class="form-control" aria-label="..." placeholder="Doprovod k lékaři">
+                        {{ attendance_form.doprovod_k_lekari(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
                 <div class="col-md-6 mb-15">
@@ -134,7 +128,7 @@
                 <span class="input-group-addon">
                     <input name="pohreb_bool" type="checkbox" aria-label="...">
                 </span>
-                    <input name="pohreb" type="number" class="form-control" aria-label="..." placeholder="Pohřeb">
+                        {{ attendance_form.pohreb(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
                 <div class="col-md-6 mb-15">
@@ -142,7 +136,7 @@
                     <span class="input-group-addon">
                         <input name="proplacene_prescasy_bool" type="checkbox" aria-label="...">
                     </span>
-                        <input name="proplacene_prescasy" type="number" class="form-control" aria-label="..." placeholder="Proplacené přesčasy">
+                        {{ attendance_form.proplacene_prescasy(class='form-control') }} {{ attendance_form.hidden_tag() }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
