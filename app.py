@@ -9,7 +9,7 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
 from wtforms import DecimalField, TimeField, TextAreaField, SelectField, widgets, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
-from wtforms.validators import DataRequired, ValidationError
+from wtforms.validators import DataRequired, ValidationError, Regexp
 from wtforms_components import DateRange
 import hashlib
 import calendar
@@ -1034,38 +1034,38 @@ def statistics(selected_month):
 
 class AttendanceAdditionForm(FlaskForm):
 
-      datum = DateField(label='Datum',
-                            default=date.today,
-                            validators=[
-                                DataRequired()
-                            ])
-      prace_od = StringField('Začátek',
-                            render_kw={'placeholder': 'Od 6:00'},
-                            validators=[])
-      prace_do = StringField('Konec',
-                            render_kw={'placeholder': 'Do 14:30'},
-                            validators=[])
-      cinnost = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
-                                validators=[])
-      pocet_cinnosti = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
-                                 validators=[validators.Optional(strip_whitespace=True)])
-      textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
+    datum = DateField(label='Datum',
+                          default=date.today,
+                          validators=[
+                              DataRequired()
+                          ])
+    prace_od = StringField('Začátek',
+                          render_kw={'placeholder': 'Od 6:00'},
+                          validators=[Regexp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', message='Zadejte platný formát hodin (např. 8:15)')])
+    prace_do = StringField('Konec',
+                          render_kw={'placeholder': 'Do 14:30'},
+                          validators=[Regexp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', message='Zadejte platný formát hodin (např. 8:15)')])
+    cinnost = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
+                              validators=[])
+    pocet_cinnosti = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
+                               validators=[validators.Optional(strip_whitespace=True)])
+    textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
 
-      vybrana_dovolena = SelectField('Vybraná dovolená',
-                                   choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
-                                   validators=[])
-      vybrane_prescasy= StringField('Vybrané přesčasy',render_kw={'placeholder':'Vybrané přesčasy'})
-      nemoc_lekar=StringField('Nemoc/Lékař',render_kw={'placeholder':'Nemoc/Lékař'})
-      neplacene_volno=StringField('Neplacené volno',render_kw={'placeholder':'Neplacené volno'})
-      placene_volno_krev=StringField('Placené volno / Krev',render_kw={'placeholder':'Placené volno / Krev'})
-      svatek=SelectField(u'Vyber',choices=[("","Svátek"),("8:00", "1 Den")])
-      prekazka=StringField('Překážka na straně zaměstnavatele',render_kw={'placeholder':'Překážka na straně zaměstnavatele'})
-      doprovod_k_lekari=StringField('Doprovod k lékaři',render_kw={'placeholder':'Doprovod k lékaři'})
-      pohreb=SelectField('Pohřeb',
-                                   choices=[("", "Pohřeb"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
-                                   validators=[])
-      proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
-      submit = SubmitField(label='Uložit')
+    vybrana_dovolena = SelectField('Vybraná dovolená',
+                                 choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
+                                 validators=[])
+    vybrane_prescasy= StringField('Vybrané přesčasy',render_kw={'placeholder':'Vybrané přesčasy'})
+    nemoc_lekar=StringField('Nemoc/Lékař',render_kw={'placeholder':'Nemoc/Lékař'})
+    neplacene_volno=StringField('Neplacené volno',render_kw={'placeholder':'Neplacené volno'})
+    placene_volno_krev=StringField('Placené volno / Krev',render_kw={'placeholder':'Placené volno / Krev'})
+    svatek=SelectField(u'Vyber',choices=[("","Svátek"),("8:00", "1 Den")])
+    prekazka=StringField('Překážka na straně zaměstnavatele',render_kw={'placeholder':'Překážka na straně zaměstnavatele'})
+    doprovod_k_lekari=StringField('Doprovod k lékaři',render_kw={'placeholder':'Doprovod k lékaři'})
+    pohreb=SelectField('Pohřeb',
+                                 choices=[("", "Pohřeb"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
+                                 validators=[])
+    proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
+    submit = SubmitField(label='Uložit')
 
 
 
@@ -1095,7 +1095,7 @@ def set_attendance():
 
     def valid_logic_checkbox(chekbox_field):
         if chekbox_field == None:
-            return 'False'
+            return str("")
         else:
             return 'True'
 
@@ -1145,36 +1145,29 @@ def set_attendance():
         cinnost = attendance_form.cinnost.data
         pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
         textfield = attendance_form.textfield.data
+        def return_non_empty_field(field_bool,field_data):
+            if field_bool == "True" or field_bool is not str(""):
+                return field_data
+            else:
+                return str("")
 
         return f'<ul>' \
                f'<li>{workers_result=}</li>' \
                f'<li>{datum=}</li> ' \
-               f'<li>{prace_bool=}</li> ' \
-               f'<li>{prace_od=}</li>' \
-               f'<li>{prace_do=}</li>' \
-               f'<li>{cinnost=}</li>' \
-               f'<li>{pocet_cinnosti=}</li>' \
-               f'<li>{vybrana_dovolena_bool=}</li>' \
-               f'<li>{vybrana_dovolena=}</li>' \
-               f'<li>{vybrane_prescasy_bool=}</li>' \
-               f'<li>{vybrane_prescasy=}</li>' \
-               f'<li>{nemoc_lekar_bool=}</li>' \
-               f'<li>{nemoc_lekar=}</li>' \
-               f'<li>{neplacene_volno_bool=}</li>' \
-               f'<li>{neplacene_volno=}</li>' \
-               f'<li>{placene_volno_krev_bool=}</li>' \
-               f'<li>{placene_volno_krev=}</li>' \
-               f'<li>{svatek_bool=}</li>' \
-               f'<li>{svatek=}</li>' \
-               f'<li>{prekazka_bool=}</li>' \
-               f'<li>{prekazka=}</li>' \
-               f'<li>{doprovod_k_lekari_bool=}</li>' \
-               f'<li>{doprovod_k_lekari=}</li>' \
-               f'<li>{pohreb_bool=}</li>' \
-               f'<li>{pohreb=}</li>' \
-               f'<li>{proplacene_prescasy_bool=}</li>' \
-               f'<li>{proplacene_prescasy=}</li>' \
-               f'<li>{textfield=}</li>'\
+               f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
+               f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
+               f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
+               f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
+               f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
+               f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
+               f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
+               f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
+               f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
+               f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
+               f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
+               f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
+               f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
+               f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
                f'</ul>'
         #return redirect(url_for('set_attendance'))
 

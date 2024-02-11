@@ -35,6 +35,16 @@
 
                 </div>
                 <div class="col-md-4 mb-15" style="clear:both">
+                    {% if attendance_form.prace_od.errors %}
+                    {% for error in attendance_form.prace_od.errors %}
+                    <label class="control-label" for="prace_od">{{ error }}</label>
+                    {% endfor %}
+                    {% endif %}
+                    {% if attendance_form.prace_do.errors %}
+                    {% for error in attendance_form.prace_do.errors %}
+                    <label class="control-label" for="prace_do">{{ error }}</label>
+                    {% endfor %}
+                    {% endif %}
                     <div class="input-group">
                     <span class="input-group-addon">
                         <input name="prace_bool" type="checkbox" aria-label="...">
