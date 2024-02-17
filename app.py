@@ -615,7 +615,7 @@ def attendance_all():
                                 pass
                             elif activity_count in day_data:
                                 day_data[activity_count] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_data[activity_count])
-                                user_count += float(day_data[activity_count].replace(',','.'))
+                                user_count += math.ceil(float(day_data[activity_count].replace(',','.')))
 
             total_count += user_count
         return total_count
