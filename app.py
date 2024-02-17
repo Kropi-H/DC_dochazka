@@ -39,6 +39,11 @@ client = gspread.authorize(credential)
 workers_tab = client.open_by_key(tables.cridentials_table['users'])
 workers_sheet = workers_tab.worksheet('users')
 
+# months
+months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
+                  7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
+months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
+
 def get_user_login_list():
     try:
         lines_list = []
@@ -395,6 +400,20 @@ def attendance_individual():
                            role=int(user['role']),
                            form=form)
 
+def sum_of_repetition(name, where_to_find):
+            for i in where_to_find:
+                count = []
+                for t in i:
+                    if len(t) > 1:
+                        if name in t:
+                            t[6] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',t[6])
+                            count.append(float(t[6].strip(' ').replace(',','.')))
+
+            if not count:
+                return(0)
+            else:
+                return(math.ceil(sum(count)/len(count)))
+
 @app.route('/attendance_overview/<int:select_month>', methods=['GET', 'POST'])
 def attendance_overview(select_month):
     user = get_current_user()
@@ -404,9 +423,6 @@ def attendance_overview(select_month):
 
     if request.method == 'GET':
 
-        months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
-                  7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
-        months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
         currentYear = datetime.now().year
 
         currentMonth = select_month
@@ -479,20 +495,6 @@ def attendance_overview(select_month):
         with open(f"static/statistics.json", "w", encoding='utf-8') as outfile:
             json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
 
-        def sum_of_repetition(name):
-            for i in months_values:
-                count = []
-                for t in i:
-                    if len(t) > 1:
-                        if name in t:
-                            t[6] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',t[6])
-                            count.append(float(t[6].strip(' ').replace(',','.')))
-
-            if not count:
-                return(0)
-            else:
-                return(math.ceil(sum(count)/len(count)))
-
         return render_template('attendance_overview.html',
                                page_title = 'Přehled',
                                worker_list=user_records(user),
@@ -502,8 +504,8 @@ def attendance_overview(select_month):
                                user_month_values=months_values,
                                month_name=months_name[select_month-1],
                                found_strings=found_strings,
-                               rep_glue_count=sum_of_repetition('olepka'),
-                               rep_cut_count=sum_of_repetition('pila'))
+                               rep_glue_count=sum_of_repetition('olepka', months_values),
+                               rep_cut_count=sum_of_repetition('pila', months_values))
 
 @app.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
@@ -569,6 +571,11 @@ def attendance_all():
     #yesterday_date = datetime.now().strftime("%Y-%m-%d") - timedelta(days=1)
     yesterday_date = str((datetime.now().date() - timedelta(days=1)))
 
+    this_month = datetime.today().month
+
+    this_year = datetime.today().year
+    this_month_first, this_month_last = calendar.monthrange(this_year, this_month)
+
     worker_list = []
     for worker, value in existing_data.items():
         worker_list.append(worker)
@@ -629,7 +636,7 @@ def attendance_all():
                         new_data[jmeno][month] = month_value
         return new_data
 
-    def worker_sum_total_awg_data(existing_data):
+    def worker_sum_total_awg_data(existing_data,start_date,end_date):
         worker_data = {}
         for worker, worker_item in existing_data.items():
             worker_data[worker] = {}
@@ -639,18 +646,19 @@ def attendance_all():
             worker_pila_sum = 0
             for month, month_item in worker_item.items():
                 for day, day_item in month_item.items():
+                    date_str = f'{month}'
+                    if start_date <= date_str <= end_date:
+                        if day_item['Činnost'] == 'olepka':
+                            worker_olepka_count += 1
+                            if day_item['Počet činnosti'] != "":
+                                day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
+                                worker_olepka_sum += float(day_item['Počet činnosti'].replace(',','.'))
 
-                    if day_item['Činnost'] == 'olepka':
-                        worker_olepka_count += 1
-                        if day_item['Počet činnosti'] != "":
-                            day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
-                            worker_olepka_sum += float(day_item['Počet činnosti'].replace(',','.'))
-
-                    if day_item['Činnost'] == 'pila':
-                        worker_pila_count += 1
-                        if day_item['Počet činnosti'] != "":
-                            day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
-                            worker_pila_sum += float(day_item['Počet činnosti'].replace(',','.'))
+                        if day_item['Činnost'] == 'pila':
+                            worker_pila_count += 1
+                            if day_item['Počet činnosti'] != "":
+                                day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
+                                worker_pila_sum += float(day_item['Počet činnosti'].replace(',','.'))
 
                 if worker_olepka_count != 0:
                     worker_data[worker]['olepka']= round(worker_olepka_count)
@@ -682,21 +690,24 @@ def attendance_all():
                                 workers_result= get_values_in_date_range(existing_data, result_name, start_day, end_day),
                                 start_day= start_day,
                                 end_day= end_day,
-                                worker_statistics = worker_sum_total_awg_data(existing_data),
+                                worker_statistics = worker_sum_total_awg_data(existing_data, start_day, end_day),
                                 head_text=f'Přehled {start_day} {end_day}')
 
     return render_template('attendance_all.html',
                             glue_activity_sum = sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'olepka'),
                             cut_activity_sum= sum_of_activitiy_count(existing_data, yesterday_date, yesterday_date, 'Počet činnosti', 'pila'),
-                            worker_list=user_records(user),
-                            list_of_workers=worker_list,
+                            worker_list=user_records(user),# uživatelské přihlášení
+                            list_of_workers=worker_list, # uživatelé
                             user=user['user'],
                             role=int(user['role']),
                             page_title='Přehled všech',
                             workers_result= get_values_in_date_range(existing_data, worker_list, yesterday_date, yesterday_date),
                             start_day= yesterday_date,
                             end_day= yesterday_date,
-                            worker_statistics = worker_sum_total_awg_data(existing_data),
+                            worker_statistics = worker_sum_total_awg_data(existing_data,
+                                                                          f'{datetime(this_year, this_month, 1).date()}',
+                                                                          f'{datetime(this_year, this_month, this_month_last).date()}'
+                                                                          ),
                             form=form,
                             head_text=f'Přehled všichni včera')
 
@@ -844,6 +855,7 @@ def contracts():
                                contract_id=load_id(),
                                glue=readGlue(),
                                last_id = int(load_id()[-1])+1,
+                               search_contract_str=str(datetime.today().year)[-2:],
                                count_contracts = len(contracts))
 
 @app.route('/set_contract_id/<contract_id>')
@@ -1000,9 +1012,6 @@ def statistics(selected_month):
     if not user or user['role'] < 3:
        return redirect('/')
 
-    months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
-                  7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
-    months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
 
     currentYear = datetime.now().year
     currentMonth = selected_month
@@ -1034,6 +1043,11 @@ def statistics(selected_month):
 
 class AttendanceAdditionForm(FlaskForm):
 
+    def empty_string_field(form, field):
+        if not re.search(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$',field.data):
+            raise ValidationError('Zadej platný formát (např. 8:15)')
+
+        # Regexp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', message='Zadejte platný formát hodin (např. 8:15)')
     datum = DateField(label='Datum',
                           default=date.today,
                           validators=[
@@ -1041,10 +1055,10 @@ class AttendanceAdditionForm(FlaskForm):
                           ])
     prace_od = StringField('Začátek',
                           render_kw={'placeholder': 'Od 6:00'},
-                          validators=[Regexp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', message='Zadejte platný formát hodin (např. 8:15)')])
+                          validators=[empty_string_field])
     prace_do = StringField('Konec',
                           render_kw={'placeholder': 'Do 14:30'},
-                          validators=[Regexp(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', message='Zadejte platný formát hodin (např. 8:15)')])
+                          validators=[])
     cinnost = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
                               validators=[])
     pocet_cinnosti = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
@@ -1054,15 +1068,26 @@ class AttendanceAdditionForm(FlaskForm):
     vybrana_dovolena = SelectField('Vybraná dovolená',
                                  choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
                                  validators=[])
-    vybrane_prescasy= StringField('Vybrané přesčasy',render_kw={'placeholder':'Vybrané přesčasy'})
-    nemoc_lekar=StringField('Nemoc/Lékař',render_kw={'placeholder':'Nemoc/Lékař'})
-    neplacene_volno=StringField('Neplacené volno',render_kw={'placeholder':'Neplacené volno'})
-    placene_volno_krev=StringField('Placené volno / Krev',render_kw={'placeholder':'Placené volno / Krev'})
+    vybrane_prescasy= StringField('Vybrané přesčasy',
+                                  render_kw={'placeholder':'Vybrané přesčasy'},
+                                  validators=[])
+    nemoc_lekar=StringField('Nemoc/Lékař',
+                            render_kw={'placeholder':'Nemoc/Lékař'},
+                            validators=[])
+    neplacene_volno=StringField('Neplacené volno',
+                                render_kw={'placeholder':'Neplacené volno'},
+                                validators=[])
+    placene_volno_krev=StringField('Placené volno / Krev',
+                                   render_kw={'placeholder':'Placené volno / Krev'},
+                                   validators=[])
     svatek=SelectField(u'Vyber',choices=[("","Svátek"),("8:00", "1 Den")])
-    prekazka=StringField('Překážka na straně zaměstnavatele',render_kw={'placeholder':'Překážka na straně zaměstnavatele'})
-    doprovod_k_lekari=StringField('Doprovod k lékaři',render_kw={'placeholder':'Doprovod k lékaři'})
-    pohreb=SelectField('Pohřeb',
-                                 choices=[("", "Pohřeb"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
+    prekazka=StringField('Překážka na straně zaměstnavatele',
+                         render_kw={'placeholder':'Překážka na straně zaměstnavatele'},
+                         validators=[])
+    doprovod_k_lekari=StringField('Doprovod k lékaři',
+                                  render_kw={'placeholder':'Doprovod k lékaři'},
+                                  validators=[])
+    pohreb=SelectField('Pohřeb', choices=[("", "Pohřeb"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
                                  validators=[])
     proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
     submit = SubmitField(label='Uložit')

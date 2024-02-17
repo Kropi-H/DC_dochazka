@@ -72,6 +72,11 @@
                 </div><!-- /.row -->
 
                 <div class="col-md-6 mb-15">
+                    {% if attendance_form.vybrane_prescasy.errors %}
+                    {% for error in attendance_form.vybrane_prescasy.errors %}
+                    <label class="control-label" for="prace_od">{{ error }}</label>
+                    {% endfor %}
+                    {% endif %}
                     <div class="input-group">
                     <span class="input-group-addon">
                         <input name="vybrane_prescasy_bool" type="checkbox" aria-label="...">

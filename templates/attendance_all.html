@@ -104,20 +104,21 @@
         </table>
 
     </div>
+{{worker_statistics}}
     <div class="">
-        <div class="col-md-3">
+        <div class="col-md-3" style="padding-left:0">
         <ul class="list-group">
             {% for worker, worker_item in worker_statistics.items() %}
-                {% if worker_item['olepka'] %}
+                {% if worker_item['olepka'] and worker in workers_result %}
                 <li class="list-group-item dovolena">{{worker}}: <span class="">{{worker_item['awg olepka']}}</span> metrů průměr</li>
                 {% endif %}
             {% endfor %}
         </ul>
             </div>
-        <div class="col-md-3">
+        <div class="col-md-3" style="padding-left:0">
         <ul class="list-group">
             {% for worker, worker_item in worker_statistics.items() %}
-                {% if worker_item['pila'] %}
+                {% if worker_item['pila'] and worker in workers_result %}
                 <li class="list-group-item doprovod_lekar">{{worker}}: <span class="">{{worker_item['awg pila']}}</span> desek průměr</li>
                 {% endif %}
             {% endfor %}
@@ -129,7 +130,7 @@
 <div>
     <ul class="nav navbar-nav">
         <p class="mynav">Naposledy přihlášen:</p>
-    {% for worker in worker_list%}
+        {% for worker in worker_list%}
         <li>
         <p>
         {{ worker['name'] }} {{ worker['date'] }}

@@ -171,5 +171,6 @@ Sortable.create(listWithHandle, {
                     // Po úspěšném uložení můžete provést nějakou akci, například zobrazení zprávy o úspěchu.
                 }
             });
+            location.reload()
         }
 
