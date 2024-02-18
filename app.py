@@ -652,13 +652,13 @@ def attendance_all():
                             worker_olepka_count += 1
                             if day_item['Počet činnosti'] != "":
                                 day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
-                                worker_olepka_sum += float(day_item['Počet činnosti'].replace(',','.'))
+                                worker_olepka_sum += math.ceil(float(day_item['Počet činnosti'].replace(',','.')))
 
                         if day_item['Činnost'] == 'pila':
                             worker_pila_count += 1
                             if day_item['Počet činnosti'] != "":
                                 day_item['Počet činnosti'] = re.sub(r'(?<=[0-9./])\s+(?=[0-9./])','',day_item['Počet činnosti'])
-                                worker_pila_sum += float(day_item['Počet činnosti'].replace(',','.'))
+                                worker_pila_sum += math.ceil(float(day_item['Počet činnosti'].replace(',','.')))
 
                 if worker_olepka_count != 0:
                     worker_data[worker]['olepka']= round(worker_olepka_count)
