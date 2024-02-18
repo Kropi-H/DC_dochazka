@@ -156,6 +156,14 @@ text-align:left;
     margin-bottom: 5px;
 }
 
+table tbody tr td {
+text-align:center;
+}
+table tbody tr td:first-child{
+color: white;
+background-color: #337ab7;
+
+}
 
 /*media query*/
 

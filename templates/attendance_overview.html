@@ -68,7 +68,7 @@
                 {% for i in user_month_values %}
                 {% for y in i %}
                 <tr class="worker_row">
-                    <td>{{ y[0][:5] }}</td><!--datum-->
+                    <td>{{ y[0] }}</td><!--datum-->
                     <td>{{ y[1] }}</td><!--prichod-->
                     <td>{{ y[2] }}</td><!--odchod-->
                     <td>{{ y[3] }}</td><!--hodiny-->
@@ -99,6 +99,66 @@
             </table>
         </div>
     </div>
+
+    <!-- Table of worker history -->
+<div class="panel panel-default" style="overflow-x:auto;">
+            <table class="table table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th></th>
+                    <th>Hodiny soucet</th>
+                    <th>Přesčasy</th>
+                    <th>Vybrané přesčasy</th>
+                    <th>Proplacené přesčasy</th>
+                    <th>Vybraná dovolená</th>
+                    <th>Nemoc/Lékař</th>
+                    <th>Neplacené volno</th>
+                    <th>Placené volno/Krev</th>
+                    <th>Svátek</th>
+                    <th>Překážka na straně zaměstnavatele</th>
+                    <th>Doprovod k lékaři</th>
+                    <th>Pohřeb</th>
+
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr class="worker_row">
+                    <td>{{ month_name }}:</td><!--text celkem-->
+                    <td>{{hodiny}}</td><!--Hodiny soucet-->
+                    <td>{{prescasy}}</td><!--Přesčasy-->
+                    <td>{{vybrane_prescasy}}</td><!--Vybrané přesčasy-->
+                    <td>{{proplacene_prescasy}}</td><!--Proplacené přesčasy-->
+                    <td>{{vybrana_dovolena}}</td><!--Vybraná dovolená-->
+                    <td>{{nemoc_lekar}}</td><!--Nemoc/Lékař-->
+                    <td>{{neplacene_volno}}</td><!--Neplacené volno-->
+                    <td>{{placene_volno}}</td><!--Placené volno/Krev-->
+                    <td>{{svatek}}</td><!--Svátek-->
+                    <td>{{prekazka}}</td><!--Překážka na straně zaměstnavatele-->
+                    <td>{{doprovod}}</td><!--Doprovod k lékaři-->
+                    <td>{{pohreb}}</td><!--Pohřeb-->
+                </tr>
+                <tr class="worker_row">
+                    <td>Celkem:</td><!--text celkem-->
+                    <td>{{hodiny_total}}</td><!--Hodiny soucet-->
+                    <td>Zbylé: {{prescasy_total}}</td><!--Přesčasy-->
+                    <td>{{vybrane_prescasy_total}}</td><!--Vybrané přesčasy-->
+                    <td>{{proplacene_prescasy}}</td><!--Proplacené přesčasy-->
+                    <td>{{vybrana_dovolena_total}}</td><!--Vybraná dovolená-->
+                    <td>{{nemoc_lekar_total}}</td><!--Nemoc/Lékař-->
+                    <td>{{neplacene_volno_total}}</td><!--Neplacené volno-->
+                    <td>{{placene_volno_total}}</td><!--Placené volno/Krev-->
+                    <td>{{svatek_total}}</td><!--Svátek-->
+                    <td>{{prekazka_total}}</td><!--Překážka na straně zaměstnavatele-->
+                    <td>{{doprovod_total}}</td><!--Doprovod k lékaři-->
+                    <td>{{pohreb_total}}</td><!--Pohřeb-->
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+
 
     {% if user %}
 <div>
