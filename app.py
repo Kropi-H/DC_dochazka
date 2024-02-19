@@ -507,10 +507,6 @@ def attendance_overview(select_month):
                 # Pokud dojde k chybě při parsování, vrátíme timedelta() (nula)
                 return timedelta()
 
-
-        start_date = '2024-01-01'
-        end_date = '2024-02-16'
-
         def sum_hours_in_date_range(data, start_date, end_date, looking_string, second_looking_string=None,third_looking_string=None, specific_employee=None):
             result = {}
 
@@ -570,11 +566,12 @@ def attendance_overview(select_month):
                                rep_glue_count=sum_of_repetition('olepka', months_values),
                                rep_cut_count=sum_of_repetition('pila', months_values),
                                prescasy=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Přesčasy','','',user['user']),
-                               prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','Vybrané přesčasy','Proplacené přesčasy',user['user']),
+                               prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','','',user['user']),
+                               prescasy_total_odecet=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','Proplacené přesčasy','Vybrané přesčasy',user['user']),
                                hodiny=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Hodiny/Den','','',user['user']),
                                hodiny_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Hodiny/Den','','',user['user']),
-                               vybrane_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Vybrané přesčasy','','',user['user']),
-                               vybrane_prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Vybrané přesčasy','','',user['user']),
+                               vybrane_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Vybrané_přesčasy','','',user['user']),
+                               vybrane_prescasy_total=sum_hours_in_date_range(existing_data,  f'{first_january}', f'{last_december}', 'Vybrané přesčasy','','',user['user']),
                                proplacene_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Proplacené přesčasy','','',user['user']),
                                proplacene_prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Proplacené přesčasy','','',user['user']),
                                vybrana_dovolena=sum_hours_in_date_range(existing_data, f'{datetime(this_year, this_month, 1).date()}', f'{datetime(this_year, this_month, this_month_last).date()}','Vybraná dovolená','','',user['user']),
