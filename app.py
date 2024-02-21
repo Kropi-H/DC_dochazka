@@ -44,6 +44,16 @@ months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5:
                   7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
 months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
 
+def open_statistics_json_file():
+    # funkce pro načtení dat ze souboru statistics.json
+    try:
+        with open("static/statistics.json", "r", encoding='utf-8') as infile:
+            existing_data = json.load(infile)
+    except FileNotFoundError:
+        existing_data = {}
+    return(existing_data)
+
+
 def get_user_login_list():
     try:
         lines_list = []
@@ -480,11 +490,7 @@ def attendance_overview(select_month):
             return months_dict
 
         # Načtení existujících dat ze souboru, pokud soubor existuje
-        try:
-            with open("static/statistics.json", "r", encoding='utf-8') as infile:
-                existing_data = json.load(infile)
-        except FileNotFoundError:
-            existing_data = {}
+        existing_data = open_statistics_json_file()
 
         # Vytvoření slovníků
         months_dict = {user['user']: create_dict(employee_sheet)}
@@ -507,9 +513,6 @@ def attendance_overview(select_month):
                 # Pokud dojde k chybě při parsování, vrátíme timedelta() (nula)
                 return timedelta()
 
-
-        start_date = '2024-01-01'
-        end_date = '2024-02-16'
 
         def sum_hours_in_date_range(data, start_date, end_date, looking_string, second_looking_string=None,third_looking_string=None, specific_employee=None):
             result = {}
@@ -634,11 +637,7 @@ def attendance_all():
     if not user or user['role'] < 2:
        return redirect('/')
 
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file()
 
         # Rekurzivní funkce pro odstranění klíčů s hodnotou None
 
@@ -1106,11 +1105,7 @@ def statistics(selected_month):
     currentMonthRange = calendar.monthrange(currentYear,int(currentMonth))[1]
 
     # Načtení existujících dat ze souboru, pokud soubor existuje
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file()
 
     # Rekurzivní funkce pro odstranění klíčů s hodnotou None
     def remove_none_values(d):
@@ -1180,8 +1175,6 @@ class AttendanceAdditionForm(FlaskForm):
     proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
     submit = SubmitField(label='Uložit')
 
-
-
 @app.route('/set_attendance', methods = ['GET','POST'])
 def set_attendance():
 
@@ -1190,11 +1183,8 @@ def set_attendance():
     if not user or user['role'] < 3:
         return redirect('/')
 
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file() # Load statistic data
+
 
     # Rekurzivní funkce pro odstranění klíčů s hodnotou None
     def remove_none_values(d):
