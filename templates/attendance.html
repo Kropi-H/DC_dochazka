@@ -22,7 +22,7 @@
                     <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
                     {% endfor %}
                 </div>
-                <div class="col-md-6 mb-15" style="float:none;margin:auto;margin-bottom:15px">
+                <div class="col-md-offset-3 col-md-6 mb-15 " style="margin-bottom:15px">
 
                     {% if attendance_form.datum.errors %}
                     {% for error in attendance_form.datum.errors %}

@@ -1209,7 +1209,15 @@ def set_attendance():
     attendance_form = AttendanceAdditionForm()
 
     if attendance_form.validate_on_submit():
-        workers_result = request.form.getlist('worker')
+        workers_result = request.form.get('worker')
+
+        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
+        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
+        prace_od = attendance_form.prace_od.data
+        prace_do = attendance_form.prace_do.data
+        cinnost = attendance_form.cinnost.data
+        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
+        textfield = attendance_form.textfield.data
 
         vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
         vybrana_dovolena = attendance_form.vybrana_dovolena.data
@@ -1240,14 +1248,6 @@ def set_attendance():
 
         proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
         proplacene_prescasy = attendance_form.proplacene_prescasy.data
-
-        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
-        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
-        prace_od = attendance_form.prace_od.data
-        prace_do = attendance_form.prace_do.data
-        cinnost = attendance_form.cinnost.data
-        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
-        textfield = attendance_form.textfield.data
         def return_non_empty_field(field_bool,field_data):
             if field_bool == "True" or field_bool is not str(""):
                 return field_data
