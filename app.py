@@ -39,6 +39,8 @@ client = gspread.authorize(credential)
 workers_tab = client.open_by_key(tables.cridentials_table['users'])
 workers_sheet = workers_tab.worksheet('users')
 
+delay_days_user_input = 4
+
 # months
 months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
                   7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
@@ -57,7 +59,7 @@ def open_statistics_json_file():
 def get_user_login_list():
     try:
         lines_list = []
-        f = open('static/login.csv', 'r', encoding='utf-8')
+        f = open('static/login_test.csv', 'r', encoding='utf-8')
         for line in f.readlines():
             hodnoty = line.strip().split(';')
             lines_list.append(hodnoty)
@@ -157,7 +159,7 @@ def index():
                     return redirect(url_for('contracts'))
                 elif session['role'] == 4:
                     try:
-                        f = open('static/login.csv', 'a', encoding='utf-8')
+                        f = open('static/login_test.csv', 'a', encoding='utf-8')
                         f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
                         f.close()
                         return redirect(url_for('attendance_all'))
@@ -283,8 +285,8 @@ def register_new_user():
 class AttendanceIndividualForm(FlaskForm):
       def validate_end_date(self, field):
 
-          if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
-              raise ValidationError("Max 2 dny zpět")
+          if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=delay_days_user_input):
+              raise ValidationError(f"Max {delay_days_user_input} dny zpět")
 
       def start_time():
           specific_time = datetime.now().replace(hour=15, minute=0, second=0)
@@ -408,7 +410,8 @@ def attendance_individual():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
-                           form=form)
+                           form=form,
+                           delay_days_user_input=delay_days_user_input)
 
 def sum_of_repetition(name, where_to_find):
             for i in where_to_find:
