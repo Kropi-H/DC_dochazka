@@ -39,15 +39,27 @@ client = gspread.authorize(credential)
 workers_tab = client.open_by_key(tables.cridentials_table['users'])
 workers_sheet = workers_tab.worksheet('users')
 
+delay_days_user_input = 4
+
 # months
 months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
                   7: '01.07.2024', 8: '01.08.2024', 9: '01.09.2024', 10: '01.10.2024', 11: '01.11.2024', 12: '01.12.2024'}
 months_name=['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
 
+def open_statistics_json_file():
+    # funkce pro načtení dat ze souboru statistics.json
+    try:
+        with open("static/statistics.json", "r", encoding='utf-8') as infile:
+            existing_data = json.load(infile)
+    except FileNotFoundError:
+        existing_data = {}
+    return(existing_data)
+
+
 def get_user_login_list():
     try:
         lines_list = []
-        f = open('static/login.csv', 'r', encoding='utf-8')
+        f = open('static/login_test.csv', 'r', encoding='utf-8')
         for line in f.readlines():
             hodnoty = line.strip().split(';')
             lines_list.append(hodnoty)
@@ -147,7 +159,7 @@ def index():
                     return redirect(url_for('contracts'))
                 elif session['role'] == 4:
                     try:
-                        f = open('static/login.csv', 'a', encoding='utf-8')
+                        f = open('static/login_test.csv', 'a', encoding='utf-8')
                         f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
                         f.close()
                         return redirect(url_for('attendance_all'))
@@ -273,8 +285,8 @@ def register_new_user():
 class AttendanceIndividualForm(FlaskForm):
       def validate_end_date(self, field):
 
-          if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=2):
-              raise ValidationError("Max 2 dny zpět")
+          if datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') > datetime.today() or datetime.strptime(self.startdate.raw_data[0], '%Y-%m-%d') < datetime.today() - timedelta(days=delay_days_user_input):
+              raise ValidationError(f"Max {delay_days_user_input} dny zpět")
 
       def start_time():
           specific_time = datetime.now().replace(hour=15, minute=0, second=0)
@@ -398,7 +410,8 @@ def attendance_individual():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
-                           form=form)
+                           form=form,
+                           delay_days_user_input=delay_days_user_input)
 
 def sum_of_repetition(name, where_to_find):
             for i in where_to_find:
@@ -480,11 +493,7 @@ def attendance_overview(select_month):
             return months_dict
 
         # Načtení existujících dat ze souboru, pokud soubor existuje
-        try:
-            with open("static/statistics.json", "r", encoding='utf-8') as infile:
-                existing_data = json.load(infile)
-        except FileNotFoundError:
-            existing_data = {}
+        existing_data = open_statistics_json_file()
 
         # Vytvoření slovníků
         months_dict = {user['user']: create_dict(employee_sheet)}
@@ -631,11 +640,7 @@ def attendance_all():
     if not user or user['role'] < 2:
        return redirect('/')
 
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file()
 
         # Rekurzivní funkce pro odstranění klíčů s hodnotou None
 
@@ -1103,11 +1108,7 @@ def statistics(selected_month):
     currentMonthRange = calendar.monthrange(currentYear,int(currentMonth))[1]
 
     # Načtení existujících dat ze souboru, pokud soubor existuje
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file()
 
     # Rekurzivní funkce pro odstranění klíčů s hodnotou None
     def remove_none_values(d):
@@ -1177,8 +1178,6 @@ class AttendanceAdditionForm(FlaskForm):
     proplacene_prescasy=StringField('Proplacené přesčasy',render_kw={'placeholder':'Proplacené přesčasy'})
     submit = SubmitField(label='Uložit')
 
-
-
 @app.route('/set_attendance', methods = ['GET','POST'])
 def set_attendance():
 
@@ -1187,11 +1186,8 @@ def set_attendance():
     if not user or user['role'] < 3:
         return redirect('/')
 
-    try:
-        with open("static/statistics.json", "r", encoding='utf-8') as infile:
-            existing_data = json.load(infile)
-    except FileNotFoundError:
-        existing_data = {}
+    existing_data = open_statistics_json_file() # Load statistic data
+
 
     # Rekurzivní funkce pro odstranění klíčů s hodnotou None
     def remove_none_values(d):
@@ -1216,7 +1212,15 @@ def set_attendance():
     attendance_form = AttendanceAdditionForm()
 
     if attendance_form.validate_on_submit():
-        workers_result = request.form.getlist('worker')
+        workers_result = request.form.get('worker')
+
+        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
+        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
+        prace_od = attendance_form.prace_od.data
+        prace_do = attendance_form.prace_do.data
+        cinnost = attendance_form.cinnost.data
+        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
+        textfield = attendance_form.textfield.data
 
         vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
         vybrana_dovolena = attendance_form.vybrana_dovolena.data
@@ -1247,14 +1251,6 @@ def set_attendance():
 
         proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
         proplacene_prescasy = attendance_form.proplacene_prescasy.data
-
-        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
-        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
-        prace_od = attendance_form.prace_od.data
-        prace_do = attendance_form.prace_do.data
-        cinnost = attendance_form.cinnost.data
-        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
-        textfield = attendance_form.textfield.data
         def return_non_empty_field(field_bool,field_data):
             if field_bool == "True" or field_bool is not str(""):
                 return field_data
