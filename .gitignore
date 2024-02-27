@@ -1,8 +1,7 @@
 venv
 startup_funding.json
 tables.py
-statis/login.csv
-static/login_test.csv
+static/login.csv
 static/contracts.csv
 static/contract_id.csv
 static/archived_contracts.csv
