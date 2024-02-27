@@ -54,30 +54,33 @@
                     {% for day, day_value in month_value.items() %}
 
                     {% if day_value['Hodiny/Den'] != None %}
-                            <td class="prac_doba">{{ day_value['Hodiny/Den'] }}</td>
+                    <td class="prac_doba">{{ day_value['Hodiny/Den'] }}</td>
                     {% elif day_value['Neplacené volno'] != None %}
-                            <td class="neplac_volno">{{ day_value['Neplacené volno'] }}</td>
+                    <td class="neplac_volno">{{ day_value['Neplacené volno'] }}</td>
                     {% elif day_value['Nemoc/Lékař'] != None %}
-                            <td class="prac_neschopnost">{{ day_value['Nemoc/Lékař'] }}</td>
+                    <td class="prac_neschopnost">{{ day_value['Nemoc/Lékař'] }}</td>
                     {% elif day_value['Vybraná dovolená'] != None %}
-                            <td class="dovolena">{{ day_value['Vybraná dovolená'] }}</td>
+                    <td class="dovolena">{{ day_value['Vybraná dovolená'] }}</td>
                     {% elif day_value['Vybrané přesčasy'] != None %}
-                            <td class="vybrane_prescasy">{{ day_value['Vybrané přesčasy'] }}</td>
+                    <td class="vybrane_prescasy">{{ day_value['Vybrané přesčasy'] }}</td>
                     {% elif day_value['Placené volno/Krev'] != None %}
-                            <td class="plac_volno">{{ day_value['Placené volno/Krev'] }}</td>
+                    <td class="plac_volno">{{ day_value['Placené volno/Krev'] }}</td>
                     {% elif day_value['Doprovod k lékaři'] != None %}
-                            <td class="doprovod_lekar">{{ day_value['Doprovod k lékaři'] }}</td>
+                    <td class="doprovod_lekar">{{ day_value['Doprovod k lékaři'] }}</td>
                     {% elif day_value['Překážka na straně zaměstnavatele'] != None %}
-                            <td class="vikend_svatek">{{ day_value['Překážka na straně zaměstnavatele'] }}</td>
+                    <td class="vikend_svatek">{{ day_value['Překážka na straně zaměstnavatele'] }}</td>
                     {% else %}
-                            <td class="vikend_svatek">-</td>
+                    <td class="vikend_svatek">-</td>
 
                     {% endif %}
                     {% endfor %}
                     {% endif %}
                     {% endfor %}
-                    <td style="background-color:#d5d5d5">{{ worker_value[choose_month+'-01']['01']['Hodiny soucet'] }}</td>
-                    <td style="background-color:#d8e0de">{{ worker_value[choose_month+'-01']['01']['Přesčas/Součet'] }}</td>
+                    <td style="background-color:#d5d5d5">{{ worker_value[choose_month+'-01']['01']['Hodiny soucet'] }}
+                    </td>
+                    <td style="background-color:#d8e0de">{{ worker_value[choose_month+'-01']['01']['Přesčas/Součet']
+                        }}
+                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -86,33 +89,33 @@
     </div>
     {% if user %}
 
-    <div class="row statistic_row">
-        <div class="col-md-3">
-        <ul class="list-group">
-            <li class="list-group-item prac_doba">I - Standardní pracovní doba</li>
-            <li class="list-group-item vikend_svatek">Sobota / Neděle / Státní sv.</li>
-            <li class="list-group-item dovolena">D - Dovolená</li>
-            <li class="list-group-item vybrane_prescasy">Vybrané přesčasy</li>
-            <li class="list-group-item plac_volno">Placené volno / Krev</li>
-            <li class="list-group-item neplac_volno">NEV - Neplacené volno</li>
-        </ul>
-            </div>
-        <div class="col-md-3">
-        <ul class="list-group">
-            <li class="list-group-item prac_neschopnost">N - Pracovní neschopnost / lékař</li>
-            <li class="list-group-item doprovod_lekar">DP - Doprovod k lékaři</li>
-            <li class="list-group-item pohreb">Pohřeb</li>
-        </ul>
-            </div>
-    </div>
-    <div>
+        <div>
+        <div class="col-md-3" style="padding-left:0px">
+            <ul class="list-group">
+                <li class="list-group-item prac_doba">I - Standardní pracovní doba</li>
+                <li class="list-group-item vikend_svatek">Sobota / Neděle / Státní sv.</li>
+                <li class="list-group-item dovolena">D - Dovolená</li>
+                <li class="list-group-item vybrane_prescasy">Vybrané přesčasy</li>
+                <li class="list-group-item plac_volno">Placené volno / Krev</li>
+                <li class="list-group-item neplac_volno">NEV - Neplacené volno</li>
+            </ul>
+        </div>
+        <div class="col-md-3" style="padding-left:0px>
+            <ul class="list-group"">
+                <li class="list-group-item prac_neschopnost">N - Pracovní neschopnost / lékař</li>
+                <li class="list-group-item doprovod_lekar">DP - Doprovod k lékaři</li>
+                <li class="list-group-item pohreb">Pohřeb</li>
+            </ul>
+        </div>
+</div>
+    <div style="float:left">
         <p class="mynav">Naposledy přihlášen:</p>
         <ul class="nav navbar-nav">
             {% for worker in worker_list%}
             <li>
                 <p>
-                    {{ worker['name'] }} {{ worker['date'] }}
-                    <span class="badge">{{ worker['count'] }}</span>
+                    {{ worker['name'] }} {{ worker['the_date'] }}
+                    <span class="badge">{{ worker['entrance_count'] }}</span>
                 </p>
             </li>
             {% endfor %}

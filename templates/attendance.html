@@ -19,7 +19,8 @@
 
                 <div class="col-md-12">
                     {% for name in list_of_workers %}
-                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
+                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }}
+                                                                    name="worker"></span>
                     {% endfor %}
                 </div>
                 <div class="col-md-offset-3 col-md-6 mb-15 " style="margin-bottom:15px">
@@ -108,7 +109,8 @@
                     <span class="input-group-addon">
                         <input name="placene_volno_krev_bool" type="checkbox" aria-label="...">
                     </span>
-                        {{ attendance_form.placene_volno_krev(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                        {{ attendance_form.placene_volno_krev(class='form-control') }} {{ attendance_form.hidden_tag()
+                        }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -151,7 +153,8 @@
                     <span class="input-group-addon">
                         <input name="proplacene_prescasy_bool" type="checkbox" aria-label="...">
                     </span>
-                        {{ attendance_form.proplacene_prescasy(class='form-control') }} {{ attendance_form.hidden_tag() }}
+                        {{ attendance_form.proplacene_prescasy(class='form-control') }} {{ attendance_form.hidden_tag()
+                        }}
                     </div><!-- /input-group -->
                 </div><!-- /.row -->
 
@@ -173,8 +176,8 @@
             {% for worker in worker_list%}
             <li>
                 <p>
-                    {{ worker['name'] }} {{ worker['date'] }}
-                    <span class="badge">{{ worker['count'] }}</span>
+                    {{ worker['name'] }} {{ worker['the_date'] }}
+                    <span class="badge">{{ worker['entrance_count'] }}</span>
                 </p>
             </li>
             {% endfor %}

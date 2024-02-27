@@ -39,9 +39,10 @@
                     {{form.enddate(class='form-control', id='enddate')}} {{form.hidden_tag()}}
                 </div>
                 <div class="col-md-12">
-                {% for name in list_of_workers %}
-                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }} name="worker"></span>
-                {% endfor %}
+                    {% for name in list_of_workers %}
+                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }}
+                                                                    name="worker"></span>
+                    {% endfor %}
                 </div>
 
             </div>
@@ -77,7 +78,7 @@
                 <td>{{ day_data['Odchod'] }}</td>
                 <td>{{ day_data['Hodiny/Den'] }}</td>
                 <td>{{ day_data['Přesčasy'] }}</td>
-                {% if  day_data['Činnost'] == 'olepka' %}
+                {% if day_data['Činnost'] == 'olepka' %}
                 <td>{{ day_data['Počet činnosti'] }}</td>
                 {% else %}
                 <td>-</td>
@@ -104,42 +105,46 @@
         </table>
 
     </div>
-    <div class="">
-        <div class="col-md-3" style="padding-left:0">
-        <ul class="list-group">
-            {% for worker, worker_item in worker_statistics.items() %}
-                {% if worker_item['olepka'] and worker in workers_result %}
-                <li class="list-group-item dovolena">{{worker}}: <span class="">{{worker_item['awg olepka']}}</span> metrů průměr</li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-            </div>
-        <div class="col-md-3" style="padding-left:0">
-        <ul class="list-group">
-            {% for worker, worker_item in worker_statistics.items() %}
-                {% if worker_item['pila'] and worker in workers_result %}
-                <li class="list-group-item doprovod_lekar">{{worker}}: <span class="">{{worker_item['awg pila']}}</span> desek průměr</li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-            </div>
-    </div>
 
-{% if user %}
-<div>
-    <ul class="nav navbar-nav">
+        <div class="col-md-3" style="padding-left:0">
+            <ul class="list-group">
+                {% for worker, worker_item in worker_statistics.items() %}
+                {% if worker_item['olepka'] and worker in workers_result %}
+                <li class="list-group-item dovolena">{{worker}}: <span class="">{{worker_item['awg olepka']}}</span>
+                    metrů průměr
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-3" style="padding-left:0">
+            <ul class="list-group">
+                {% for worker, worker_item in worker_statistics.items() %}
+                {% if worker_item['pila'] and worker in workers_result %}
+                <li class="list-group-item doprovod_lekar">{{worker}}: <span class="">{{worker_item['awg pila']}}</span>
+                    desek průměr
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+
+
+    {% if user %}
+    <div style="float:left">
         <p class="mynav">Naposledy přihlášen:</p>
-        {% for worker in worker_list%}
-        <li>
-        <p>
-        {{ worker['name'] }} {{ worker['date'] }}
-        <span class="badge">{{ worker['count'] }}</span>
-        </p>
-        </li>
-        {% endfor %}
-</ul>
-</div>
-{% endif %}
+        <ul class="nav navbar-nav">
+            {% for worker in worker_list%}
+            <li>
+                <p>
+                    {{ worker['name'] }} {{ worker['the_date'] }}
+                    <span class="badge">{{ worker['entrance_count'] }}</span>
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
