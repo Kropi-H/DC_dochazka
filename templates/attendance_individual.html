@@ -5,14 +5,14 @@
 
 <div class="container">
     <div class="py-5 text-center">
-        {% for worker in worker_list %}
-        {% if worker['info_count'] > 0 and user['name'] %}
+        {% for worker_item in worker_list %}
+        {% if user == worker_item['name'] and worker_item['info_count'] > 0 %}
 
         <script type="text/javascript">
 
 $(document).ready(function(){
     $("#myModal").modal('show');
-});
+});''
 </script>
 
         <div id="myModal" class="modal fade" tabindex="-1" role="dialog">

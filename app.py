@@ -39,7 +39,7 @@ client = gspread.authorize(credential)
 workers_tab = client.open_by_key(tables.cridentials_table['users'])
 workers_sheet = workers_tab.worksheet('users')
 
-delay_days_user_input = 4
+delay_days_user_input = 5
 
 # months
 months = {1: '01.01.2024', 2: '01.02.2024', 3: '01.03.2024', 4: '01.04.2024', 5: '01.05.2024', 6: '01.06.2024',
