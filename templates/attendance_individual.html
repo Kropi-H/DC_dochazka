@@ -5,19 +5,35 @@
 
 <div class="container">
     <div class="py-5 text-center">
-        <!-- Small modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Small modal</button>
+        {% for worker in worker_list %}
+        {% if worker['info_count'] > 0 and worker['name'] != 'Kropáček' %}
 
-<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
-  <div class="modal-dialog modal-sm" role="document">
+        <script type="text/javascript">
+
+$(document).ready(function(){
+    $("#myModal").modal('show');
+});
+</script>
+
+        <div id="myModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <h1>
-        {{delay_days_user_input}}
-          </h1>
-    </div>
-  </div>
-</div>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Open"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Novinky</h4>
+      </div>
+      <div class="modal-body">
+        <p>Nyní lze zadávat docházku {{delay_days_user_input}} zpětně&hellip;</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Zavřít</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
+        {% endif %}
+        {% endfor %}
         <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
               action="{{ url_for('attendance_individual') }}" method='POST'>
 
@@ -26,44 +42,43 @@
             </div>
             <div class="row">
 
-                    {{ form.csrt_token }}
-                    {{ form.hidden_tag() }}
-                    <div class="col-md-4 mb-15">
+                {{ form.csrt_token }}
+                {{ form.hidden_tag() }}
+                <div class="col-md-4 mb-15">
 
-                        {% if form.startdate.errors %}
-                        {% for error in form.startdate.errors %}
-                        <label class="control-label" for="startdate">{{ error }}</label>
-                        {% endfor %}
-                        {% else %}
-                        {{ form.startdate.label(class='form-control-label', for='startdate') }}
-                        {% endif %}
-                        {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
+                    {% if form.startdate.errors %}
+                    {% for error in form.startdate.errors %}
+                    <label class="control-label" for="startdate">{{ error }}</label>
+                    {% endfor %}
+                    {% else %}
+                    {{ form.startdate.label(class='form-control-label', for='startdate') }}
+                    {% endif %}
+                    {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
 
-                    </div>
-                    <div class="col-md-4 mb-15">
-                        {{ form.starttime.label(class='form-control-label', for='starttime') }}
-                        {{ form.starttime(class='form-control') }} {{ form.hidden_tag() }}
-                        <small>
-                        </small>
-                    </div>
+                </div>
+                <div class="col-md-4 mb-15">
+                    {{ form.starttime.label(class='form-control-label', for='starttime') }}
+                    {{ form.starttime(class='form-control') }} {{ form.hidden_tag() }}
+                    <small>
+                    </small>
+                </div>
 
-                    <div class="col-md-4 mb-15">
-                        {{ form.endtime.label(class='form-control-label', for='endtime') }}
-                        {{ form.endtime(class='form-control') }} {{ form.hidden_tag() }}
-                        <small>
-                        </small>
-                    </div>
+                <div class="col-md-4 mb-15">
+                    {{ form.endtime.label(class='form-control-label', for='endtime') }}
+                    {{ form.endtime(class='form-control') }} {{ form.hidden_tag() }}
+                    <small>
+                    </small>
+                </div>
 
 
-
-                    <div class="col-md-6 mb-15">
-                        {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
-                        {{form.selectfield(class='form-control',onchange='showDiv(this)')}} {{form.hidden_tag()}}
-                    </div>
-                    <div class="col-md-6 mb-15" id="field_num" style="display:none">
-                        {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
-                        {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
-                    </div>
+                <div class="col-md-6 mb-15">
+                    {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
+                    {{form.selectfield(class='form-control',onchange='showDiv(this)')}} {{form.hidden_tag()}}
+                </div>
+                <div class="col-md-6 mb-15" id="field_num" style="display:none">
+                    {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
+                    {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
+                </div>
 
 
                 <div class="form-group mb-15">
@@ -77,20 +92,20 @@
         </form>
     </div>
     {% if user %}
-<div>
-    <p class="mynav">Naposledy přihlášen:</p>
-    <ul class="nav navbar-nav">
-    {% for worker in worker_list%}
-        <li>
-        <p>
-        {{ worker['name'] }} {{ worker['date'] }}
-        <span class="badge">{{ worker['count'] }}</span>
-        </p>
-        </li>
-        {% endfor %}
-</ul>
-</div>
-{% endif %}
+    <div>
+        <p class="mynav">Naposledy přihlášen:</p>
+        <ul class="nav navbar-nav">
+            {% for worker in worker_list%}
+            <li>
+                <p>
+                    {{ worker['name'] }} {{ worker['the_date'] }}
+                    <span class="badge">{{ worker['entrance_count'] }}</span>
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

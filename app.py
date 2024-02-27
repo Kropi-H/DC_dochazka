@@ -59,7 +59,7 @@ def open_statistics_json_file():
 def get_user_login_list():
     try:
         lines_list = []
-        f = open('static/login_test.csv', 'r', encoding='utf-8')
+        f = open('static/login.csv', 'r', encoding='utf-8')
         for line in f.readlines():
             hodnoty = line.strip().split(';')
             lines_list.append(hodnoty)
@@ -79,48 +79,38 @@ def get_current_user():
 
 def user_records(user):
     user_records_list = []
-    user_list = get_user_login_list()
-    result = []
+    user_list = read_csv('static/login.csv')
     # Vytvořte slovník pro uchování počtu výskytů jmen a seznamu dat
     count_dict = {}
-    date_dict = {}
 
     # Projděte vnořený list a aktualizujte slovníky
     for item in user_list:
-        name, the_date = item[0], item[1]
-
-        if name in count_dict:
-            count_dict[name] += 1
-        else:
-            count_dict[name] = 1
-
-        if name in date_dict:
-            date_dict[name].append(the_date)
-        else:
-            date_dict[name] = [the_date]
+        name, the_date, entrance_count, info_count = item[0], item[1], item[2], item[3]
+        count_dict[name] = name
+        count_dict[the_date] = the_date
+        count_dict[entrance_count] = entrance_count
+        count_dict[info_count]=info_count
 
     # Případ 1: Seznam všech jmen s předposledními daty a počtem výskytů
     if user['role'] == 3:
-        result_1 = []
-        for name, count in count_dict.items():
-            dates = date_dict[name]
-            if count >= 1:
-                second_last_date = dates[-2] if len(dates) >= 2 else dates[-1]
-                result_1.append((name, second_last_date, count))
-
-        for name, second_last_date, count in result_1:
-            user_records_list.append(dict({'name': name, 'date': second_last_date, 'count': count}))
+        for value in user_list:
+            name = value[0]
+            the_date = value[1]
+            entrance_count = value[2]
+            info_count = value[3]
+            user_records_list.append(dict({'name':name, 'the_date':the_date, 'entrance_count':entrance_count, 'info_count':int(info_count)}))
 
 
     # Případ 2: Získání předposledního data a počtu výskytů pro konkrétní jméno
     elif user['role'] != 3:
         target_name = user['user']  # Změňte na požadované jméno
-        if target_name in count_dict:
-           dates = date_dict[target_name]
-           count = count_dict[target_name]
-           second_last_date = dates[-2] if len(dates) >= 2 else dates[-1]
-           user_records_list.append(dict({'name':target_name, 'date':second_last_date, 'count':count}))
-
+        for value in user_list:
+            if target_name == value[0]:
+                name = value[0]
+                the_date = value[1]
+                entrance_count = value[2]
+                info_count = value[3]
+                user_records_list.append(dict({'name':name, 'the_date':the_date, 'entrance_count':entrance_count, 'info_count':int(info_count)}))
 
     return user_records_list
 
@@ -129,6 +119,33 @@ def inject_globals():
     return dict({
         'current_month': f'{datetime.today().month:02d}'
     })
+
+def read_csv(file_path):
+    data = []
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+        for row in reader:
+            data.append(row)
+    return data
+
+def write_csv(file_path, data):
+    with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile, delimiter=';')
+        writer.writerows(data)
+
+def find_and_update_or_append(data, name):
+    current_datetime = datetime.now().strftime("%d.%m.%Y/%H:%M")
+    found = False
+
+    for i, row in enumerate(data):
+        if len(row) >= 4 and row[0] == name:
+            info_count = int(row[3])-1 if int(row[3]) > 0 else 0
+            data[i] = [name, current_datetime, str(int(row[2]) + 1), str(info_count)]
+            found = True
+            break
+
+    if not found:
+        data.append([name, current_datetime, '1', '3'])
 
 
 @app.route('/', methods=['GET','POST'])
@@ -155,28 +172,20 @@ def index():
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
+                # CSV path
+                file_path = 'static/login.csv'
+                # Read CSV file
+                csv_data = read_csv(file_path)
+                # Najděte a aktualizujte nebo přidejte záznam
+                find_and_update_or_append(csv_data, row_data[4])
+                # Write into CSV file
+                write_csv(file_path, csv_data)
                 if session['role'] == 5:
                     return redirect(url_for('contracts'))
                 elif session['role'] == 4:
-                    try:
-                        f = open('static/login_test.csv', 'a', encoding='utf-8')
-                        f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
-                        f.close()
-                        return redirect(url_for('attendance_all'))
-                    except:
-                        return False
-                    finally:
-                        f.close()
+                    return redirect(url_for('attendance_all'))
                 else:
-                    try:
-                        f = open('static/login.csv', 'a', encoding='utf-8')
-                        f.write(f"{row_data[4]};{datetime.now(pytz.timezone('Europe/Prague')).strftime('%d.%m.%Y/%H:%M')}\n")
-                        f.close()
-                        return redirect(url_for('attendance_individual'))
-                    except:
-                        return False
-                    finally:
-                        f.close()
+                    return redirect(url_for('attendance_individual'))
 
             else:
                 warning['login'] = 'Heslo je špatné'
@@ -1121,6 +1130,7 @@ def statistics(selected_month):
     return render_template('statistics.html',
                            page_title = 'Statistics',
                            statistic_data= existing_data,
+                           worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
                            choose_month = f'{currentYear}-{selected_month}',
