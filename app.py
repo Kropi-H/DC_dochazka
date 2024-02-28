@@ -370,7 +370,7 @@ def work_time_count(starttime,endtime): # Function for calculate working time
     if time_result > work_time:
         over_work_time = time_result-work_time
     else:
-        over_work_time = ''
+        over_work_time = ""
 
     return ':'.join(str(time_result).split(':')[:2]), ':'.join(str(over_work_time).split(':')[:2])
 
@@ -402,23 +402,24 @@ def save_user_data_to_google_sheet(user,
     date_row = current_date.row # Current day row
 
     cell_range = f'B{date_row}:V{date_row}' # Cell range as string
-    if starttime != "": attendece_sheet.update(f'B{date_row}',str(starttime))
-    if endtime != "": attendece_sheet.update(f'C{date_row}',str(endtime))
-    if time_result != "": attendece_sheet.update(f'D{date_row}',str(time_result))
-    if over_work_time != "": attendece_sheet.update(f'E{date_row}',str(over_work_time))
-    if selectfield != "": attendece_sheet.update(f'F{date_row}',selectfield)
-    if numberfield != "": attendece_sheet.update(f'G{date_row}',numberfield)
-    if textfield != "": attendece_sheet.update(f'H{date_row}',textfield)
-    if vybrane_prescasy != "": attendece_sheet.update(f'M{date_row}',vybrane_prescasy)
-    if proplacene_prescasy != "": attendece_sheet.update(f'N{date_row}',proplacene_prescasy)
-    if vybrana_dovolena != "": attendece_sheet.update(f'O{date_row}',vybrana_dovolena)
-    if nemoc_lekar != "": attendece_sheet.update(f'P{date_row}',nemoc_lekar)
-    if neplacene_volno != "": attendece_sheet.update(f'Q{date_row}',neplacene_volno)
-    if placene_volno_krev != "": attendece_sheet.update(f'R{date_row}',placene_volno_krev)
-    if svatek != "": attendece_sheet.update(f'S{date_row}',svatek)
-    if prekazka != "": attendece_sheet.update(f'T{date_row}',prekazka)
-    if doprovod_k_lekari != "": attendece_sheet.update(f'U{date_row}',doprovod_k_lekari)
-    if pohreb != "": attendece_sheet.update(f'V{date_row}',pohreb)
+
+    if starttime != "": attendece_sheet.update(f'B{date_row}',starttime,value_input_option='USER_ENTERED')
+    if endtime != "": attendece_sheet.update(f'C{date_row}',endtime,value_input_option='USER_ENTERED')
+    if time_result != "": attendece_sheet.update(f'D{date_row}',time_result,value_input_option='USER_ENTERED')
+    if over_work_time != "": attendece_sheet.update(f'E{date_row}',over_work_time,value_input_option='USER_ENTERED')
+    if selectfield != "": attendece_sheet.update(f'F{date_row}',selectfield,value_input_option='USER_ENTERED')
+    if numberfield != "": attendece_sheet.update(f'G{date_row}',numberfield,value_input_option='USER_ENTERED')
+    if textfield != "": attendece_sheet.update(f'H{date_row}',textfield,value_input_option='USER_ENTERED')
+    if vybrane_prescasy != "": attendece_sheet.update(f'M{date_row}',vybrane_prescasy,value_input_option='USER_ENTERED')
+    if proplacene_prescasy != "": attendece_sheet.update(f'N{date_row}',proplacene_prescasy,value_input_option='USER_ENTERED')
+    if vybrana_dovolena != "": attendece_sheet.update(f'O{date_row}',vybrana_dovolena,value_input_option='USER_ENTERED')
+    if nemoc_lekar != "": attendece_sheet.update(f'P{date_row}',nemoc_lekar,value_input_option='USER_ENTERED')
+    if neplacene_volno != "": attendece_sheet.update(f'Q{date_row}',neplacene_volno,value_input_option='USER_ENTERED')
+    if placene_volno_krev != "": attendece_sheet.update(f'R{date_row}',placene_volno_krev,value_input_option='USER_ENTERED')
+    if svatek != "": attendece_sheet.update(f'S{date_row}',svatek,value_input_option='USER_ENTERED')
+    if prekazka != "": attendece_sheet.update(f'T{date_row}',prekazka,value_input_option='USER_ENTERED')
+    if doprovod_k_lekari != "": attendece_sheet.update(f'U{date_row}',doprovod_k_lekari,value_input_option='USER_ENTERED')
+    if pohreb != "": attendece_sheet.update(f'V{date_row}',pohreb,value_input_option='USER_ENTERED')
 
 
 @app.route('/attendance_individual', methods=['GET', 'POST'])
@@ -1332,32 +1333,33 @@ def set_attendance():
                                        return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari),
                                        return_non_empty_field(pohreb_bool,pohreb)
                                        )
-        return render_template('attendance.html',
-                           user = user['user'],
-                           role = int(user['role']),
-                           attendance_form = attendance_form,
-                           list_of_workers=worker_list
-                           )
-        #return f'<ul>' \
-        #       f'<li>{workers_result=}</li>' \
-        #       f'<li>{datum=}</li> ' \
-        #       f'<li>{time_result}</li> ' \
-        #       f'<li>{over_work_time}</li> ' \
-        #       f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
-        #       f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
-        #       f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
-        #       f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
-        #       f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
-        #       f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
-        #       f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
-        #       f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
-        #       f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
-        #       f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
-        #       f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
-        #       f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
-        #       f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
-        #       f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
-        #       f'</ul>'
+        #return render_template('attendance.html',
+        #                   user = user['user'],
+        #                   role = int(user['role']),
+        #                   attendance_form = attendance_form,
+        #                   list_of_workers=worker_list
+        #                   )
+
+        return f'<ul>' \
+               f'<li>{workers_result=}</li>' \
+               f'<li>{datum=}</li> ' \
+               f'<li>{time_result}</li> ' \
+               f'<li>{over_work_time}</li> ' \
+               f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
+               f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
+               f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
+               f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
+               f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
+               f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
+               f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
+               f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
+               f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
+               f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
+               f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
+               f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
+               f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
+               f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
+               f'</ul>'
         #return redirect(url_for('set_attendance'))
 
 
