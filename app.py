@@ -1333,33 +1333,33 @@ def set_attendance():
                                        return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari),
                                        return_non_empty_field(pohreb_bool,pohreb)
                                        )
-        #return render_template('attendance.html',
-        #                   user = user['user'],
-        #                   role = int(user['role']),
-        #                   attendance_form = attendance_form,
-        #                   list_of_workers=worker_list
-        #                   )
+        return render_template('attendance.html',
+                           user = user['user'],
+                           role = int(user['role']),
+                           attendance_form = attendance_form,
+                           list_of_workers=worker_list
+                           )
 
-        return f'<ul>' \
-               f'<li>{workers_result=}</li>' \
-               f'<li>{datum=}</li> ' \
-               f'<li>{time_result}</li> ' \
-               f'<li>{over_work_time}</li> ' \
-               f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
-               f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
-               f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
-               f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
-               f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
-               f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
-               f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
-               f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
-               f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
-               f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
-               f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
-               f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
-               f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
-               f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
-               f'</ul>'
+        #return f'<ul>' \
+        #       f'<li>{workers_result=}</li>' \
+        #       f'<li>{datum=}</li> ' \
+        #       f'<li>{time_result}</li> ' \
+        #       f'<li>{over_work_time}</li> ' \
+        #       f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
+        #       f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
+        #       f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
+        #       f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
+        #       f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
+        #       f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
+        #       f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
+        #       f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
+        #       f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
+        #       f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
+        #       f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
+        #       f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
+        #       f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
+        #       f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
+        #       f'</ul>'
         #return redirect(url_for('set_attendance'))
 
 
