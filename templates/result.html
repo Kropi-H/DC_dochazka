@@ -6,10 +6,19 @@
     <article >
         <div style="display:flex; justify-content:center">
 
-            <h1> {{ user }}</h1>
+            <h1> {{ result }}</h1>
 
         </div>
     </article>
 </div>
+<script>
+     window.setTimeout(function(){
+
+       // Move to a new location after 3 secs
+       window.location.href = "/set_attendance";
+
+       }, 10000);
+
+ </script>
 
 {% endblock %}

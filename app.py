@@ -406,7 +406,7 @@ def save_user_data_to_google_sheet(user,
     if starttime != "": attendece_sheet.update(f'B{date_row}',starttime,value_input_option='USER_ENTERED')
     if endtime != "": attendece_sheet.update(f'C{date_row}',endtime,value_input_option='USER_ENTERED')
     if time_result != "": attendece_sheet.update(f'D{date_row}',time_result,value_input_option='USER_ENTERED')
-    if over_work_time != "": attendece_sheet.update(f'E{date_row}',over_work_time,value_input_option='USER_ENTERED')
+    if time_result != "": attendece_sheet.update(f'E{date_row}',over_work_time,value_input_option='USER_ENTERED')
     if selectfield != "": attendece_sheet.update(f'F{date_row}',selectfield,value_input_option='USER_ENTERED')
     if numberfield != "": attendece_sheet.update(f'G{date_row}',numberfield,value_input_option='USER_ENTERED')
     if textfield != "": attendece_sheet.update(f'H{date_row}',textfield,value_input_option='USER_ENTERED')
@@ -1313,32 +1313,58 @@ def set_attendance():
                 return str("")
 
         time_result, over_work_time = work_time_count(return_non_empty_field(prace_bool,prace_od),return_non_empty_field(prace_bool,prace_do))
-        save_user_data_to_google_sheet(workers_result,
-                                       datum,
-                                       return_non_empty_field(prace_bool,prace_od),
-                                       return_non_empty_field(prace_bool,prace_do),
-                                       time_result,
-                                       over_work_time,
-                                       cinnost,
-                                       return_non_empty_field(str(""),pocet_cinnosti),
-                                       return_non_empty_field(textfield,textfield),
-                                       return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy),
-                                       return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy),
-                                       return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena),
-                                       return_non_empty_field(nemoc_lekar_bool,nemoc_lekar),
-                                       return_non_empty_field(neplacene_volno_bool,neplacene_volno),
-                                       return_non_empty_field(placene_volno_krev_bool,placene_volno_krev),
-                                       return_non_empty_field(svatek_bool,svatek),
-                                       return_non_empty_field(prekazka_bool,prekazka),
-                                       return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari),
-                                       return_non_empty_field(pohreb_bool,pohreb)
-                                       )
-        return render_template('attendance.html',
-                           user = user['user'],
-                           role = int(user['role']),
-                           attendance_form = attendance_form,
-                           list_of_workers=worker_list
-                           )
+
+        if workers_result:
+            save_user_data_to_google_sheet(workers_result,
+                                           datum,
+                                           return_non_empty_field(prace_bool,prace_od),
+                                           return_non_empty_field(prace_bool,prace_do),
+                                           time_result if time_result != "0:00" else str(""),
+                                           over_work_time,
+                                           cinnost,
+                                           return_non_empty_field(str(""),pocet_cinnosti),
+                                           return_non_empty_field(textfield,textfield),
+                                           return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy),
+                                           return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy),
+                                           return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena),
+                                           return_non_empty_field(nemoc_lekar_bool,nemoc_lekar),
+                                           return_non_empty_field(neplacene_volno_bool,neplacene_volno),
+                                           return_non_empty_field(placene_volno_krev_bool,placene_volno_krev),
+                                           return_non_empty_field(svatek_bool,svatek),
+                                           return_non_empty_field(prekazka_bool,prekazka),
+                                           return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari),
+                                           return_non_empty_field(pohreb_bool,pohreb)
+                                           )
+            return render_template('result.html',
+                result = f'{workers_result}' \
+                        f' {datum} ' \
+                        f' {f" Od: {return_non_empty_field(prace_bool,prace_od)}" if return_non_empty_field(prace_bool,prace_od) else ""}' \
+                        f' {f" Do: {return_non_empty_field(prace_bool,prace_do)}" if return_non_empty_field(prace_bool,prace_do) else ""}' \
+                        f' {f" Celkem: {time_result}" if time_result != "0:00" else ""}' \
+                        f' {f" Přesčas: {over_work_time}" if over_work_time else ""}' \
+                        f' {f" Metry/Olepeno: {return_non_empty_field(cinnost,pocet_cinnosti)}" if return_non_empty_field(cinnost,pocet_cinnosti) else ""}' \
+                        f' {f" Dovolená: {return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}" if return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena) else ""}' \
+                        f' {f" Vybrané Přesčasy: {return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}" if return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy) else ""}' \
+                        f' {f" Nemoc/Lékař: {return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}" if return_non_empty_field(nemoc_lekar_bool,nemoc_lekar) else ""}' \
+                        f' {f" Neplacené volno: {return_non_empty_field(neplacene_volno_bool,neplacene_volno)}" if return_non_empty_field(neplacene_volno_bool,neplacene_volno) else ""}' \
+                        f' {f" Placené volno/krev: {return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}" if return_non_empty_field(placene_volno_krev_bool,placene_volno_krev) else ""}' \
+                        f' {f" Svátek: {return_non_empty_field(svatek_bool,svatek)}" if return_non_empty_field(svatek_bool,svatek) else ""}' \
+                        f' {f" Překážka: {return_non_empty_field(prekazka_bool,prekazka)}" if return_non_empty_field(prekazka_bool,prekazka) else ""}' \
+                        f' {f" Doprovod: {return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}" if return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari) else ""}' \
+                        f' {f" Pohřeb: {return_non_empty_field(pohreb_bool,pohreb)}" if return_non_empty_field(pohreb_bool,pohreb) else ""}' \
+                        f' {f" Proplacené přesčasy: {return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}" if return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy) else ""}' \
+                        f' {f" Poznámka: {return_non_empty_field(textfield,textfield)}" if return_non_empty_field(textfield,textfield) else ""}')
+
+
+        else:
+            return render_template('result.html',
+                                   result = f'Je potřeba vybrat jednoho zaměstnance')
+        #return render_template('attendance.html',
+        #                   user = user['user'],
+        #                   role = int(user['role']),
+        #                   attendance_form = attendance_form,
+        #                   list_of_workers=worker_list
+        #                   )
 
         #return f'<ul>' \
         #       f'<li>{workers_result=}</li>' \
