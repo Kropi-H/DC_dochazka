@@ -1,0 +1,17 @@
+    {% if user %}
+    <div style="float:left">
+        <p class="mynav">Naposledy přihlášen:</p>
+        <ul class="nav navbar-nav">
+            {% for worker in worker_list%}
+            {% if worker['name'] != 'Kropáček' %}
+            <li>
+                <p>
+                    {{ worker['name'] }} {{ worker['the_date'] }}
+                    <span class="badge">{{ worker['entrance_count'] }}</span>
+                </p>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}

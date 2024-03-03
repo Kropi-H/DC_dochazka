@@ -16,6 +16,8 @@ import calendar
 import csv
 import math
 import re
+import threading
+import time as time_module
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -374,6 +376,11 @@ def work_time_count(starttime,endtime): # Function for calculate working time
 
     return ':'.join(str(time_result).split(':')[:2]), ':'.join(str(over_work_time).split(':')[:2])
 
+# Find current day in google sheet
+def find_current_date_in_google_worker_sheet(user, works_sheet_table):
+    attendence_tab = client.open_by_key(tables.workers_table[works_sheet_table]) # Access to google sheets
+    return attendence_tab.worksheet(user) # Chose current user sheet
+
 # Function for saving data to google sheet
 def save_user_data_to_google_sheet(user,
                                    startdate,
@@ -396,8 +403,7 @@ def save_user_data_to_google_sheet(user,
                                    pohreb=None):
 
     # Save user data to Google Sheet
-    attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-    attendece_sheet = attendence_tab.worksheet(user) # Chose current user sheet
+    attendece_sheet = find_current_date_in_google_worker_sheet(user, 'workers')
     current_date = attendece_sheet.find(startdate) # Find current day cell
     date_row = current_date.row # Current day row
 
@@ -495,12 +501,11 @@ def attendance_overview(select_month):
         currentMonth = select_month
         currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
 
-        attendence_tab = client.open_by_key(tables.workers_table['workers']) # Access to google sheets
-        attendece_sheet = attendence_tab.worksheet(user['user']) # Chose current user sheet
+        attendece_sheet = find_current_date_in_google_worker_sheet(user['user'], 'workers')
 
         current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
-
         date_row = current_date.row # Current day row
+
         row_value = attendece_sheet.row_values(current_date.row)
         current_table_range = f'A{date_row}:V{(date_row+currentMonthRange)-1}'
         months_values = attendece_sheet.batch_get((current_table_range,))
@@ -1335,6 +1340,12 @@ def set_attendance():
                                            return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari),
                                            return_non_empty_field(pohreb_bool,pohreb)
                                            )
+            def print_time_function():
+                pass # Function, that will run after render_template
+
+            thread = threading.Thread(target=print_time_function())
+            thread.start()
+
             return render_template('result.html',
                 result = f'{workers_result}' \
                         f' {datum} ' \
@@ -1354,7 +1365,6 @@ def set_attendance():
                         f' {f" Pohřeb: {return_non_empty_field(pohreb_bool,pohreb)}" if return_non_empty_field(pohreb_bool,pohreb) else ""}' \
                         f' {f" Proplacené přesčasy: {return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}" if return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy) else ""}' \
                         f' {f" Poznámka: {return_non_empty_field(textfield,textfield)}" if return_non_empty_field(textfield,textfield) else ""}')
-
 
         else:
             return render_template('result.html',

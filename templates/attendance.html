@@ -169,21 +169,6 @@
 
         </form>
     </div>
-    {% if user %}
-    <div>
-        <p class="mynav">Naposledy přihlášen:</p>
-        <ul class="nav navbar-nav">
-            {% for worker in worker_list%}
-            <li>
-                <p>
-                    {{ worker['name'] }} {{ worker['the_date'] }}
-                    <span class="badge">{{ worker['entrance_count'] }}</span>
-                </p>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
 </div>
 
 {% endblock %}
