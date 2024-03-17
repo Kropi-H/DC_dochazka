@@ -957,6 +957,35 @@ def save_contracts(contracts, filename):
                              contract['date'],
                              contract['finished']])
 
+def count_glue_cut_values(contracts):
+    cut_count = 0
+    glue_count = 0
+    for contract in contracts:
+            if contract['finished'] == 0:
+                if contract['cut_value'].isnumeric() and contract['cut_logic'] == 'True':
+                    cut_count += int(contract['cut_value'])
+                if contract['glue_value'].isnumeric() and contract['glue_logic'] == 'True':
+                    glue_count += int(contract['glue_value'])
+    return cut_count, glue_count
+
+def count_contract_day_diff(contracts):
+    for contract in contracts:
+        date_today = datetime.today()
+        datum_start = datetime.strptime(contract['date_create'], '%d.%m.%Y')
+        datum_end = datetime.strptime(contract['date'], '%d.%m.%Y')
+        rozdil_celkem = (datum_end - datum_start).days
+        rozdil_aktualni = (date_today - datum_start).days
+        rozdil = rozdil_celkem - rozdil_aktualni
+        #try:
+        #    procenta_uplynulo = (rozdil_aktualni / rozdil_celkem) * 100
+        #except ZeroDivisionError:
+        #    procenta_uplynulo = 100
+        contract['diff'] = rozdil  # Přidejte rozdíl v dnech (můžete použít jinou jednotku podle potřeby)
+        #contract['percent'] = f'{procenta_uplynulo:.2f}'
+        contract['date_create']=contract['date_create']
+        contract['date']=contract['date']
+    return contracts
+
 @app.route('/contracts', methods=['POST','GET'])
 def contracts():
     user = get_current_user()
@@ -968,37 +997,15 @@ def contracts():
     if request.method == 'GET':
         contracts = load_contracts('contracts.csv')
         completed_contracts = load_contracts('archived_contracts.csv')
-        cut_count = 0
-        glue_count = 0
-
-        for contract in contracts:
-            if contract['finished'] == 0:
-                if contract['cut_value'].isnumeric() and contract['cut_logic'] == 'True':
-                    cut_count += int(contract['cut_value'])
-                if contract['glue_value'].isnumeric() and contract['glue_logic'] == 'True':
-                    glue_count += int(contract['glue_value'])
-            date_today = datetime.today()
-            datum_start = datetime.strptime(contract['date_create'], '%d.%m.%Y')
-            datum_end = datetime.strptime(contract['date'], '%d.%m.%Y')
-            rozdil_celkem = (datum_end - datum_start).days
-            rozdil_aktualni = (date_today - datum_start).days
-            rozdil = rozdil_celkem - rozdil_aktualni
-            try:
-                procenta_uplynulo = (rozdil_aktualni / rozdil_celkem) * 100
-            except ZeroDivisionError:
-                procenta_uplynulo = 100
-            contract['diff'] = rozdil  # Přidejte rozdíl v dnech (můžete použít jinou jednotku podle potřeby)
-            contract['percent'] = f'{procenta_uplynulo:.2f}'
-            contract['date_create']=contract['date_create'][:-4]
-            contract['date']=contract['date'][:-4]
 
         return render_template('contracts.html',
-                               contracts=contracts,
+                               contracts=count_contract_day_diff(contracts),
                                completed_contracts=completed_contracts,
-                               cut_count=cut_count,
-                               glue_count=glue_count,
+                               cut_count=count_glue_cut_values(contracts)[0],
+                               glue_count=count_glue_cut_values(contracts)[1],
                                page_title='Zakázky',
                                form=form,
+                               worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']),
                                contract_id=load_id(),
@@ -1024,10 +1031,11 @@ def add_contract():
         contract_date = form.customer_date_finish.data.strftime('%d.%m.%Y')
 
         if customer_name:
-            new_contracts = load_contracts('contracts.csv')
+            contracts = load_contracts('contracts.csv')
             new_id = int(load_id()[-1])+1
             set_id(new_id)
-            new_contracts.append(dict({'id': new_id,
+            new_contracts = count_contract_day_diff(contracts)
+            new_contract = dict({'id': new_id,
                                        'contract': customer_name,
                                        'note': customer_note,
                                        'cut_logic': contract_cut,
@@ -1036,7 +1044,12 @@ def add_contract():
                                        'glue_value': 0,
                                        'date_create': datetime.today().strftime('%d.%m.%Y'),
                                        'date': contract_date,
-                                       'finished': 0}))
+                                       'finished': 0})
+            if new_contracts[0]['diff'] < new_contracts[-1]['diff']:
+                new_contracts.append(new_contract)
+            elif new_contracts[0]['diff'] > new_contracts[-1]['diff']:
+                new_contracts.insert(0, new_contract)
+
             save_contracts(new_contracts, 'contracts.csv')
             return redirect('/contracts')
 
@@ -1406,6 +1419,32 @@ def set_attendance():
                            attendance_form = attendance_form,
                            list_of_workers=worker_list
                            )
+
+@app.route('/sort', methods=['GET'])
+def sort():
+    contracts = load_contracts('contracts.csv')
+    sorted_contract_data = []
+
+    def diff_days(dictionary):
+        today = datetime.today().date()
+        date_str = dictionary['date']
+        date_obj = datetime.strptime(date_str, '%d.%m.%Y').date()
+        return (date_obj - today).days
+    sorted_data = sorted(contracts, key=diff_days)
+
+    # Výpis seřazených slovníků
+    for d in sorted_data:
+        sorted_contract_data.append(d)
+
+    save_contracts(sorted_contract_data, 'contracts.csv')
+    return redirect('/contracts')
+
+@app.route('/reverse', methods=['GET'])
+def reverse():
+    contracts = load_contracts('contracts.csv')
+    reverse_contracts=contracts[::-1]
+    save_contracts(reverse_contracts, 'contracts.csv')
+    return redirect('/contracts')
 
 if __name__=='__main__':
     app.run(debug=True)

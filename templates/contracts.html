@@ -1,14 +1,21 @@
 {% extends 'base.html' %}
 {% block body %}
 
+
 <div class="container">
     <div class="panel panel-default">
+        {% for worker_item in worker_list %}
+        {% if user == worker_item['name'] and worker_item['info_count'] > 0 %}
+
+        {% include 'contracts_modal.html' %}
+
+        {% endif %}
+        {% endfor %}
         <!-- Default panel contents -->
         <div class="panel-heading">
             <ul>
                 <li>
-                    <button type="button" onclick="location.reload()" class="close glyphicon glyphicon-refresh"
-                            aria-label="Close"></button>
+                    <button type="button" onclick="location.reload()" class="close glyphicon glyphicon-refresh" aria-label="Close"></button>
                 </li>
                 <li>
                     <h3>Seznam zakázek</h3>
@@ -67,7 +74,17 @@
                             </div><!-- /input-group -->
                         </div><!-- /.col-lg-6 -->
                     </th>
-                    <th>Zbývá</th>
+                    <th>
+                        Zbývá
+                        {% if role == 3 %}
+                        <button type="button" onclick="sortContracts()" class="glyphicon glyphicon glyphicon-signal" aria-label="Close"></button>
+                        {% if contracts[0]['diff'] < contracts[-1]['diff'] %}
+                        <button type="button" onclick="reverseContracts()" class="glyphicon glyphicon glyphicon-menu-up" aria-label="Close"></button>
+                        {% else %}
+                        <button type="button" onclick="reverseContracts()" class="glyphicon glyphicon glyphicon-menu-down" aria-label="Close"></button>
+                        {% endif %}
+                        {% endif %}
+                    </th>
                     <th>
                         {{ form.customer_date_finish.label(class='form-control-label', for='customer_date_finish')
                         }}
@@ -152,7 +169,7 @@
                 <td>
                     <p>( {{contract['diff'] }} )</p>
                 </td>
-                <td>{{ contract['date_create'] }} / {{ contract['date'] }}
+                <td>{{ contract['date_create'][:-4] }} / {{ contract['date'][:-4] }}
                 </td>
                 <td>{% if not contract['finished'] %}
                     <button class="btn btn-danger btn-sm glyphicon glyphicon-remove"

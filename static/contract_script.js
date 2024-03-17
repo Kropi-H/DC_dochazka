@@ -71,6 +71,16 @@
         
     }
 
+ function sortContracts(){
+    $.get(`/sort`)
+    location.reload()
+ }
+
+  function reverseContracts(){
+    $.get(`/reverse`)
+    location.reload()
+ }
+
  function myFunction() {
   var input, filter, table, tr, a, i, archive;
   input = document.getElementById("contractSearch");
@@ -99,9 +109,6 @@
 
 }
 
-$( function() {
-  $( "#task-list" ).sortable();
-});
 
 Sortable.create(listWithHandle, {
   handle: '#move',
