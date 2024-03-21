@@ -120,10 +120,10 @@
                         {% if contract['cut_logic'] == 'True' and contract['cut_value'] == '0' %}
                         <div class="input-group">
                             <input type="number" name="cut_value" class="form-control" placeholder="Formátování">
-                            <span class="input-group-btn">
-                                <button class="btn btn-info btn-sm" type="button"
+                            <span class="input-group-btn"></span>
+                                <button class="btn btn-info btn-sm" style="float:left" type="button"
                                         onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
-                                </span>
+
                         </div><!-- /input-group -->
                         {% elif contract['cut_logic'] == 'False' and contract['cut_value'] != '0' %}
                         <p style="text-decoration: line-through;"><span>{{ contract['cut_value'] }}</span> nařezáno</p>
@@ -145,10 +145,10 @@
                         {% if contract['glue_logic'] == 'True' and contract['glue_value'] == '0' %}
                         <div class="input-group">
                             <input type="number" name="glue_value" class="form-control" placeholder="Hranění">
-                            <span class="input-group-btn">
-                            <button class="btn btn-info btn-sm" type="button"
+                            <span class="input-group-btn"></span>
+                            <button class="btn btn-info btn-sm" style="float:left" type="button"
                                     onclick="setFunction({{ loop.index0 }}, this)">Nastav</button>
-                          </span>
+
                         </div><!-- /input-group -->
                         {% elif contract['glue_logic'] == 'False' and contract['glue_value'] != '0' %}
                         <p style="text-decoration: line-through;"><span>{{ contract['glue_value'] }}</span> ohraněno</p>
@@ -156,8 +156,8 @@
                         <p><span></span>Bez hranění</p>
                         {% else %}
                         <p>
-                            <button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3
-                                    %}onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span
+                            <button name="glue_logic" class="btn btn-danger btn-sm" type="button" {% if role== 3 %}
+                                    onclick="clearFunction({{ loop.index0 }}, this)" {% endif %}><span
                                     class="badge">{{ contract['glue_value'] }}</span>
                                 metrů ohranit
                             </button>

@@ -18,12 +18,12 @@
 
 
         if (note.firstChild == null){
-            noteValue = ""
+            noteValue = " "
         } else {
             noteValue = note.firstChild.data
         }
 
-        if (cut.getElementsByTagName("span")[0].innerHTML === 0){
+        if (cut.getElementsByTagName("span")[0].innerHTML === "" ){
             cutValue = "0"
         } else {
             cutValue = cut.getElementsByTagName("span")[0].innerHTML
@@ -33,6 +33,10 @@
             glueValue = "0"
         }else{
             glueValue = glue.getElementsByTagName("span")[0].innerHTML
+        }
+
+        if (note == ""){
+            note = " "
         }
 
 
@@ -122,7 +126,7 @@ Sortable.create(listWithHandle, {
         }
 
         function setFunction(contractIndex, button) {
-            var inputField = button.parentNode.previousElementSibling;
+            var inputField = button.parentElement.firstElementChild;
             var inputValue = inputField.value;
             var inputName = inputField.name;
             $.get(`/set_value/${contractIndex}/${inputValue}/${inputName}`, function() {
