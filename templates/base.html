@@ -14,10 +14,10 @@
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js"></script>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
-    <link href="{{ url_for('static', filename = 'theme.css' )}}" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'theme.css' )}}" rel="stylesheet" media='print,screen'>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static',filename='images/dcprofi.ico' )}}">
     <!--<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" media='print,screen'>
     <script src=" https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js "></script>
     <link href="{{ url_for('static', filename = 'theme_zakazky.css' )}}" rel="stylesheet">
 </head>
@@ -42,7 +42,7 @@
                 {% if user and role < 4 %}
                 <li class=""><a href="{{ url_for('attendance_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a>
                 </li>
-                <li class=""><a href="{{ url_for('attendance_overview', select_month=current_month)  }}">Přehled {{ user
+                <li class=""><a href="{{ url_for('attendance_overview', pass_date=current_month)  }}">Přehled {{ user
                     }}<span class="sr-only">
                 </span></a></li>
                 {% endif %}
@@ -51,7 +51,6 @@
                 <li><a href="{{ url_for('statistics',selected_month=current_month) }}">Evidence docházky</a></li>
                 {% endif %}
                 {% if user and role==3 %}
-                <li><a href="{{ url_for('set_attendance') }}">Doplnění docházky</a></li>
                 <li><a href="{{ url_for('register_new_user') }}">Nová registrace</a></li>
                 <li><a href="{{ url_for('change_password') }}">Změna hesla</a></li>
                 {% endif %}

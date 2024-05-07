@@ -4,171 +4,22 @@
 {% block body %}
 
 <div class="container">
-    <div class="py-5 text-center">
-
-        <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
-              action="{{ url_for('set_attendance') }}" method='POST'>
 
             <div class="" style="display:flex; justify-content:center">
-                <h1>Doplnění docházky</h1>
+                <h3>Přehled {{ name }} {{ month_name }} {{ datum }}</h3>
             </div>
-            <div class="row">
-
-                {{ attendance_form.csrt_token }}
-                {{ attendance_form.hidden_tag() }}
-
-                <div class="col-md-12">
-                    {% for name in list_of_workers %}
-                    <span class="worker_checkbox">{{ name }} <input type="checkbox" value={{ name }}
-                                                                    name="worker"></span>
-                    {% endfor %}
-                </div>
-                <div class="col-md-offset-3 col-md-6 mb-15 " style="margin-bottom:15px">
-
-                    {% if attendance_form.datum.errors %}
-                    {% for error in attendance_form.datum.errors %}
-                    <label class="control-label" for="startdate">{{ error }}</label>
-                    {% endfor %}
-                    {% else %}
-                    {{ attendance_form.datum.label(class='form-control-label', for='startdate') }}
-                    {% endif %}
-                    {{attendance_form.datum(class='form-control', id='startdate')}} {{attendance_form.hidden_tag()}}
-
-                </div>
-                <div class="col-md-4 mb-15" style="clear:both">
-                    {% if attendance_form.prace_od.errors %}
-                    {% for error in attendance_form.prace_od.errors %}
-                    <label class="control-label" for="prace_od">{{ error }}</label>
-                    {% endfor %}
-                    {% endif %}
-                    {% if attendance_form.prace_do.errors %}
-                    {% for error in attendance_form.prace_do.errors %}
-                    <label class="control-label" for="prace_do">{{ error }}</label>
-                    {% endfor %}
-                    {% endif %}
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="prace_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.prace_od(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                        {{ attendance_form.prace_do(class='form-control') }} {{ attendance_form.hidden_tag() }}
-
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-
-                <div class="col-md-4 mb-15">
-                    {{attendance_form.cinnost(class='form-control',onchange='showDiv(this)')}}{{attendance_form.hidden_tag()}}
-                </div>
-                <div class="col-md-4 mb-15" id="field_num" style="display:none">
-                    {{ attendance_form.pocet_cinnosti(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                </div>
-                <div class="col-md-6 mb-15" style="clear:both">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="vybrana_dovolena_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.vybrana_dovolena(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    {% if attendance_form.vybrane_prescasy.errors %}
-                    {% for error in attendance_form.vybrane_prescasy.errors %}
-                    <label class="control-label" for="prace_od">{{ error }}</label>
-                    {% endfor %}
-                    {% endif %}
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="vybrane_prescasy_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.vybrane_prescasy(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="nemoc_lekar_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.nemoc_lekar(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="neplacene_volno_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.neplacene_volno(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="placene_volno_krev_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.placene_volno_krev(class='form-control') }} {{ attendance_form.hidden_tag()
-                        }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="svatek_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.svatek(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="prekazka_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.prekazka(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="doprovod_k_lekari_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.doprovod_k_lekari(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                <span class="input-group-addon">
-                    <input name="pohreb_bool" type="checkbox" aria-label="...">
-                </span>
-                        {{ attendance_form.pohreb(class='form-control') }} {{ attendance_form.hidden_tag() }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-                <div class="col-md-6 mb-15">
-                    <div class="input-group">
-                    <span class="input-group-addon">
-                        <input name="proplacene_prescasy_bool" type="checkbox" aria-label="...">
-                    </span>
-                        {{ attendance_form.proplacene_prescasy(class='form-control') }} {{ attendance_form.hidden_tag()
-                        }}
-                    </div><!-- /input-group -->
-                </div><!-- /.row -->
-
-
-                <div class="form-group mb-15">
-                    <div class="col-md-12 mb-15">
-                        {{attendance_form.textfield(class='form-control')}} {{attendance_form.hidden_tag()}}
-                    </div>
-                </div>
-            </div>
-            {{attendance_form.submit(class="btn btn-primary btn-lg btn-block")}}
-
-        </form>
-    </div>
+        <div class="text-center">
+            <button class="btn btn-primary no_print"><span class="glyphicon glyphicon-pencil"></span> Úprava docházky</button>
+            <button class="btn btn-warning no_print" onClick="printPage()"><span class="glyphicon glyphicon-print"></span> Tisk přehledu</button>
+            <button class="btn btn-danger no_print" ><span class="glyphicon glyphicon-user"></span> Úprava {{ name }}</button>
+        </div>
+<div>
+    {% include 'attendance_overview_modal.html' %}
+</div>
 </div>
 
 {% endblock %}
+
+<script>
+
+</script>

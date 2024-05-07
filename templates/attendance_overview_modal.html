@@ -1,0 +1,144 @@
+<div class="btn-group no_print">
+  <button type="button" class="btn btn-primary">{{ month_name }}</button>
+  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="caret"></span>
+    <span class="sr-only">Toggle Dropdown</span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='01') }}">Leden</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='02') }}">Únor</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='03') }}">Březen</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='04') }}">Duben</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='05') }}">Květen</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='06') }}">Červen</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='07') }}">Červenec</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='08') }}">Srpen</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='09') }}">Září</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='10') }}">Říjen</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='11') }}">Listopad</a></li>
+    <li><a href="{{ url_for( target_page ,pass_name=name, pass_date='12') }}">Prosinec</a></li>
+  </ul>
+</div>
+        {% if rep_glue_count > 0 %}
+        <span class="badge">
+        Průměr je: {{rep_glue_count}} metrů
+        </span>
+        {% endif %}
+
+        {% if rep_cut_count > 0 %}
+        <span class="badge">
+        Průměr je: {{rep_cut_count}} desek
+        </span>
+        {% endif %}
+
+    </div>
+<div id="" class="panel panel-default statistic_table" style="overflow-x:auto;">
+            <table class="table table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th>Datum</th>
+                    <th>Příchod</th>
+                    <th>Odchod</th>
+                    <th>Hodiny</th>
+                    <th>Přesčas</th>
+                    {% if 'olepka' in found_strings %}<th>Olepka</th>{% endif %}
+                    {% if 'pila' in found_strings %}<th>Pila</th>{% endif %}
+                    {% if 'sklad' in found_strings %}<th>Sklad</th>{% endif %}
+                    {% if 'zavoz' in found_strings %}<th>Závoz</th>{% endif %}
+                    {% if 'kancl' in found_strings %}<th>Kancelář</th>{% endif %}
+                    {% if 'jine' in found_strings %}<th>Jiné</th>{% endif %}
+                    <th>Poznámky</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in user_month_values %}
+                {% for y in i %}
+                <tr class="worker_row">
+                    <td>{{ y[0] }}</td><!--datum-->
+                    <td>{{ y[1] }}</td><!--prichod-->
+                    <td>{{ y[2] }}</td><!--odchod-->
+                    <td>{{ y[3] }}</td><!--hodiny-->
+                    <td>{{ y[4] }}</td><!--přesčasy-->
+                    {% if 'olepka' in found_strings %}<td>{% if y[5] == 'olepka' %} {{ y[6] }} {% endif %}</td>{% endif %}<!--činnost pokud olepka-->
+                    {% if 'pila' in found_strings %}<td>{% if y[5] == 'pila' %} {{ y[6] }} {% endif %}</td>{% endif %}<!--činnost pokud pila-->
+                    {% if 'sklad' in found_strings %}<td>{% if y[5] == 'sklad' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    {% if 'zavoz' in found_strings %}<td>{% if y[5] == 'zavoz' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    {% if 'jine' in found_strings %}<td>{% if y[5] == 'jine' %} {{ y[6] }} {% endif %}</td>{% endif %}
+                    <!--{% if '' in found_strings %}<td>{% if y[5] == '' %} {{ y[7] }} {% endif %}</td>{% endif %}-->
+                    <td>{{ y[7] }}</td>
+                    <!--{% if 'olepka' in found_strings %}<td>{% if y[5] == 'olepka' %} {{ y[7] }} {% endif %}</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>{% if y[5] == 'pila' %} {{ y[7] }} {% endif %}</td>{% endif %}-->
+                </tr>
+                {% endfor %}
+                {% endfor %}
+                <tr class="table-dark text-center" >
+                    <td>Celkem</td>
+                    <td colspan="3">{{ user_value[8] }} hod/měs.</td>
+                    <td>{{ user_value[9] }} přesčasu</td>
+                    {% if 'olepka' in found_strings %}<td>{{ user_value[10] }}m olepeno</td>{% endif %}
+                    {% if 'pila' in found_strings %}<td>Nařezáno {{ user_value[11] }} desek</td>{% endif %}
+                    {% if 'sklad' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    {% if 'zavoz' in found_strings %}<td>{{ "-" }}</td>{% endif %}
+                    <td {% if 'jine' in found_strings or 'olepka' in found_strings or 'pila' in found_strings %} colspan="2" {% endif %}> - </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+<div class="panel panel-default statistic_table" style="overflow-x:auto;">
+            <table class="table table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <th></th>
+                    <th>Hodiny soucet</th>
+                    <th>Přesčasy</th>
+                    <th>Vybrané přesčasy</th>
+                    <th>Proplacené přesčasy</th>
+                    <th>Vybraná dovolená</th>
+                    <th>Nemoc/Lékař</th>
+                    <th>Neplacené volno</th>
+                    <th>Placené volno/Krev</th>
+                    <th>Svátek</th>
+                    <th>Překážka na straně zaměstnavatele</th>
+                    <th>Doprovod k lékaři</th>
+                    <th>Pohřeb</th>
+
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr class="worker_row">
+                    <td>{{ month_name }}:</td><!--text celkem-->
+                    <td>{{hodiny}}</td><!--Hodiny soucet-->
+                    <td>{{prescasy}}</td><!--Přesčasy-->
+                    <td>{{vybrane_prescasy}}</td><!--Vybrané přesčasy-->
+                    <td>{{proplacene_prescasy}}</td><!--Proplacené přesčasy-->
+                    <td>{{vybrana_dovolena}}</td><!--Vybraná dovolená-->
+                    <td>{{nemoc_lekar}}</td><!--Nemoc/Lékař-->
+                    <td>{{neplacene_volno}}</td><!--Neplacené volno-->
+                    <td>{{placene_volno}}</td><!--Placené volno/Krev-->
+                    <td>{{svatek}}</td><!--Svátek-->
+                    <td>{{prekazka}}</td><!--Překážka na straně zaměstnavatele-->
+                    <td>{{doprovod}}</td><!--Doprovod k lékaři-->
+                    <td>{{pohreb}}</td><!--Pohřeb-->
+                </tr>
+                <tr class="worker_row">
+                    <td>Celkem:</td><!--text celkem-->
+                    <td>{{hodiny_total}}</td><!--Hodiny soucet-->
+                    <td>Cel.:{{prescasy_total}} Zb.:{{prescasy_total_odecet}}</td><!--Přesčasy-->
+                    <td>{{vybrane_prescasy_total}}</td><!--Vybrané přesčasy-->
+                    <td>{{proplacene_prescasy_total}}</td><!--Proplacené přesčasy-->
+                    <td>{{vybrana_dovolena_total}}</td><!--Vybraná dovolená-->
+                    <td>{{nemoc_lekar_total}}</td><!--Nemoc/Lékař-->
+                    <td>{{neplacene_volno_total}}</td><!--Neplacené volno-->
+                    <td>{{placene_volno_total}}</td><!--Placené volno/Krev-->
+                    <td>{{svatek_total}}</td><!--Svátek-->
+                    <td>{{prekazka_total}}</td><!--Překážka na straně zaměstnavatele-->
+                    <td>{{doprovod_total}}</td><!--Doprovod k lékaři-->
+                    <td>{{pohreb_total}}</td><!--Pohřeb-->
+                </tr>
+
+                </tbody>
+            </table>
+        </div>

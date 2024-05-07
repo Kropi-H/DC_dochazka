@@ -1,7 +1,7 @@
     {% if user %}
-    <div style="float:left">
-        <p class="mynav">Naposledy přihlášen:</p>
-        <ul class="nav navbar-nav">
+    <div style="float:left no_print">
+        <p class="mynav no_print">Naposledy přihlášen:</p>
+        <ul class="nav navbar-nav no_print">
             {% for worker in worker_list%}
             {% if worker['name'] != 'Kropáček' %}
             <li>

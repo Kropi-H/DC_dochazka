@@ -165,6 +165,15 @@ background-color: #337ab7;
 
 }
 
+.table_user_button {
+    cursor:pointer;
+}
+.table_user_button:hover {
+background-color: #5e5b5b;
+font-style: italic;
+transition-duration: 0.4s;
+}
+
 /*media query*/
 
 @media all and (max-width:768px) {
@@ -207,3 +216,4 @@ background-color: #337ab7;
         font-size: 13px;
     }
 }
+

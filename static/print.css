@@ -1,0 +1,184 @@
+body{
+  -webkit-print-color-adjust:exact !important;
+  print-color-adjust:exact !important;
+}
+
+@media screen, print {
+  @page {
+    size: A3 landscape;
+    margin: 0px;
+    }
+  /* All your print styles go here */
+  .navbar,
+  .no_print {
+    display: none !important;
+  }
+
+
+    body {
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+    transform: scale(1);
+    margin: 0 auto;
+    }
+
+    table {
+    page-break-inside: avoid;
+    }
+#statistic_table table tr th,
+#statistic_table table tr td,
+.statistic_table table tr th,
+.statistic_table table tr td {
+    border: 2px solid #ddd !important;
+}
+
+#statistic_table {
+    overflow-x: visible !important;
+}
+
+#statistic_table table thead tr th {
+    color: white !important;
+    background-color: #337ab7 !important;
+}
+
+#statistic_table table tbody tr th {
+    background-color: grey !important;
+    color: white !important;
+}
+
+/* --dovolena color-- */
+#statistic_table table tbody tr td.prac_neschopnost {
+    background-color: #008000 !important;
+    color: white !important;
+}
+
+.prac_neschopnost {
+    background-color: green !important;
+    color: white !important;
+}
+
+/* --vikend-svatek color-- */
+#statistic_table table tbody tr td.vikend_svatek {
+    background-color: black !important;
+    color: white !important;
+}
+
+.vikend_svatek {
+    background-color: black !important;
+    color: white !important;
+}
+
+/* --prac-neschopnost color-- */
+#statistic_table table tbody tr td.prac_neschopnost {
+    background-color: orange !important;
+    color: black !important
+}
+
+.prac_neschopnost {
+    background-color: orange !important;
+    color: black !important
+}
+
+/* --vybrane_prescasy color-- */
+#statistic_table table tbody tr td.vybrane_prescasy {
+    background-color: grey !important;
+    color: white !important
+}
+
+.vybrane_prescasy {
+    background-color: grey !important;
+    color: white !important
+}
+
+/* --dovolena color-- */
+#statistic_table table tbody tr td.dovolena {
+    background-color: green !important;
+    color: white !important
+}
+
+.dovolena {
+    background-color: green !important;
+    color: white !important
+}
+
+/* --placene volno color-- */
+#statistic_table table tbody tr td.plac_volno {
+    background-color: purple !important;
+    color: white !important
+}
+
+.plac_volno {
+    background-color: purple !important;
+    color: white !important
+}
+
+/* --neplacene volno color-- */
+#statistic_table table tbody tr td.neplac_volno {
+    background-color: red !important;
+    color: white !important
+}
+
+.neplac_volno {
+    background-color: red !important;
+    color: white !important
+}
+
+/* --prac-neschopnost - lekar color-- */
+#statistic_table table tbody tr td.prac_neschopnost {
+    background-color: orange !important;
+    color: black !important
+}
+
+.prac_neschopnost {
+    background-color: orange !important;
+    color: black !important
+}
+
+/* --Doprovod k lékaři color-- */
+#statistic_table table tbody tr td.doprovod_lekar {
+    background-color: lightblue !important;
+    color: black !important
+}
+
+.doprovod_lekar {
+    background-color: lightblue !important;
+    color: black !important
+}
+
+/* --pohřeb color-- */
+#statistic_table table tbody tr td.pohreb {
+    background-color: yellow !important;
+    color: black !important
+}
+
+.pohreb {
+    background-color: yellow !important;
+    color: black !important
+}
+
+/*-- vysledkove resulty --*/
+.statistics td.hodiny {
+ background-color:#d5d5d5 !important;
+}
+
+.statistics td.prescas {
+ background-color:#d8e0de !important;
+}
+
+.container {
+width:100%;
+}
+
+div.panel table thead tr th,
+div.panel table tbody tr.table-dark td,
+.worker_row td:first-child {
+    background-color: #337ab7 !important;
+    color:white !important;
+}
+
+.badge {
+    color: #fff !important;
+    background-color: #777 !important;
+}
+
+ }

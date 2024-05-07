@@ -21,6 +21,13 @@ table li {
  color:white;
 }
 
+.statistics td.hodiny {
+ background-color:#d5d5d5;
+}
+
+.statistics td.prescas {
+ background-color:#d8e0de;
+}
 
 .table thead tr th {
 vertical-align:middle;
@@ -162,3 +169,11 @@ div.ex {
 position:absolute;
 height:10px;
 }
+
+#statistic_table {
+
+    display: flex;
+    overflow-x: scroll !important;
+
+}
+
