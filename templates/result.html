@@ -4,10 +4,22 @@
 
 <div class="container" style="display: flex; justify-content: center; align-items: center; height: 100vh">
     <article >
-        <div style="display:flex; justify-content:center">
+        <div style="justify-content:center">
 
-            <h1> {{ result }}</h1>
-
+            <h3> {{ name }}</h3>
+            <p>{{ od }}{{ do }} {{ celkem }} {% if prescas %}{{ prescas }}{% endif %}</p>
+            <p>{{ metry }}</p>
+            <p>{{ dovolena }}</p>
+            <p>{{ vybrane_prescasy }}</p>
+            <p>{{ nemoc_lekar }}</p>
+            <p>{{ nep_volno }}</p>
+            <p>{{ plac_volno }}</p>
+            <p>{{ svatek }}</p>
+            <p>{{ prekazak }}</p>
+            <p>{{ dorovod }}</p>
+            <p>{{ pohreb }}</p>
+            <p>{{ prop_prescasy }}</p>
+            <p>{{ poznamka }}</p>
         </div>
     </article>
 </div>
@@ -15,7 +27,7 @@
      window.setTimeout(function(){
 
        // Move to a new location after 3 secs
-       window.location.href = "/statistics/{{ datum }}";
+       window.location.href = "/{{ target_page }}/{{ name }}/{{ date }}";
 
        }, 3000);
 

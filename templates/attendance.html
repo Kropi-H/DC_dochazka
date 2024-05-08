@@ -9,17 +9,15 @@
                 <h3>Přehled {{ name }} {{ month_name }} {{ datum }}</h3>
             </div>
         <div class="text-center">
-            <button class="btn btn-primary no_print"><span class="glyphicon glyphicon-pencil"></span> Úprava docházky</button>
+            <button data-toggle="modal" data-target="#updateAttendance" class="btn btn-primary no_print"><span class="glyphicon glyphicon-pencil"></span> Úprava docházky</button>
             <button class="btn btn-warning no_print" onClick="printPage()"><span class="glyphicon glyphicon-print"></span> Tisk přehledu</button>
-            <button class="btn btn-danger no_print" ><span class="glyphicon glyphicon-user"></span> Úprava {{ name }}</button>
+            <!--<button style="dislplay:None" class="btn btn-danger no_print" ><span class="glyphicon glyphicon-user"></span> Úprava {{ name }}</button>-->
         </div>
 <div>
     {% include 'attendance_overview_modal.html' %}
 </div>
 </div>
+        {% include 'attendance_update_modal.html' %}
 
 {% endblock %}
 
-<script>
-
-</script>

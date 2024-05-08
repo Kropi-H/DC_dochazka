@@ -452,15 +452,15 @@ def attendance_individual():
         starttime = form.starttime.data.strftime('%H:%M')
         endtime = form.endtime.data.strftime('%H:%M')
         selectfield = form.selectfield.data
-        numberfield = form.numberfield.data
+        numberfield = form.numberfield.data if form.numberfield.data != None else 0
         textfield = form.textfield.data
         
         # Clean up user input
         if selectfield == 'olepka' or selectfield == 'pila':
             if numberfield <= 0:
-                textfield += f' !-Zadáno {str(numberfield)}-!'
+                textfield += f' ! Zadáno {selectfield} a {str(numberfield)} !'
                 selectfield = 'jine'
-                numberfield = None
+                numberfield = ""
             else:
                 numberfield = str(numberfield).replace('.',',')
         else:
@@ -471,7 +471,7 @@ def attendance_individual():
 
         save_user_data_to_google_sheet(user['user'],startdate,starttime,endtime,time_result,over_work_time,selectfield,numberfield,textfield)
 
-        return redirect(url_for('attendance_overview',select_month=datetime.now().month))
+        return redirect(url_for('attendance_overview',pass_date=datetime.now().month))
 
     return render_template('attendance_individual.html',
                            select_month=datetime.now().month,
@@ -1251,7 +1251,7 @@ class AttendanceAdditionForm(FlaskForm):
 
 @app.route('/set_attendance/<pass_name>/<pass_date>', methods = ['GET','POST'])
 def set_attendance(pass_name,pass_date):
-    print(pass_date)
+
     user = get_current_user()
 
     if not user or user['role'] < 3:
@@ -1282,46 +1282,6 @@ def set_attendance(pass_name,pass_date):
 
     attendance_form = AttendanceAdditionForm()
 
-    if attendance_form.validate_on_submit():
-        workers_result = pass_name
-
-        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
-        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
-        prace_od = attendance_form.prace_od.data
-        prace_do = attendance_form.prace_do.data
-        cinnost = attendance_form.cinnost.data
-        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',')
-        textfield = attendance_form.textfield.data
-
-        vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
-        vybrana_dovolena = attendance_form.vybrana_dovolena.data
-
-        vybrane_prescasy_bool = valid_logic_checkbox(request.form.get('vybrane_prescasy_bool'))
-        vybrane_prescasy = attendance_form.vybrane_prescasy.data
-
-        nemoc_lekar_bool = valid_logic_checkbox(request.form.get('nemoc_lekar_bool'))
-        nemoc_lekar = attendance_form.nemoc_lekar.data
-
-        neplacene_volno_bool = valid_logic_checkbox(request.form.get('neplacene_volno_bool'))
-        neplacene_volno = attendance_form.neplacene_volno.data
-
-        placene_volno_krev_bool = valid_logic_checkbox(request.form.get('placene_volno_krev_bool'))
-        placene_volno_krev = attendance_form.placene_volno_krev.data
-
-        svatek_bool = valid_logic_checkbox(request.form.get('svatek_bool'))
-        svatek = attendance_form.svatek.data
-
-        prekazka_bool = valid_logic_checkbox(request.form.get('prekazka_bool'))
-        prekazka = attendance_form.prekazka.data
-
-        doprovod_k_lekari_bool = valid_logic_checkbox(request.form.get('doprovod_k_lekari_bool'))
-        doprovod_k_lekari = attendance_form.doprovod_k_lekari.data
-
-        pohreb_bool = valid_logic_checkbox(request.form.get('pohreb_bool'))
-        pohreb = attendance_form.pohreb.data
-
-        proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
-        proplacene_prescasy = attendance_form.proplacene_prescasy.data
     def return_non_empty_field(field_bool,field_data):
         if field_bool == "True" or field_bool is not str(""):
             return field_data
@@ -1329,7 +1289,6 @@ def set_attendance(pass_name,pass_date):
             return str("")
 
     currentMonth = int(pass_date)
-    #time_result, over_work_time = work_time_count(return_non_empty_field(prace_bool,prace_od),return_non_empty_field(prace_bool,prace_do))
 
     currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
     attendece_sheet = find_current_date_in_google_worker_sheet(pass_name, 'workers')
@@ -1349,7 +1308,7 @@ def set_attendance(pass_name,pass_date):
     existing_data = open_statistics_json_file()
 
     # Vytvoření slovníků
-    months_dict = {user['user']: create_dict(employee_sheet)}
+    months_dict = {pass_name: create_dict(employee_sheet)}
 
     # Aktualizace existujících dat
     existing_data.update(months_dict)
@@ -1360,11 +1319,13 @@ def set_attendance(pass_name,pass_date):
 
     this_month_first, this_month_last = calendar.monthrange(currentYear, currentMonth)
 
+
     if request.method == 'GET':
         return render_template('attendance.html',
                                 user = user['user'],
                                 role = int(user['role']),
                                 name=pass_name,
+                                date = pass_date,
                                 datum=currentYear,
                                 target_page='set_attendance',
                                 rep_glue_count=sum_of_repetition('olepka', months_values),
@@ -1398,8 +1359,52 @@ def set_attendance(pass_name,pass_date):
                                 doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',user['user']),
                                 pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Pohřeb','','',user['user']),
                                 pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',user['user']),
-
+                                attendance_form = attendance_form
                                )
+    #if request.method == 'POST':
+
+    if attendance_form.validate_on_submit():
+        workers_result = pass_name
+
+        datum = attendance_form.datum.data.strftime('%d.%m.%Y')
+        prace_bool = valid_logic_checkbox(request.form.get('prace_bool'))
+        prace_od = attendance_form.prace_od.data
+        prace_do = attendance_form.prace_do.data
+        cinnost = attendance_form.cinnost.data
+        pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',') if attendance_form.pocet_cinnosti.data != None else int()
+        textfield = attendance_form.textfield.data
+        print(pocet_cinnosti)
+        vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
+        vybrana_dovolena = attendance_form.vybrana_dovolena.data
+
+        vybrane_prescasy_bool = valid_logic_checkbox(request.form.get('vybrane_prescasy_bool'))
+        vybrane_prescasy = attendance_form.vybrane_prescasy.data
+
+        nemoc_lekar_bool = valid_logic_checkbox(request.form.get('nemoc_lekar_bool'))
+        nemoc_lekar = attendance_form.nemoc_lekar.data
+
+        neplacene_volno_bool = valid_logic_checkbox(request.form.get('neplacene_volno_bool'))
+        neplacene_volno = attendance_form.neplacene_volno.data
+
+        placene_volno_krev_bool = valid_logic_checkbox(request.form.get('placene_volno_krev_bool'))
+        placene_volno_krev = attendance_form.placene_volno_krev.data
+
+        svatek_bool = valid_logic_checkbox(request.form.get('svatek_bool'))
+        svatek = attendance_form.svatek.data
+
+        prekazka_bool = valid_logic_checkbox(request.form.get('prekazka_bool'))
+        prekazka = attendance_form.prekazka.data
+
+        doprovod_k_lekari_bool = valid_logic_checkbox(request.form.get('doprovod_k_lekari_bool'))
+        doprovod_k_lekari = attendance_form.doprovod_k_lekari.data
+
+        pohreb_bool = valid_logic_checkbox(request.form.get('pohreb_bool'))
+        pohreb = attendance_form.pohreb.data
+
+        proplacene_prescasy_bool = valid_logic_checkbox(request.form.get('proplacene_prescasy_bool'))
+        proplacene_prescasy = attendance_form.proplacene_prescasy.data
+
+        time_result, over_work_time = work_time_count(return_non_empty_field(prace_bool,prace_od),return_non_empty_field(prace_bool,prace_do))
 
         if workers_result:
             save_user_data_to_google_sheet(workers_result,
@@ -1429,100 +1434,32 @@ def set_attendance(pass_name,pass_date):
             thread.start()
 
             return render_template('result.html',
-                result = f'{workers_result}' \
-                        f' {datum} ' \
-                        f' {f" Od: {return_non_empty_field(prace_bool,prace_od)}" if return_non_empty_field(prace_bool,prace_od) else ""}"/n"' \
-                        f' {f" Do: {return_non_empty_field(prace_bool,prace_do)}" if return_non_empty_field(prace_bool,prace_do) else ""}"/n"' \
-                        f' {f" Celkem: {time_result}" if time_result != "0:00" else ""}"/n"' \
-                        f' {f" Přesčas: {over_work_time}" if over_work_time else ""}"/n"' \
-                        f' {f" Metry/Olepeno: {return_non_empty_field(cinnost,pocet_cinnosti)}" if return_non_empty_field(cinnost,pocet_cinnosti) else ""}' \
-                        f' {f" Dovolená: {return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}" if return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena) else ""}' \
-                        f' {f" Vybrané Přesčasy: {return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}" if return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy) else ""}' \
-                        f' {f" Nemoc/Lékař: {return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}" if return_non_empty_field(nemoc_lekar_bool,nemoc_lekar) else ""}' \
-                        f' {f" Neplacené volno: {return_non_empty_field(neplacene_volno_bool,neplacene_volno)}" if return_non_empty_field(neplacene_volno_bool,neplacene_volno) else ""}' \
-                        f' {f" Placené volno/krev: {return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}" if return_non_empty_field(placene_volno_krev_bool,placene_volno_krev) else ""}' \
-                        f' {f" Svátek: {return_non_empty_field(svatek_bool,svatek)}" if return_non_empty_field(svatek_bool,svatek) else ""}' \
-                        f' {f" Překážka: {return_non_empty_field(prekazka_bool,prekazka)}" if return_non_empty_field(prekazka_bool,prekazka) else ""}' \
-                        f' {f" Doprovod: {return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}" if return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari) else ""}' \
-                        f' {f" Pohřeb: {return_non_empty_field(pohreb_bool,pohreb)}" if return_non_empty_field(pohreb_bool,pohreb) else ""}' \
-                        f' {f" Proplacené přesčasy: {return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}" if return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy) else ""}' \
-                        f' {f" Poznámka: {return_non_empty_field(textfield,textfield)}" if return_non_empty_field(textfield,textfield) else ""}',
-                datum = f'{datetime.today().month:02d}')
+                                    target_page='set_attendance',
+                                    name=pass_name,
+                                    date=pass_date,
+                        datum = datum,
+                        od = f" Od: {return_non_empty_field(prace_bool,prace_od)}" if return_non_empty_field(prace_bool,prace_od) else "",
+                        do = f" Do: {return_non_empty_field(prace_bool,prace_do)}" if return_non_empty_field(prace_bool,prace_do) else "",
+                        celkem = f" Celkem: {time_result}" if time_result != "0:00" else "",
+                        prescas = f" Přesčas: {over_work_time}" if over_work_time else "",
+                        metry = f' {f" Metry/Olepeno: {return_non_empty_field(cinnost,pocet_cinnosti)}" if return_non_empty_field(cinnost,pocet_cinnosti) else ""}',
+                        dovolena = f' {f" Dovolená: {return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}" if return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena) else ""}',
+                        vybrane_prescasy = f' {f" Vybrané Přesčasy: {return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}" if return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy) else ""}',
+                        nemoc_lekar = f' {f" Nemoc/Lékař: {return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}" if return_non_empty_field(nemoc_lekar_bool,nemoc_lekar) else ""}',
+                        nep_volno = f' {f" Neplacené volno: {return_non_empty_field(neplacene_volno_bool,neplacene_volno)}" if return_non_empty_field(neplacene_volno_bool,neplacene_volno) else ""}',
+                        plac_volno = f' {f" Placené volno/krev: {return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}" if return_non_empty_field(placene_volno_krev_bool,placene_volno_krev) else ""}',
+                        svatek = f' {f" Svátek: {return_non_empty_field(svatek_bool,svatek)}" if return_non_empty_field(svatek_bool,svatek) else ""}',
+                        prekazak = f' {f" Překážka: {return_non_empty_field(prekazka_bool,prekazka)}" if return_non_empty_field(prekazka_bool,prekazka) else ""}',
+                        dorovod = f' {f" Doprovod: {return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}" if return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari) else ""}',
+                        pohreb = f' {f" Pohřeb: {return_non_empty_field(pohreb_bool,pohreb)}" if return_non_empty_field(pohreb_bool,pohreb) else ""}',
+                        prop_prescasy = f' {f" Proplacené přesčasy: {return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}" if return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy) else ""}',
+                        poznamka = f' {f" Poznámka: {return_non_empty_field(textfield,textfield)}" if return_non_empty_field(textfield,textfield) else ""}',
+                #datum = f'{datetime.today().month:02d}'
+                            )
 
         else:
             return render_template('result.html',
-                                   result = f'Je potřeba vybrat jednoho zaměstnance')
-        #return render_template('attendance.html',
-        #                   user = user['user'],
-        #                   role = int(user['role']),
-        #                   attendance_form = attendance_form,
-        #                   list_of_workers=worker_list
-        #                   )
-
-        #return f'<ul>' \
-        #       f'<li>{workers_result=}</li>' \
-        #       f'<li>{datum=}</li> ' \
-        #       f'<li>{time_result}</li> ' \
-        #       f'<li>{over_work_time}</li> ' \
-        #       f'<li>{return_non_empty_field(prace_bool,prace_od)}</li>' \
-        #       f'<li>{return_non_empty_field(prace_bool,prace_do)}</li>' \
-        #       f'<li>{return_non_empty_field(cinnost,pocet_cinnosti)}</li>' \
-        #       f'<li>{return_non_empty_field(vybrana_dovolena_bool,vybrana_dovolena)}</li>' \
-        #       f'<li>{return_non_empty_field(vybrane_prescasy_bool,vybrane_prescasy)}</li>' \
-        #       f'<li>{return_non_empty_field(nemoc_lekar_bool,nemoc_lekar)}</li>' \
-        #       f'<li>{return_non_empty_field(neplacene_volno_bool,neplacene_volno)}</li>' \
-        #       f'<li>{return_non_empty_field(placene_volno_krev_bool,placene_volno_krev)}</li>' \
-        #       f'<li>{return_non_empty_field(svatek_bool,svatek)}</li>' \
-        #       f'<li>{return_non_empty_field(prekazka_bool,prekazka)}</li>' \
-        #       f'<li>{return_non_empty_field(doprovod_k_lekari_bool,doprovod_k_lekari)}</li>' \
-        #       f'<li>{return_non_empty_field(pohreb_bool,pohreb)}</li>' \
-        #       f'<li>{return_non_empty_field(proplacene_prescasy_bool,proplacene_prescasy)}</li>' \
-        #       f'<li>{return_non_empty_field(textfield,textfield)}</li>'\
-        #       f'</ul>'
-        #return redirect(url_for('set_attendance'))
-
-
-
-    #return render_template('attendance.html',
-                           #user = user['user'],
-                           #name = pass_name,
-                           #role = int(user['role']),
-                           #attendance_form = attendance_form,
-                           #list_of_workers=worker_list,
-                           #page_title = 'Přehled',
-                           #worker_list=user_records(user),
-                           #user_month_values=months_values,
-                           #user_value=row_value,
-                           #month_name=months_name[select_month-1],
-                           #found_strings=found_strings,
-                           #rep_glue_count=sum_of_repetition('olepka', months_values),
-                           #rep_cut_count=sum_of_repetition('pila', months_values),
-                           #prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Přesčasy','','',user['user']),
-                           #prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','','',user['user']),
-                           #prescasy_total_odecet=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','Proplacené přesčasy','Vybrané přesčasy',user['user']),
-                           #hodiny=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Hodiny/Den','','',user['user']),
-                           #hodiny_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Hodiny/Den','','',user['user']),
-                           #vybrane_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Vybrané přesčasy','','',user['user']),
-                           #vybrane_prescasy_total=sum_hours_in_date_range(existing_data,  f'{first_january}', f'{last_december}', 'Vybrané přesčasy','','',user['user']),
-                           #proplacene_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Proplacené přesčasy','','',user['user']),
-                           #proplacene_prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Proplacené přesčasy','','',user['user']),
-                           #vybrana_dovolena=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Vybraná dovolená','','',user['user']),
-                           #vybrana_dovolena_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Vybraná dovolená','','',user['user']),
-                           #nemoc_lekar=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Nemoc/Lékař','','',user['user']),
-                           #nemoc_lekar_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Nemoc/Lékař','','',user['user']),
-                           #neplacene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Neplacené volno','','',user['user']),
-                           #neplacene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Neplacené volno','','',user['user']),
-                           #placene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Placené volno/Krev','','',user['user']),
-                           #placene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Placené volno/Krev','','',user['user']),
-                           #svatek=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Svátek','','',user['user']),
-                           #svatek_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Svátek','','',user['user']),
-                           #prekazka=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Překážka na straně zaměstnavatele','','',user['user']),
-                           #prekazka_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Překážka na straně zaměstnavatele','','',user['user']),
-                           #doprovod=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Doprovod k lékaři','','',user['user']),
-                           #doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',user['user']),
-                           #pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, this_month, 1).date()}', f'{datetime(currentYear, this_month, this_month_last).date()}','Pohřeb','','',user['user']),
-                           #pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',user['user']),
-                           #)
+                                   name = f'Je potřeba vybrat jednoho zaměstnance')
 
 
 @app.route('/sort', methods=['GET'])

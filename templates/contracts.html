@@ -4,13 +4,6 @@
 
 <div class="container">
     <div class="panel panel-default">
-        {% for worker_item in worker_list %}
-        {% if user == worker_item['name'] and worker_item['info_count'] > 0 %}
-
-        {% include 'contracts_modal.html' %}
-
-        {% endif %}
-        {% endfor %}
         <!-- Default panel contents -->
         <div class="panel-heading">
             <ul>

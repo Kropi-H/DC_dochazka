@@ -70,6 +70,14 @@
     </div><!-- /.container-fluid -->
 </nav>
 
+        {% for worker_item in worker_list %}
+        {% if user == worker_item['name'] and worker_item['info_count'] > 0 %}
+
+        {% include 'contracts_modal.html' %}
+
+        {% endif %}
+        {% endfor %}
+
 {% block body %}{% endblock %}
 
 <!-- Include all compiled plugins (below), or include individual files as needed -->

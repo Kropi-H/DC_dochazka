@@ -17,7 +17,9 @@
                     aria-expanded="false">
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
+                {% if user and role==3 %}
                 <button class="btn btn-warning no_print" onClick="printPage()"><span class="glyphicon glyphicon-print"></span> Tisk přehledu</button>
+                {% endif %}
             </button>
             <ul class="dropdown-menu no_print">
                 <li><a href="{{ url_for('statistics', selected_month='01') }}">Leden</a></li>
@@ -49,7 +51,9 @@
                 <tbody>
                 {% for worker, worker_value in statistic_data.items() %}
                 <tr class="text-center">
-                    <th {% if user and role==3 %} onclick="window.location.href='{{ url_for('set_attendance',pass_name=worker, pass_date=date) }}';" class="table_user_button" {% endif %}>{{ worker }}</th>
+
+                    <th {% if user and role==3 %} onclick="window.location.href='{{ url_for('set_attendance',pass_name=worker, pass_date=date) }}';" class="table_user_button" {% endif %} >{{ worker }}</th>
+
                     {% for month, month_value in worker_value.items() %}
                     {% if month.split('-')[0]+'-'+month.split('-')[1] == choose_month %}
                     {% for day, day_value in month_value.items() %}
