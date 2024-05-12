@@ -13,11 +13,18 @@
             <button class="btn btn-warning no_print" onClick="printPage()"><span class="glyphicon glyphicon-print"></span> Tisk přehledu</button>
             <!--<button style="dislplay:None" class="btn btn-danger no_print" ><span class="glyphicon glyphicon-user"></span> Úprava {{ name }}</button>-->
         </div>
-<div>
+    <div>
     {% include 'attendance_overview_modal.html' %}
-</div>
-</div>
-        {% include 'attendance_update_modal.html' %}
+    {% include 'attendance_update_modal.html' %}
+    {% include 'login_statistics.html' %}
 
+
+</div>
+</div>
+
+<div>
+
+
+</div>
 {% endblock %}
 

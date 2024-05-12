@@ -39,7 +39,7 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                {% if user and role < 4 %}
+                {% if user and access == 1 %}
                 <li class=""><a href="{{ url_for('attendance_individual') }}">Docházka {{ user }}<span class="sr-only">(current)</span></a>
                 </li>
                 <li class=""><a href="{{ url_for('attendance_overview', pass_date=current_month)  }}">Přehled {{ user
@@ -60,7 +60,7 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if not user %}
-                <li><a href="#">Přihlásit</a></li>
+                <li><a href="/">Přihlásit</a></li>
                 {% endif %}
                 {% if user %}
                 <li><a href="{{ url_for('logout') }}">Odhlásit</a></li>

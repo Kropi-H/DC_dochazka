@@ -181,4 +181,9 @@ div.panel table tbody tr.table-dark td,
     background-color: #777 !important;
 }
 
+.index {
+max-width: 30%;
+float: left !important;
+}
+
  }

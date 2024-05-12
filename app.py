@@ -86,6 +86,7 @@ def get_current_user():
     if 'user_name' in session:
         user_session['user'] = session['user_name']
         user_session['role'] = session['role']
+        user_session['access'] = session['access']
         return user_session
 
 def user_records(user):
@@ -183,6 +184,7 @@ def index():
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
+                session['access'] = int()
                 # CSV path
                 file_path = 'static/login.csv'
                 # Read CSV file
@@ -191,12 +193,20 @@ def index():
                 find_and_update_or_append(csv_data, row_data[4])
                 # Write into CSV file
                 write_csv(file_path, csv_data)
-                if session['role'] == 5:
-                    return redirect(url_for('contracts'))
-                elif session['role'] == 4:
-                    return redirect(url_for('attendance_all'))
-                else:
+                try:
+                    find_current_date_in_google_worker_sheet(session['user_name'], 'workers')
+                    session['access'] = 1
                     return redirect(url_for('attendance_individual'))
+                except gspread.exceptions.WorksheetNotFound:
+                    session['access'] = 0
+                    return redirect(url_for('attendance_all'))
+
+                #if session['role'] == 5:
+                #    return redirect(url_for('contracts'))
+                #elif session['role'] == 4:
+                #    return redirect(url_for('attendance_all'))
+                #else:
+                #    return redirect(url_for('attendance_individual'))
 
             else:
                 warning['login'] = 'Heslo je špatné'
@@ -245,6 +255,7 @@ def change_password():
                                     worker_list=user_records(user),
                                     user=user['user'],
                                     role=int(user['role']),
+                                    access = int(user['access']),
                                     workers_list=worker_values,
                                     head_text=f'Heslo pro {worker_name} uloženo!',
                                     method='POST',
@@ -257,6 +268,7 @@ def change_password():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
+                           access = int(user['access']),
                            workers_list=worker_values,
                            head_text='Změna hesla',
                            form = form)
@@ -273,7 +285,8 @@ def register_new_user():
                                page_title='Nová registrace',
                                worker_list=user_records(user),
                                user=user['user'],
-                               role=int(user['role']))
+                               role=int(user['role']),
+                               access = int(user['access']))
 
     if request.method == 'POST':
 
@@ -300,7 +313,8 @@ def register_new_user():
                                new_user_data=new_user_row,
                                worker_list=user_records(user),
                                user=user['user'],
-                               role=int(user['role']))
+                               role=int(user['role']),
+                               access = int(user['access']))
 
 #!-------------------- Attendance_individual --------------------!
 class AttendanceIndividualForm(FlaskForm):
@@ -479,6 +493,7 @@ def attendance_individual():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
+                           access = int(user['access']),
                            form=form,
                            delay_days_user_input=delay_days_user_input)
 
@@ -625,6 +640,7 @@ def attendance_overview(pass_date):
                                worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']),
+                               access = int(user['access']),
                                user_value=row_value,
                                user_month_values=months_values,
                                target_page='attendance_overview',
@@ -833,6 +849,7 @@ def attendance_all():
                                 list_of_workers= worker_list,
                                 user=user['user'],
                                 role=int(user['role']),
+                                access = int(user['access']),
                                 page_title='Přehled všech',
                                 form=form,
                                 workers_result= get_values_in_date_range(existing_data, result_name, start_day, end_day),
@@ -848,6 +865,7 @@ def attendance_all():
                             list_of_workers=worker_list, # uživatelé
                             user=user['user'],
                             role=int(user['role']),
+                            access = int(user['access']),
                             page_title='Přehled všech',
                             workers_result= get_values_in_date_range(existing_data, worker_list, yesterday_date, yesterday_date),
                             start_day= yesterday_date,
@@ -1007,6 +1025,7 @@ def contracts():
                                worker_list=user_records(user),
                                user=user['user'],
                                role=int(user['role']),
+                               access = int(user['access']),
                                contract_id=load_id(),
                                glue=readGlue(),
                                last_id = int(load_id()[-1])+1,
@@ -1193,7 +1212,9 @@ def statistics(selected_month):
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
+                           access = int(user['access']),
                            date=selected_month,
+                           datum=currentYear,
                            choose_month = f'{currentYear}-{selected_month}',
                            currentMonth=currentMonthRange,
                            month_name=months_name[int(selected_month)-1])
@@ -1291,7 +1312,12 @@ def set_attendance(pass_name,pass_date):
     currentMonth = int(pass_date)
 
     currentMonthRange = calendar.monthrange(currentYear,currentMonth)[1]
-    attendece_sheet = find_current_date_in_google_worker_sheet(pass_name, 'workers')
+
+    try:
+        attendece_sheet = find_current_date_in_google_worker_sheet(pass_name, 'workers')
+    except gspread.exceptions.WorksheetNotFound:
+        return redirect(url_for('statistics',selected_month=pass_date))
+
 
     current_date = attendece_sheet.find(months[currentMonth]) # Find current day cell
     date_row = current_date.row # Current day row
@@ -1317,13 +1343,19 @@ def set_attendance(pass_name,pass_date):
         json.dump(existing_data, outfile, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, cls=None, indent=2, separators=None, default=True, sort_keys=False )
 
 
-    this_month_first, this_month_last = calendar.monthrange(currentYear, currentMonth)
+    this_mont_day_first, this_month_last = calendar.monthrange(currentYear, currentMonth)
+    this_month_first = 1
+    print(currentYear)
+    print(currentMonth)
+    print(this_month_first)
+    print(this_month_last)
 
 
     if request.method == 'GET':
         return render_template('attendance.html',
                                 user = user['user'],
                                 role = int(user['role']),
+                                access = int(user['access']),
                                 name=pass_name,
                                 date = pass_date,
                                 datum=currentYear,
@@ -1334,31 +1366,31 @@ def set_attendance(pass_name,pass_date):
                                 user_value=row_value,
                                 month_name=months_name[int(currentMonth)-1],
                                 found_strings=found_strings,
-                                prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Přesčasy','','',user['user']),
-                                prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','','',user['user']),
-                                prescasy_total_odecet=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','Proplacené přesčasy','Vybrané přesčasy',user['user']),
-                                hodiny=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Hodiny/Den','','',user['user']),
-                                hodiny_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Hodiny/Den','','',user['user']),
-                                vybrane_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Vybrané přesčasy','','',user['user']),
-                                vybrane_prescasy_total=sum_hours_in_date_range(existing_data,  f'{first_january}', f'{last_december}', 'Vybrané přesčasy','','',user['user']),
-                                proplacene_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Proplacené přesčasy','','',user['user']),
-                                proplacene_prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Proplacené přesčasy','','',user['user']),
-                                vybrana_dovolena=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Vybraná dovolená','','',user['user']),
-                                vybrana_dovolena_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Vybraná dovolená','','',user['user']),
-                                nemoc_lekar=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Nemoc/Lékař','','',user['user']),
-                                nemoc_lekar_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Nemoc/Lékař','','',user['user']),
-                                neplacene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Neplacené volno','','',user['user']),
-                                neplacene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Neplacené volno','','',user['user']),
-                                placene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Placené volno/Krev','','',user['user']),
-                                placene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Placené volno/Krev','','',user['user']),
-                                svatek=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Svátek','','',user['user']),
-                                svatek_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Svátek','','',user['user']),
-                                prekazka=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Překážka na straně zaměstnavatele','','',user['user']),
-                                prekazka_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Překážka na straně zaměstnavatele','','',user['user']),
-                                doprovod=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Doprovod k lékaři','','',user['user']),
-                                doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',user['user']),
-                                pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Pohřeb','','',user['user']),
-                                pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',user['user']),
+                                prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Přesčasy','','',pass_name),
+                                prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','','',pass_name),
+                                prescasy_total_odecet=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Přesčasy','Proplacené přesčasy','Vybrané přesčasy',pass_name),
+                                hodiny=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Hodiny/Den','','',pass_name),
+                                hodiny_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Hodiny/Den','','',pass_name),
+                                vybrane_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Vybrané přesčasy','','',pass_name),
+                                vybrane_prescasy_total=sum_hours_in_date_range(existing_data,  f'{first_january}', f'{last_december}', 'Vybrané přesčasy','','',pass_name),
+                                proplacene_prescasy=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Proplacené přesčasy','','',pass_name),
+                                proplacene_prescasy_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Proplacené přesčasy','','',pass_name),
+                                vybrana_dovolena=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Vybraná dovolená','','',pass_name),
+                                vybrana_dovolena_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Vybraná dovolená','','',pass_name),
+                                nemoc_lekar=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Nemoc/Lékař','','',pass_name),
+                                nemoc_lekar_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Nemoc/Lékař','','',pass_name),
+                                neplacene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Neplacené volno','','',pass_name),
+                                neplacene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Neplacené volno','','',pass_name),
+                                placene_volno=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Placené volno/Krev','','',pass_name),
+                                placene_volno_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Placené volno/Krev','','',pass_name),
+                                svatek=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Svátek','','',pass_name),
+                                svatek_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Svátek','','',pass_name),
+                                prekazka=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Překážka na straně zaměstnavatele','','',pass_name),
+                                prekazka_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Překážka na straně zaměstnavatele','','',pass_name),
+                                doprovod=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Doprovod k lékaři','','',pass_name),
+                                doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',pass_name),
+                                pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Pohřeb','','',pass_name),
+                                pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',pass_name),
                                 attendance_form = attendance_form
                                )
     #if request.method == 'POST':
@@ -1373,7 +1405,7 @@ def set_attendance(pass_name,pass_date):
         cinnost = attendance_form.cinnost.data
         pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',') if attendance_form.pocet_cinnosti.data != None else int()
         textfield = attendance_form.textfield.data
-        print(pocet_cinnosti)
+
         vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
         vybrana_dovolena = attendance_form.vybrana_dovolena.data
 
