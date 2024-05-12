@@ -1345,11 +1345,6 @@ def set_attendance(pass_name,pass_date):
 
     this_mont_day_first, this_month_last = calendar.monthrange(currentYear, currentMonth)
     this_month_first = 1
-    print(currentYear)
-    print(currentMonth)
-    print(this_month_first)
-    print(this_month_last)
-
 
     if request.method == 'GET':
         return render_template('attendance.html',
