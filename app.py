@@ -228,7 +228,7 @@ class form_check_pass(FlaskForm):
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     user = get_current_user()
-
+    worker_name = request.args.get('pass_name')
     if not user or user['role'] != 3:
        return redirect('/')
 
@@ -236,18 +236,16 @@ def change_password():
 
     form = form_check_pass()
     if request.method == 'POST' and form.validate_on_submit:
-        worker_id = request.form['worker']
         oldPassword = request.form['oldPassword'].strip()
         newPassword = request.form['newPassword'].strip()
         checkPassword = request.form['checkPassword'].strip()
 
-        if not worker_id:
+        if not worker_name:
             return redirect('/change_password')
 
         for value in worker_values:
-            if (value[1] == hashlib.md5(oldPassword.encode()).hexdigest()) and (int(worker_id) == int(value[7])) and (newPassword == checkPassword):
-                worker_name = value[4]
-                cell = workers_sheet.find(value[7])
+            if (value[1] == hashlib.md5(oldPassword.encode()).hexdigest()) and (newPassword == checkPassword):
+                cell = workers_sheet.find(worker_name)
                 workers_sheet.update_cell(cell.row, 2, hashlib.md5(newPassword.encode()).hexdigest())
 
                 return render_template('change_password.html',
@@ -270,7 +268,7 @@ def change_password():
                            role=int(user['role']),
                            access = int(user['access']),
                            workers_list=worker_values,
-                           head_text='Změna hesla',
+                           head_text=f'Změna hesla {worker_name}',
                            form = form)
 
 @app.route('/register_new_user', methods=['GET','POST'])
