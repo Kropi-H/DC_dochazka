@@ -55,6 +55,14 @@ background-color:none;
     display: inline-grid;
 }
 
+.note{
+  padding: 3px 5px;
+  border-radius: 5px;
+}
+
+.note h4 {
+text-decoration:underline;
+}
 
 thead .text-center th{
 text-align:center;
@@ -174,6 +182,9 @@ font-style: italic;
 transition-duration: 0.4s;
 }
 
+.login_stat {
+clear: both;
+}
 /*media query*/
 
 @media all and (max-width:768px) {

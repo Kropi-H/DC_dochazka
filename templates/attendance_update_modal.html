@@ -150,6 +150,13 @@
                         {{attendance_form.textfield(class='form-control')}} {{attendance_form.hidden_tag()}}
                     </div>
                 </div>
+                <div class="form-group mb-15">
+                    <div class="col-md-12 mb-15">
+
+                        <textarea class="form-control" id="notefield" placeholder="Vložit poznámku ..." name="notefield">{{ user_note }}</textarea>
+
+                    </div>
+                </div>
 
 {{attendance_form.submit(class="btn btn-primary btn-lg btn-block")}}
         </form>

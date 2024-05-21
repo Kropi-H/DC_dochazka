@@ -6,6 +6,7 @@ static/contracts.csv
 static/contract_id.csv
 static/archived_contracts.csv
 static/glue_type.csv
+static/notes.csv
 static/statistics.json
 static/statistics_zaloha_2023.json
 static/archived_contracts_04112023.csv

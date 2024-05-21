@@ -186,4 +186,11 @@ max-width: 30%;
 float: left !important;
 }
 
+.note h4 {
+margin-top:0px;
+margin-bottom:0px;
+}
+pre {
+padding:0px;
+}
  }

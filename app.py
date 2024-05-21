@@ -593,6 +593,40 @@ def sum_hours_in_date_range(data, start_date, end_date, looking_string, second_l
 
     return result
 
+def find_user_note(user):
+    notes = ""
+    path = 'static/notes.csv'
+    mode = 'r' if os.path.exists(path) else 'a+'
+    try:
+        with open(path, mode, newline='\r\n', encoding='utf-8') as csvfile:
+            csvdata = csv.reader(csvfile)
+            for row in csvdata:
+                row = row[0].split(';')
+                if row[0] == user:
+                    notes = row[1]
+    except FileNotFoundError:
+        return('Soubor neexistuje')
+    if not notes:
+        notes = ""
+    return(notes)
+def save_user_note(user,user_note):
+    with open('static/notes.csv', 'r',newline='\n', encoding='utf-8') as infile:
+        reader = csv.reader(infile)
+        rows = list(reader)
+        newrow=list()
+        nemefound=False
+        for row in rows:
+            if row[0].split(';')[0] == user:
+                row = [f'{user};{user_note}']
+                nemefound = True
+            newrow.append(row)
+        if not nemefound:
+            newrow.append([f'{user};{user_note}'])
+
+    with open('static/notes.csv', 'w',newline='\n', encoding='utf-8') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerows(newrow)
+
 @app.route('/attendance_overview/<int:pass_date>', methods=['GET', 'POST'])
 def attendance_overview(pass_date):
     user = get_current_user()
@@ -671,6 +705,7 @@ def attendance_overview(pass_date):
                                doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',user['user']),
                                pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Pohřeb','','',user['user']),
                                pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',user['user']),
+                               user_note = find_user_note(user["user"])
                                )
 
 @app.route('/generate_pdf', methods=['GET'])
@@ -1240,6 +1275,7 @@ class AttendanceAdditionForm(FlaskForm):
     pocet_cinnosti = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
                                validators=[validators.Optional(strip_whitespace=True)])
     textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
+    notefield = TextAreaField(label='Poznámka pod docházkou',render_kw={'placeholder': 'Poznámka, ...'})
 
     vybrana_dovolena = SelectField('Vybraná dovolená',
                                  choices=[("", "Dovolená hodiny"), ('4:00','4 Hodiny'),('8:00','8 Hodin')],
@@ -1300,6 +1336,9 @@ def set_attendance(pass_name,pass_date):
         worker_list.append(worker)
 
     attendance_form = AttendanceAdditionForm()
+    attendance_form.notefield.default = 'testíííík'
+    #attendance_form.notefield.default='testííík'
+
 
     def return_non_empty_field(field_bool,field_data):
         if field_bool == "True" or field_bool is not str(""):
@@ -1384,7 +1423,9 @@ def set_attendance(pass_name,pass_date):
                                 doprovod_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Doprovod k lékaři','','',pass_name),
                                 pohreb=sum_hours_in_date_range(existing_data, f'{datetime(currentYear, currentMonth, 1).date()}', f'{datetime(currentYear, currentMonth, this_month_last).date()}','Pohřeb','','',pass_name),
                                 pohreb_total=sum_hours_in_date_range(existing_data, f'{first_january}', f'{last_december}','Pohřeb','','',pass_name),
-                                attendance_form = attendance_form
+                                attendance_form = attendance_form,
+                                user_note = f'{find_user_note(pass_name)}',
+                                worker_list=user_records(user)
                                )
     #if request.method == 'POST':
 
@@ -1398,6 +1439,7 @@ def set_attendance(pass_name,pass_date):
         cinnost = attendance_form.cinnost.data
         pocet_cinnosti = str(attendance_form.pocet_cinnosti.data).replace('.',',') if attendance_form.pocet_cinnosti.data != None else int()
         textfield = attendance_form.textfield.data
+        notefield = attendance_form.notefield.data
 
         vybrana_dovolena_bool = valid_logic_checkbox(request.form.get('vybrana_dovolena_bool'))
         vybrana_dovolena = attendance_form.vybrana_dovolena.data
@@ -1432,6 +1474,11 @@ def set_attendance(pass_name,pass_date):
         time_result, over_work_time = work_time_count(return_non_empty_field(prace_bool,prace_od),return_non_empty_field(prace_bool,prace_do))
 
         if workers_result:
+            if not notefield:
+                save_user_note(pass_name,str(''))
+            else:
+                save_user_note(pass_name,notefield)
+
             save_user_data_to_google_sheet(workers_result,
                                            datum,
                                            return_non_empty_field(prace_bool,prace_od),
@@ -1462,6 +1509,7 @@ def set_attendance(pass_name,pass_date):
                                     target_page='set_attendance',
                                     name=pass_name,
                                     date=pass_date,
+                                   user_note = notefield,
                         datum = datum,
                         od = f" Od: {return_non_empty_field(prace_bool,prace_od)}" if return_non_empty_field(prace_bool,prace_od) else "",
                         do = f" Do: {return_non_empty_field(prace_bool,prace_do)}" if return_non_empty_field(prace_bool,prace_do) else "",
