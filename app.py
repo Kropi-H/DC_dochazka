@@ -1602,5 +1602,6 @@ def reverse():
     save_contracts(reverse_contracts, 'contracts.csv')
     return redirect('/contracts')
 
+
 if __name__=='__main__':
     app.run(debug=True)
