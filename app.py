@@ -8,8 +8,8 @@ import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms.fields import SubmitField
-from wtforms import DecimalField, TimeField, TextAreaField, SelectField, widgets, IntegerField, PasswordField, DateField, validators, StringField, BooleanField
-from wtforms.validators import DataRequired, ValidationError, Regexp
+from wtforms import DecimalField, TimeField, TextAreaField, SelectField, widgets, IntegerField, PasswordField, DateField, validators, StringField, BooleanField, TelField, EmailField
+from wtforms.validators import DataRequired, ValidationError, Regexp, EqualTo
 from wtforms_components import DateRange
 import hashlib
 import calendar
@@ -215,51 +215,92 @@ def index():
         return render_template('login.html', page_title='login')
 
 class form_check_pass(FlaskForm):
-    def check_equal(self):
-        if self.newPassword.data != self.checkPassword.data:
-            raise ValidationError('Hesla se neshodují!')
-    worker_id = widgets.CheckboxInput()
-    oldPassword = PasswordField('Staré heslo', validators=[DataRequired()])
-    newPassword = PasswordField('Nové heslo', validators=[DataRequired()])
-    checkPassword = PasswordField('Nové heslo znovu ', validators=[DataRequired(), check_equal])
+    def check_equal(form, field):
+        if form.oldPassword.data and not form.newPassword.data and not form.checkPassword.data:
+            raise ValidationError('Musí být vyplněno vše!')
+
+    def check_current_password(form, field):
+        input_pass = form.oldPassword.data
+        user = get_current_user()['user']
+        user_row = workers_sheet.find(user).row
+        user_pass = workers_sheet.acell(f'B{user_row}').value
+        if input_pass and (user_pass != hashlib.md5(input_pass.encode()).hexdigest()):
+            raise ValidationError('Chybné heslo!')
+
+    def first_name_check(form, field):
+        name_used = int()
+        input_name = form.first_name.data.strip()
+        user = get_current_user()['user']
+        workers_sheet_values = workers_sheet.get_all_values()
+        for value in workers_sheet_values:
+            if input_name == value[0] and user != value[4]:
+                name_used += 1
+        if name_used:
+            raise ValidationError('Uživatelské jméno už je použito!')
+
+    first_name = StringField("Uživatelské jméno (pro přihlášení)", validators=[first_name_check], render_kw={"placeholder": "JohnD"})
+    last_name = StringField("Příjmení",render_kw={"placeholder": "Doe"})
+    email = EmailField("Email",render_kw={"placeholder": "johndoe@frk.com"})
+    phone_number = TelField('Tel. číslo',render_kw={"placeholder": "123456789"})
+    oldPassword = PasswordField('Staré heslo', validators=[check_equal, check_current_password])
+    newPassword = PasswordField('Nové heslo')
+    checkPassword = PasswordField('Nové heslo znovu ', validators=[EqualTo('newPassword', message='Hesla se musí shodovat!')])
     submit = SubmitField(label='Uložit')
 
 
-@app.route('/change_password', methods=['GET', 'POST'])
+@app.route('/change_password', methods=['GET','POST'])
 def change_password():
     user = get_current_user()
-    worker_name = request.args.get('pass_name')
-    if not user or user['role'] != 3:
+    #worker_name = request.args.get('pass_name')
+    if not user:
        return redirect('/')
 
     worker_values = workers_sheet.get_all_values()
 
     form = form_check_pass()
-    if request.method == 'POST' and form.validate_on_submit:
-        oldPassword = request.form['oldPassword'].strip()
+    if request.method == 'POST' and form.validate_on_submit():
+        inputName = request.form['first_name'].strip()
+        email = request.form['email'].strip()
+        phoneNumber = request.form['phone_number'].strip()
         newPassword = request.form['newPassword'].strip()
-        checkPassword = request.form['checkPassword'].strip()
-
-        if not worker_name:
-            return redirect('/change_password')
 
         for value in worker_values:
-            if (value[1] == hashlib.md5(oldPassword.encode()).hexdigest()) and (newPassword == checkPassword):
-                cell = workers_sheet.find(worker_name)
-                workers_sheet.update_cell(cell.row, 2, hashlib.md5(newPassword.encode()).hexdigest())
+            if (user['user'] == value[4]):
+                #value[1] == hashlib.md5(oldPassword.encode()).hexdigest()) and (newPassword == checkPassword)
+                inputName = value[0] if not inputName else inputName
+                email = value[5] if not email else email
+                phoneNumber = value[6] if not phoneNumber else phoneNumber
+                newPassword = value[1] if not newPassword else hashlib.md5(newPassword.encode()).hexdigest()
+                cell_row = workers_sheet.find(user['user']).row
 
-                return render_template('change_password.html',
+                workers_sheet.update(f'A{cell_row}', [[inputName,
+                                                      f'{newPassword}',
+                                                      value[2],
+                                                      value[3],
+                                                      value[4],
+                                                      email,
+                                                      phoneNumber]], value_input_option='USER_ENTERED')
+
+                #workers_sheet.update_cell(cell.row, 2, hashlib.md5(newPassword.encode()).hexdigest())
+                return render_template('result.html',
                                     title='Změna akceptována',
                                     worker_list=user_records(user),
                                     user=user['user'],
                                     role=int(user['role']),
                                     access = int(user['access']),
                                     workers_list=worker_values,
-                                    head_text=f'Heslo pro {worker_name} uloženo!',
-                                    method='POST',
-                                    form=form)
+                                    head_text=f'Údaje pro {user["user"]} uloženy!',
+                                    form=form,
+                                    target_page = f'change_password')
 
-        return 'Something went wrong!'
+            #return 'Something went wrong!'
+
+    for value in worker_values:
+        if value[4] == user['user']:
+            form.first_name.render_kw = {"placeholder": value[0]}
+            form.last_name.render_kw = {"placeholder": value[4]}
+            form.email.render_kw = {"placeholder": value[5]}
+            form.phone_number.render_kw = {"placeholder": f'{value[6]}'}
 
     return render_template('change_password.html',
                            title='Změna hesla',
@@ -268,7 +309,7 @@ def change_password():
                            role=int(user['role']),
                            access = int(user['access']),
                            workers_list=worker_values,
-                           head_text=f'Změna hesla {worker_name}',
+                           head_text=f'Změna uživatele {user["user"]}',
                            form = form)
 
 @app.route('/register_new_user', methods=['GET','POST'])
@@ -1506,7 +1547,7 @@ def set_attendance(pass_name,pass_date):
             thread.start()
 
             return render_template('result.html',
-                                    target_page='set_attendance',
+                                    target_page=f'set_attendance/{pass_name}/{pass_date}',
                                     name=pass_name,
                                     date=pass_date,
                                    user_note = notefield,

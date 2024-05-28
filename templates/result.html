@@ -7,6 +7,7 @@
         <div style="justify-content:center">
 
             <h3> {{ name }}</h3>
+            <h3>{{ head_text }}</h3>
             <p>{{ od }}{{ do }} {{ celkem }} {% if prescas %}{{ prescas }}{% endif %}</p>
             <p>{{ metry }}</p>
             <p>{{ dovolena }}</p>
@@ -28,7 +29,7 @@
      window.setTimeout(function(){
 
        // Move to a new location after 3 secs
-       window.location.href = "/{{ target_page }}/{{ name }}/{{ date }}";
+       window.location.href = "/{{ target_page }}";
 
        }, 3000);
 
