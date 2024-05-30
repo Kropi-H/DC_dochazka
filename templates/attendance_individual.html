@@ -14,7 +14,7 @@
 
         {% endif %}
         {% endfor %}
-         #}
+        #}
         <form class="form-signin" style="max-width: 600px; margin:auto;padding:15px"
               action="{{ url_for('attendance_individual') }}" method='POST'>
 
@@ -25,46 +25,62 @@
 
                 {{ form.csrt_token }}
                 {{ form.hidden_tag() }}
-                <div class="col-md-4 mb-15">
+                <div class="form-row">
+                    <div class="row">
+                        <div class="col-md-4 mb-15">
 
-                    {% if form.startdate.errors %}
-                    {% for error in form.startdate.errors %}
-                    <label class="control-label" for="startdate">{{ error }}</label>
-                    {% endfor %}
-                    {% else %}
-                    {{ form.startdate.label(class='form-control-label', for='startdate') }}
-                    {% endif %}
-                    {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
+                            {% if form.startdate.errors %}
+                            {% for error in form.startdate.errors %}
+                            <label class="control-label" for="startdate">{{ error }}</label>
+                            {% endfor %}
+                            {% else %}
+                            {{ form.startdate.label(class='form-control-label', for='startdate') }}
+                            {% endif %}
+                            {{form.startdate(class='form-control', id='startdate')}} {{form.hidden_tag()}}
 
-                </div>
-                <div class="col-md-4 mb-15">
-                    {{ form.starttime.label(class='form-control-label', for='starttime') }}
-                    {{ form.starttime(class='form-control') }} {{ form.hidden_tag() }}
-                    <small>
-                    </small>
-                </div>
+                        </div>
+                        <div class="col-md-4 mb-15">
+                            {{ form.starttime.label(class='form-control-label', for='starttime') }}
+                            {{ form.starttime(class='form-control') }} {{ form.hidden_tag() }}
+                            <small>
+                            </small>
+                        </div>
 
-                <div class="col-md-4 mb-15">
-                    {{ form.endtime.label(class='form-control-label', for='endtime') }}
-                    {{ form.endtime(class='form-control') }} {{ form.hidden_tag() }}
-                    <small>
-                    </small>
-                </div>
-
-
-                <div class="col-md-6 mb-15">
-                    {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
-                    {{form.selectfield(class='form-control',onchange='showDiv(this)')}} {{form.hidden_tag()}}
-                </div>
-                <div class="col-md-6 mb-15" id="field_num" style="display:none">
-                    {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
-                    {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
+                        <div class="col-md-4 mb-15">
+                            {{ form.endtime.label(class='form-control-label', for='endtime') }}
+                            {{ form.endtime(class='form-control') }} {{ form.hidden_tag() }}
+                            <small>
+                            </small>
+                        </div>
+                    </div>
                 </div>
 
+                <div class="form-row">
+                    <div class="row">
 
-                <div class="form-group mb-15">
-                    <div class="col-md-12 mb-15">
-                        {{form.textfield(class='form-control')}} {{form.hidden_tag()}}
+                        <div class="invalid-feedback text-danger" style="text-align:center;">
+                            {% for error in form.selectfield.errors %}
+                            <span style="font-weight:700;">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-15">
+                            {{ form.selectfield.label(class='form-control-label', for='selectfield') }}
+                            {{form.selectfield(class='form-control',onchange='showDiv(this)')}} {{form.hidden_tag()}}
+                        </div>
+                        <div class="col-md-6 mb-15" id="field_num" style="display:none">
+                            {{ form.numberfield.label(class='form-control-label', for='numberfield') }}
+                            {{form.numberfield(class='form-control')}} {{form.hidden_tag()}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="row">
+                        <div class="form-group mb-15">
+                            <div class="col-md-12 mb-15">
+                                {{form.textfield(class='form-control')}} {{form.hidden_tag()}}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

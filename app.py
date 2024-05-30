@@ -384,6 +384,9 @@ class AttendanceIndividualForm(FlaskForm):
               return friday_morning_end_time
           else:
               return afternoon_end_time
+      def check_number_value(form, field):
+          if form.selectfield.data in ['olepka','pila'] and form.numberfield.data == None:
+              raise ValidationError("Je nutné zadat číslo nebo vyber jinou činnost!")
 
       startdate = DateField(label='Datum',
                             default=date.today,
@@ -398,7 +401,7 @@ class AttendanceIndividualForm(FlaskForm):
                           default=end_time,
                           validators=[DataRequired()])
       selectfield = SelectField(u'Vyber činnost', choices=[("", "Vyber činnost .."), ('pila', 'PILA'), ('olepka', 'OLEPKA'), ('sklad', 'SKLAD'), ('obchod', 'OBCHOD'), ('zavoz', 'ZÁVOZ'), ('jine', 'JINÉ')],
-                                validators=[DataRequired()])
+                                validators=[DataRequired(),check_number_value])
       numberfield = DecimalField(label='Počty', render_kw={'placeholder': 'Počet desek / metrů ...'},
                                  validators=[validators.Optional(strip_whitespace=True)])
       textfield = TextAreaField(render_kw={'placeholder': 'Zde napište počet řezání PD, čištění stroje, ...'})
@@ -1295,6 +1298,10 @@ def statistics(selected_month):
 
 class AttendanceAdditionForm(FlaskForm):
 
+    def valid_field(form, field):
+        if form.cinnost.data in ['olepka','pila']:
+            raise ValidationError("Je nutné zadat číslo nebo vyber jinou činnost!")
+
     def empty_string_field(form, field):
         if not re.search(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$',field.data):
             raise ValidationError('Zadej platný formát (např. 8:15)')
@@ -1377,9 +1384,6 @@ def set_attendance(pass_name,pass_date):
         worker_list.append(worker)
 
     attendance_form = AttendanceAdditionForm()
-    attendance_form.notefield.default = 'testíííík'
-    #attendance_form.notefield.default='testííík'
-
 
     def return_non_empty_field(field_bool,field_data):
         if field_bool == "True" or field_bool is not str(""):
