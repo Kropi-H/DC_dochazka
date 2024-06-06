@@ -5,6 +5,10 @@ $(function () {
     $('#datetimepicker2').datetimepicker({format: "DD-MM-YYYY"});
 });
 
+function clearInfoCount(){
+    $.get(`/clear_info_count`)
+}
+
 function printPage() {
   // Vytvoření nového elementu <link> pro načtení Bootstrap CSS
   var printCss = document.createElement('link');

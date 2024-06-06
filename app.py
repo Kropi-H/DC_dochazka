@@ -3,7 +3,6 @@ import os
 import tables
 from flask import Flask, session, request, render_template, redirect, url_for, send_from_directory
 from datetime import datetime, date, timedelta, time
-import pytz
 import gspread
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
@@ -17,7 +16,6 @@ import csv
 import math
 import re
 import threading
-import time as time_module
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -182,9 +180,12 @@ def index():
             row_data = workers_sheet.row_values(user_row)
 
             if hashlib.md5(password.encode()).hexdigest() == row_data[1]:
+                for user_login_row in get_user_login_list():
+                    if user_login_row[0] == row_data[4]:
+                        session['access'] = user_login_row[3]
                 session['user_name'] = row_data[4]
                 session['role'] = int(row_data[2])
-                session['access'] = int()
+
                 # CSV path
                 file_path = 'static/login.csv'
                 # Read CSV file
@@ -195,10 +196,8 @@ def index():
                 write_csv(file_path, csv_data)
                 try:
                     find_current_date_in_google_worker_sheet(session['user_name'], 'workers')
-                    session['access'] = 1
                     return redirect(url_for('attendance_individual'))
                 except gspread.exceptions.WorksheetNotFound:
-                    session['access'] = 0
                     return redirect(url_for('attendance_all'))
 
                 #if session['role'] == 5:
@@ -535,7 +534,7 @@ def attendance_individual():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
-                           access = int(user['access']),
+                           #access = int(user['access']),
                            form=form,
                            delay_days_user_input=delay_days_user_input)
 
@@ -1606,6 +1605,17 @@ def reverse():
     save_contracts(reverse_contracts, 'contracts.csv')
     return redirect('/contracts')
 
+@app.route('/clear_info_count', methods=['GET'])
+def clear_info_count():
+    user = get_current_user()
+    file_path = 'static/login.csv'
+    csv_data = read_csv(file_path)
+    find_and_update_or_append(csv_data, user['access'])
+    for i, row in enumerate(csv_data):
+        if row[0] == user['user']:
+            csv_data[i] = [user['user'], row[1], row[2], str(0)]
+    write_csv(file_path, csv_data)
+    return 'Nonthing'
 
 if __name__=='__main__':
     app.run(debug=True)
