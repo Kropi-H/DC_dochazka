@@ -539,7 +539,6 @@ def attendance_individual():
                            worker_list=user_records(user),
                            user=user['user'],
                            role=int(user['role']),
-                           #access = int(user['access']),
                            form=form,
                            delay_days_user_input=delay_days_user_input)
 
