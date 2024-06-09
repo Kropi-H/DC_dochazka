@@ -16,6 +16,11 @@ import csv
 import math
 import re
 import threading
+import zip_and_send
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+import atexit
+
 
 # Service client credential from oauth2client
 from oauth2client.service_account import ServiceAccountCredentials
@@ -1616,6 +1621,16 @@ def clear_info_count():
             csv_data[i] = [user['user'], row[1], row[2], str(0)]
     write_csv(file_path, csv_data)
     return 'Nonthing'
+
+
+cron = BackgroundScheduler(deamon=True)
+cron.start()
+scheduler = BackgroundScheduler()
+trigger = CronTrigger(year="*", month="*", day="*", hour="23", minute="59")
+job = scheduler.add_job(zip_and_send.zip_and_send_func, trigger=trigger)
+scheduler.start()
+
+atexit.register(lambda: cron.shutdown(wait=False))
 
 if __name__=='__main__':
     app.run(debug=True)
