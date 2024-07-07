@@ -9,6 +9,10 @@ function clearInfoCount(){
     $.get(`/clear_info_count`)
 }
 
+setTimeout(function() {
+  document.getElementById("alert_info").style.display = "none";
+}, 6000);
+
 function printPage() {
   // Vytvoření nového elementu <link> pro načtení Bootstrap CSS
   var printCss = document.createElement('link');

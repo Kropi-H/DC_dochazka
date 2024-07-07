@@ -71,6 +71,12 @@
     </div><!-- /.container-fluid -->
 </nav>
 
+{% if user %}
+<div id="alert_info" style="display:block; text-align:center; margin:auto; margin-top:-20px; width: 75vw" class="alert alert-danger" role="alert">
+    <p>Aplikace bude v provozu do 31.07.2024</p>
+</div>
+{% endif %}
+
         {% for worker_item in worker_list %}
         {% if user == worker_item['name'] and worker_item['info_count'] > 0 %}
 
